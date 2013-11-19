@@ -14,8 +14,7 @@ module GamsSolver =
 
         let addSets() =
             let jset = db.AddSet("j", 1, "Arbeitsgänge")
-            addSetEntries jset "j" (Set.remove ps.Jobs.Count ps.Jobs)
-            jset.AddRecord("lastJob") |> ignore
+            addSetEntries jset "j" ps.Jobs
             let tset = db.AddSet("t", 1, "Perioden")
             addSetEntries tset "t" ps.TimeHorizon
             let rset = db.AddSet("r", 1, "Ressourcen")
@@ -58,9 +57,9 @@ module GamsSolver =
         ()
 
     let solve (ps:ProjectStructure) =
-        let ws = new GAMSWorkspace(workingDirectory="../../../../GAMS-Modell", debug=DebugLevel.KeepFiles)
+        let ws = new GAMSWorkspace(workingDirectory="../../", debug=DebugLevel.KeepFiles)
         let opt = ws.AddOptions()
-        opt.License <- "gamslice_Kurs_Nov13.txt"        
+        opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"        
         let job = ws.AddJobFromFile("model.gms")
         let db = createDatabase ws ps
         //opt.Defines.Add("gdxincname", db.Name)
