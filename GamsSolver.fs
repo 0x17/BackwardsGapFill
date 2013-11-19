@@ -52,9 +52,26 @@ module GamsSolver =
         db
 
     let processOutput (outdb:GAMSDatabase) =
-        let z = outdb.GetVariable("z")
-        let x = outdb.GetVariable("x")
-        ()
+        let parseKey (str:string) = System.Int32.Parse(str.Substring(1))
+
+        let zvar = outdb.GetVariable("z")
+        let z = new System.Collections.Generic.Dictionary<int*int, int>()
+        for vrecsym in zvar do
+            let vrec : GAMSVariableRecord = downcast vrecsym
+            let r = parseKey vrec.Keys.[0]
+            let t = parseKey vrec.Keys.[1]
+            z.Add((r, t), int(vrec.Level))
+
+        let xvar = outdb.GetVariable("x")
+        let sts = new IntMap()        
+        for vrecsym in xvar do
+            let vrec : GAMSVariableRecord = downcast vrecsym
+            if vrec.Level = 1.0 then
+                let j = parseKey vrec.Keys.[0]
+                let t = parseKey vrec.Keys.[1]
+                sts.Add(j, t)
+
+        (z, sts)
 
     let solve (ps:ProjectStructure) =
         let ws = new GAMSWorkspace(workingDirectory="../../", debug=DebugLevel.KeepFiles)
@@ -62,8 +79,7 @@ module GamsSolver =
         opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"        
         let job = ws.AddJobFromFile("model.gms")
         let db = createDatabase ws ps
-        //opt.Defines.Add("gdxincname", db.Name)
-        //opt.AllModelTypes <- "xpress"
         job.Run(opt, db)
         opt.Dispose()
-        processOutput job.OutDB
+        let (z, sts) = processOutput job.OutDB
+        ScheduleVisualisation.show ps sts
