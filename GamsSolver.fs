@@ -16,7 +16,7 @@ module GamsSolver =
             let jset = db.AddSet("j", 1, "Arbeitsgänge")
             addSetEntries jset "j" ps.Jobs
             let tset = db.AddSet("t", 1, "Perioden")
-            addSetEntries tset "t" ps.TimeHorizon
+            addSetEntries tset "t" (0 :: ps.TimeHorizon)
             let rset = db.AddSet("r", 1, "Ressourcen")
             addSetEntries rset "r" ps.Resources
             let predSet = db.AddSet("pred", 2, "yes gdw. i Vorgänger von j ist")
@@ -34,7 +34,7 @@ module GamsSolver =
             let durationsParam = db.AddParameter("durations", 1, "Dauern")
             addParamEntries durationsParam "j" ps.Jobs ps.Durations
             let costsParam = db.AddParameter("costs", 1, "Kosten")
-            addParamEntries costsParam "j" ps.Jobs ps.Costs
+            addParamEntries costsParam "j" ps.ActualJobs ps.Costs
             let ustarParam = db.AddParameter("ustar", 1, "Erlös bei Makespan t")
             addParamEntries ustarParam "t" ps.TimeHorizon ps.UStar
 
@@ -63,23 +63,23 @@ module GamsSolver =
             z.Add((r, t), int(vrec.Level))
 
         let xvar = outdb.GetVariable("x")
-        let sts = new IntMap()        
+        let fts = new IntMap()        
         for vrecsym in xvar do
             let vrec : GAMSVariableRecord = downcast vrecsym
             if vrec.Level = 1.0 then
                 let j = parseKey vrec.Keys.[0]
                 let t = parseKey vrec.Keys.[1]
-                sts.Add(j, t)
+                fts.Add(j, t)
 
-        (z, sts)
+        (z, fts)
 
     let solve (ps:ProjectStructure) =
-        let ws = new GAMSWorkspace(workingDirectory="../../", debug=DebugLevel.KeepFiles)
+        let ws = new GAMSWorkspace(workingDirectory="../../", debug=DebugLevel.Off)
         let opt = ws.AddOptions()
         opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"        
         let job = ws.AddJobFromFile("model.gms")
         let db = createDatabase ws ps
         job.Run(opt, db)
         opt.Dispose()
-        let (z, sts) = processOutput job.OutDB
-        ScheduleVisualisation.show ps sts
+        let (z, fts) = processOutput job.OutDB
+        ps.FinishingTimesToStartingTimes fts

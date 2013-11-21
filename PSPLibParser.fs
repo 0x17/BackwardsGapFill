@@ -28,10 +28,6 @@ module PSPLibParser =
 
     let parse filename =
         let lines = System.IO.File.ReadAllLines(filename)
-        
-        let horizon =
-            let hline = Array.find (fun (l:string) -> l.StartsWith("horizon")) lines
-            int(Regex.Matches(hline, "(\d+)").Item(0).Value)
 
         let precOffset = offsetStartingWith "PRECEDENCE RELATIONS:" lines
         let reqDurOffset = offsetStartingWith "REQUESTS/DURATIONS:" lines
@@ -62,4 +58,4 @@ module PSPLibParser =
         ProjectStructure.Create(jobs, durations, demands,
                                 costsFunc, capacities, predsFunc,
                                 resources, topSort jobs predsFunc,
-                                reachedLevels, horizon, kappa, zmax)
+                                reachedLevels, kappa, zmax)

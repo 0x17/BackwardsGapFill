@@ -19,7 +19,7 @@ module ScheduleVisualisation =
             dgv.Columns.Clear()
             dgv.Rows.Clear()
 
-            let grid = ps.ScheduleToGrid (fun r -> 2) sts r
+            let grid = ps.ScheduleToGrid sts r
 
             let nrows = Array2D.length1 grid
             let ncols = Array2D.length2 grid

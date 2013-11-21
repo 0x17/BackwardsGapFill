@@ -19,24 +19,23 @@ module Program =
                                 resources=Set.ofList [1],
                                 topOrdering=topSort jobset predRelation,
                                 reachedLevels=RandomData.randomReachedLevels(),
-                                horizon=10,
                                 kappa=(fun r -> 1),
                                 zmax=(fun r -> 0))
 
     [<EntryPoint>]
     let main argv =
         let testFilename = "../../Testmodell.dat"
-
         let ps = PSPLibParser.parse testFilename
-        GamsSolver.solve ps
+        
         //let ps = exampleProject()
+        let os = GamsSolver.solve ps
 
         (*RandomData.serializeCosts (RandomData.randomCosts ps.Jobs.Count) (testFilename+".costs.txt")
         RandomData.serializeReachedLevels (RandomData.randomReachedLevels()) (testFilename+".rlevels.txt")
 
         let sw = new System.Diagnostics.Stopwatch()
         sw.Start()*)
-        let os = ps.ComputeOptimalSchedule()
+        //let os = ps.ComputeOptimalSchedule()
         //let os = ps.SerialScheduleGenerationScheme (fun r t -> 0) 
         (*sw.Stop()
         printf "Time elapsed: %O\n" sw.Elapsed
@@ -48,7 +47,7 @@ module Program =
 
         System.IO.File.WriteAllText("test.txt", (array2DToStr grid))*)
 
-        //ScheduleVisualisation.show ps os
+        ScheduleVisualisation.show ps os
 
         //System.Console.ReadKey() |> ignore
         0
