@@ -47,8 +47,8 @@ module Program =
         //let ps = exampleProject()
         let testFilename = "../../Testmodell.dat"
         let ps = PSPLibParser.parse testFilename        
-        let os1 = GamsSolver.solve ps
-        ScheduleVisualisation.show ps os1
+        //let os1 = GamsSolver.solve ps
+        //ScheduleVisualisation.show ps os1
         let os2 = ps.ComputeOptimalSchedule()
         ScheduleVisualisation.show ps os2
         0
