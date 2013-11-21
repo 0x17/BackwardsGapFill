@@ -20,6 +20,7 @@ type ProjectStructure(jobs:Set<int>,
     let firstJob = Set.minElement jobs
     let lastJob = Set.maxElement jobs
     let actualJobs = Set.difference jobs (Set.ofSeq [firstJob; lastJob])
+
     let T = Seq.sumBy durations jobs
     let horizon = [1..T]
 
@@ -115,7 +116,7 @@ type ProjectStructure(jobs:Set<int>,
     let urel = [|(1, 0.0); (2, 0.05); (3, 0.10); (4, 0.15); (5, 0.20)|] |> arrayToFunc
     let umax = 2 * Seq.sumBy costs actualJobs
     let u l t = float(umax) * float(T-t)/float(T) * (1.0 - urel l)
-    let ustar t = Seq.maxBy (fun l -> u l t) reachedLevels
+    let ustar t = reachedLevels |> Seq.map (fun l -> u l t) |> Seq.max |> int
 
     let profit (sts:IntMap) =
         let revenue = ustar (makespan sts)

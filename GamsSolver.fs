@@ -77,9 +77,11 @@ module GamsSolver =
         let ws = new GAMSWorkspace(workingDirectory="../../", debug=DebugLevel.Off)
         let opt = ws.AddOptions()
         opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"        
+        opt.MIP <- "GUROBI"
         let job = ws.AddJobFromFile("model.gms")
         let db = createDatabase ws ps
-        job.Run(opt, db)
+        let writer = System.Console.Out
+        job.Run(opt, writer, db)
         opt.Dispose()
         let (z, fts) = processOutput job.OutDB
         ps.FinishingTimesToStartingTimes fts

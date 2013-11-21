@@ -22,32 +22,34 @@ module Program =
                                 kappa=(fun r -> 1),
                                 zmax=(fun r -> 0))
 
-    [<EntryPoint>]
-    let main argv =
-        let testFilename = "../../Testmodell.dat"
-        let ps = PSPLibParser.parse testFilename
-        
-        //let ps = exampleProject()
-        let os = GamsSolver.solve ps
-
-        (*RandomData.serializeCosts (RandomData.randomCosts ps.Jobs.Count) (testFilename+".costs.txt")
+    let oldMain argv =
+        let testFilename = ""
+        let ps = exampleProject()
+        RandomData.serializeCosts (RandomData.randomCosts ps.Jobs.Count) (testFilename+".costs.txt")
         RandomData.serializeReachedLevels (RandomData.randomReachedLevels()) (testFilename+".rlevels.txt")
 
         let sw = new System.Diagnostics.Stopwatch()
-        sw.Start()*)
-        //let os = ps.ComputeOptimalSchedule()
-        //let os = ps.SerialScheduleGenerationScheme (fun r t -> 0) 
-        (*sw.Stop()
+        sw.Start()
+        let os = ps.ComputeOptimalSchedule()
+        let os = ps.SerialScheduleGenerationScheme (fun r t -> 0) 
+        sw.Stop()
         printf "Time elapsed: %O\n" sw.Elapsed
 
         printf "%s\n" (dictToStr os)
 
-        let grid = ps.ScheduleToGrid (fun r -> 2) os 1
-        printf "%s" (array2DToStr grid)
+        //let grid = ps.ScheduleToGrid (fun r -> 2) os 1
+        //printf "%s" (array2DToStr grid)
+        //System.IO.File.WriteAllText("test.txt", (array2DToStr grid))
+        System.Console.ReadKey() |> ignore
 
-        System.IO.File.WriteAllText("test.txt", (array2DToStr grid))*)
-
-        ScheduleVisualisation.show ps os
-
-        //System.Console.ReadKey() |> ignore
+    [<EntryPoint>]
+    let main argv =
+        //let ps = exampleProject()
+        let testFilename = "../../Testmodell.dat"
+        let ps = PSPLibParser.parse testFilename        
+        let os1 = GamsSolver.solve ps
+        ScheduleVisualisation.show ps os1
+        let os2 = ps.ComputeOptimalSchedule()
+        ScheduleVisualisation.show ps os2
         0
+    
