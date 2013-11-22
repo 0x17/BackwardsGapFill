@@ -6,10 +6,10 @@ open System.Windows.Forms
 open System.Data
 
 module ScheduleVisualisation =
-    let show (ps:ProjectStructure) (sts:IntMap) (z:int->int->int) =
+    let show caption (ps:ProjectStructure) (sts:IntMap) (z:int->int->int) =
         let lblOffsetY = 500       
 
-        let mainForm = new Form(Width = 1280, Height = 720, Text = "Ablaufplan")
+        let mainForm = new Form(Width = 1280, Height = 720, Text = "Ablaufplan - " + caption)
         mainForm.StartPosition <- FormStartPosition.CenterScreen
 
         let addLbl text loc =
@@ -25,10 +25,11 @@ module ScheduleVisualisation =
         let remZeroes str = if str = "0" then "" else str
 
         let initJobToColorMap() =
+            let r = new Random(23)
             let colMap = new System.Collections.Generic.Dictionary<int, Color>()
             colMap.Add(0, Color.White)
             for j in ps.Jobs do
-                let rval () = Utils.rand 20 255
+                let rval () = r.Next(20, 256)
                 colMap.Add(j, Color.FromArgb(rval(), rval(), rval()))
             colMap
 
@@ -107,4 +108,8 @@ module ScheduleVisualisation =
         
         addLbl ("Horizon: " + string ps.TimeHorizon.Length) (new Point(10, lblOffsetY+120))
 
-        Application.Run(mainForm)
+        mainForm.Show()
+
+    let showSchedules data =
+        for (caption,ps,sts,z) in data do show caption ps sts z
+        System.Windows.Forms.Application.Run()

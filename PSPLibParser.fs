@@ -1,18 +1,20 @@
 ﻿namespace RCPSP
 
-open Utils
+open System
 open System.Text.RegularExpressions
 open System.IO
+
+open Utils
 
 module PSPLibParser =
     let offsetStartingWith str lines = Seq.findIndex (fun (line:string) -> line.StartsWith(str)) lines
 
-    let parseNumJobs filename = System.Int32.Parse(File.ReadAllLines(filename).[5].Split([|':'|]).[1].Trim())
-    let parseNumResources filename = System.Int32.Parse((File.ReadAllLines(filename).[8].Split([|':'|]).[1].Split() |> Array.filter (fun s -> s <> "")).[0])
+    let parseNumJobs filename = Int32.Parse(File.ReadAllLines(filename).[5].Split([|':'|]).[1].Trim())
+    let parseNumResources filename = Int32.Parse((File.ReadAllLines(filename).[8].Split([|':'|]).[1].Split() |> Array.filter (fun s -> s <> "")).[0])
     let parseCapsOnly filename =
         let lines = File.ReadAllLines(filename)
         let resOffset = offsetStartingWith "RESOURCEAVAILABILITIES" lines
-        lines.[resOffset+2].Split() |> Array.filter (fun s -> s <> "") |> Array.map (fun cstr -> System.Int32.Parse(cstr))
+        lines.[resOffset+2].Split() |> Array.filter (fun s -> s <> "") |> Array.map (fun cstr -> Int32.Parse(cstr))
 
     let serializeCommon title mapping filename =
         title+":\n"+

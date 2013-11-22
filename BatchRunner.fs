@@ -3,7 +3,7 @@
 open System.IO
 
 module BatchRunner =
-    let projExtension = "sm"
+    let projExtension = "DAT"
     let projFilenames dirPath = Directory.GetFiles(dirPath, "*."+projExtension, SearchOption.AllDirectories)
 
     let addCostsAndLevelsToProjs dirPath =

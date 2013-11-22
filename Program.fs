@@ -43,14 +43,13 @@ module Program =
         System.Console.ReadKey() |> ignore
 
     let testVis() =
-        let testFilename = "../../Projekte/j304_1.sm"
+        let testFilename = "../../Projekte/Modellendogen0001.DAT"
         let ps = PSPLibParser.parse testFilename
 
         let (z1,sts1) = GamsSolver.solve ps
-        ScheduleVisualisation.show ps sts1 z1
-
         let (z2,sts2) = ps.ComputeOptimalSchedule()
-        ScheduleVisualisation.show ps sts2 z2
+
+        ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1, z1); ("Heuristik", ps, sts2, z2)]
 
     let convertProjs() =
         BatchRunner.addCostsAndLevelsToProjs "../../Projekte"
