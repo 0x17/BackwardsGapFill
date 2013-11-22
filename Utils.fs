@@ -43,3 +43,4 @@ module Utils =
     let slurp filename = File.ReadAllText(filename)
     let slurpLines filename = File.ReadAllLines(filename)
     let spit filename content = File.WriteAllText(filename, content)
+    let spitAppend filename content = File.AppendAllText(filename, content)

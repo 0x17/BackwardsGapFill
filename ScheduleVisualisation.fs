@@ -5,13 +5,18 @@ open System.Drawing
 open System.Windows.Forms
 open System.Data
 
-// TODO: Horizontalen Scrollbalken anzeigen
-// TODO: Je Periode die gesetzte Zusatzkapazität zrt anzeigen
-// TODO: Kapazität von gewählter Ressource als Label anzeigen
-// TODO: 
 module ScheduleVisualisation =
-    let show (ps:ProjectStructure) (sts:IntMap) =
-        let mainForm = new Form(Width = 640, Height = 450, Text = "Ablaufplan")
+    let show (ps:ProjectStructure) (sts:IntMap) (z:int->int->int) =
+        let lblOffsetY = 500       
+
+        let mainForm = new Form(Width = 1280, Height = 720, Text = "Ablaufplan")
+        mainForm.StartPosition <- FormStartPosition.CenterScreen
+
+        let addLbl text loc =
+            let lbl = new Label()
+            lbl.Text <- text
+            lbl.Location <- loc
+            mainForm.Controls.Add(lbl)
 
         let dgv = new DataGridView()
 
@@ -23,15 +28,34 @@ module ScheduleVisualisation =
             let colMap = new System.Collections.Generic.Dictionary<int, Color>()
             colMap.Add(0, Color.White)
             for j in ps.Jobs do
-                let rval = Utils.rand 0 255
-                let gval = Utils.rand 0 255
-                let bval = Utils.rand 0 255
-                colMap.Add(j, Color.FromArgb(rval, gval, bval))
+                let rval () = Utils.rand 20 255
+                colMap.Add(j, Color.FromArgb(rval(), rval(), rval()))
             colMap
 
-        let updateGridForRes r =
-            let colMap = initJobToColorMap()
+        let capLbl = new Label()
+        let updateCapLbl cap =
+            capLbl.Text <- "Capacity: " + string cap
+        updateCapLbl (ps.Capacities 1)
+        capLbl.Location <- new Point(10, lblOffsetY+90)
+        mainForm.Controls.Add(capLbl)
+        
+        let colMap = initJobToColorMap()
+        let setCell (i:int) (j:int) (v:int) =
+                let cell = dgv.[j,i]
+                cell.Value <- remZeroes (v.ToString())
+                cell.Style.BackColor <- colMap.[v]
 
+        let addZrtRow r =
+            let rcount = dgv.Rows.Count
+            let dgvr = new DataGridViewRow()
+            dgvr.Height <- 20
+            dgvr.HeaderCell.Value <- "zrt"
+            dgv.Rows.Add(dgvr) |> ignore
+            for t in ps.TimeHorizon do
+                let cell = dgv.[t-1, rcount-1]
+                cell.Value <- z r t
+
+        let updateGridForRes r =
             dgv.Columns.Clear()
             dgv.Rows.Clear()
 
@@ -53,13 +77,11 @@ module ScheduleVisualisation =
                 dgvr.HeaderCell.Value <- (nrows-k+1).ToString()
                 dgv.Rows.Add(dgvr) |> ignore
 
-            let setCell (i:int) (j:int) (v:int) =
-                let cell = dgv.[j,i]
-                cell.Value <- remZeroes (v.ToString())
-                cell.Style.BackColor <- colMap.[v]
-
             Array2D.iteri setCell grid
+            addZrtRow r
             dgv.Refresh()
+
+            updateCapLbl (ps.Capacities r)
 
         updateGridForRes 1
 
@@ -71,21 +93,18 @@ module ScheduleVisualisation =
         mainForm.Controls.Add(dgv)
         mainForm.HorizontalScroll.Enabled <- true
         mainForm.VerticalScroll.Enabled <- true
+        mainForm.AutoScroll <- true
 
-        let resLbl = new Label()
-        resLbl.Text <- "Selected resource"
-        resLbl.Location <- new Point(10, 290)
-        mainForm.Controls.Add(resLbl)
+        addLbl "Selected resource" (new Point(10, lblOffsetY))
 
         let resCb = new ComboBox()
         resCb.DataSource <- Array.ofSeq ps.Resources
-        resCb.Location <- new Point(10, 320)
+        resCb.Location <- new Point(10, lblOffsetY+30)
         resCb.SelectedValueChanged.Add(fun v -> updateGridForRes (resCb.SelectedIndex+1))
         mainForm.Controls.Add(resCb)
 
-        let msLbl = new Label()
-        msLbl.Text <- "Makespan: " + sts.[sts.Keys.Count].ToString()
-        msLbl.Location <- new Point(10, 350)
-        mainForm.Controls.Add(msLbl)
+        addLbl ("Makespan: " + sts.[sts.Keys.Count].ToString()) (new Point(10, lblOffsetY+60))
+        
+        addLbl ("Horizon: " + string ps.TimeHorizon.Length) (new Point(10, lblOffsetY+120))
 
         Application.Run(mainForm)

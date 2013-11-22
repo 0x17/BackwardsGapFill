@@ -134,7 +134,8 @@ type ProjectStructure(jobs:Set<int>,
                 iterateMakespanDecrement()
         profitsToSchedules.Add(profit(schedule), new IntMap(schedule))
         iterateMakespanDecrement()
-        profitsToSchedules.[Seq.max profitsToSchedules.Keys]
+        let bestSchedule = profitsToSchedules.[Seq.max profitsToSchedules.Keys]
+        ((fun r t -> neededOvercapacityInPeriod bestSchedule r t), bestSchedule)
 
     let scheduleToGrid sts r =
         let nrows = capacities(r) + zmax r

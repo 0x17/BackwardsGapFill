@@ -23,10 +23,10 @@ module Program =
                                 zmax=(fun r -> 0))
 
     let oldMain argv =
-        let testFilename = ""
+        let testFilename = "../../Testmodell.dat"
         let ps = exampleProject()
-        RandomData.serializeCosts (RandomData.randomCosts ps.Jobs.Count) (testFilename+".costs.txt")
-        RandomData.serializeReachedLevels (RandomData.randomReachedLevels()) (testFilename+".rlevels.txt")
+        PSPLibParser.serializeCosts (RandomData.randomCosts ps.Jobs.Count) testFilename
+        PSPLibParser.serializeReachedLevels (RandomData.randomReachedLevels()) testFilename
 
         let sw = new System.Diagnostics.Stopwatch()
         sw.Start()
@@ -42,14 +42,22 @@ module Program =
         //System.IO.File.WriteAllText("test.txt", (array2DToStr grid))
         System.Console.ReadKey() |> ignore
 
+    let testVis() =
+        let testFilename = "../../Projekte/j304_1.sm"
+        let ps = PSPLibParser.parse testFilename
+
+        let (z1,sts1) = GamsSolver.solve ps
+        ScheduleVisualisation.show ps sts1 z1
+
+        let (z2,sts2) = ps.ComputeOptimalSchedule()
+        ScheduleVisualisation.show ps sts2 z2
+
+    let convertProjs() =
+        BatchRunner.addCostsAndLevelsToProjs "../../Projekte"
+
     [<EntryPoint>]
     let main argv =
-        //let ps = exampleProject()
-        let testFilename = "../../Testmodell.dat"
-        let ps = PSPLibParser.parse testFilename        
-        //let os1 = GamsSolver.solve ps
-        //ScheduleVisualisation.show ps os1
-        let os2 = ps.ComputeOptimalSchedule()
-        ScheduleVisualisation.show ps os2
+        testVis()
+        //convertProjs()
         0
     

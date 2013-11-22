@@ -76,12 +76,14 @@ module GamsSolver =
     let solve (ps:ProjectStructure) =
         let ws = new GAMSWorkspace(workingDirectory="../../", debug=DebugLevel.Off)
         let opt = ws.AddOptions()
-        opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"        
+        opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"
         opt.MIP <- "GUROBI"
         let job = ws.AddJobFromFile("model.gms")
         let db = createDatabase ws ps
+        //let writer = new System.IO.StringWriter() // forward string writer to stdout
         let writer = System.Console.Out
         job.Run(opt, writer, db)
+        // Parse elapsed time from string writer content
         opt.Dispose()
         let (z, fts) = processOutput job.OutDB
-        ps.FinishingTimesToStartingTimes fts
+        ((fun r t -> z.[(r,t)]), ps.FinishingTimesToStartingTimes fts)
