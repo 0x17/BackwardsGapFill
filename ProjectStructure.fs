@@ -68,7 +68,7 @@ type ProjectStructure(jobs:Set<int>,
     let residualCapacity z (sts:IntMap) r t = capacities r + z r t - demandInPeriod sts r t
 
     let enoughCapacityForJob z (sts:IntMap) j stj =
-        cartesianProduct resources [stj+1..stj+(durations j)]
+        cartesianProduct resources [stj+1..stj+durations j]
         |> Seq.forall (fun (r,t) -> residualCapacity z sts r t >= demands j r)
     
     let ssgs z =
@@ -82,16 +82,14 @@ type ProjectStructure(jobs:Set<int>,
 
     let afterLatestGaps (sts:IntMap) =
         let alg = new IntLst()
-        let rec tryAddChildsRec parentJob =
-            let latestFt = lastPredFinishingTime sts parentJob
-            if latestFt = sts.[parentJob] then
-                for i in preds parentJob do
-                    if ft sts i = latestFt then
-                        alg.Add(i)
-                        tryAddChildsRec i
-        if sts.[lastJob] > ests.[lastJob] then
-            alg.Add(lastJob)
-            tryAddChildsRec lastJob
+        if sts.[lastJob] > ests.[lastJob] then            
+            let rest = new Stack<int>([lastJob])
+            while rest.Count > 0 do
+                let j = rest.Pop ()
+                alg.Add j
+                let latestFt = lastPredFinishingTime sts j
+                if latestFt = sts.[j] then
+                    preds j |> Seq.filter (fun i -> ft sts i = latestFt) |> Seq.iter rest.Push
         alg
 
     let onePeriodLeftShift (sts:IntMap) js = Seq.iter (fun j -> sts.[j] <- sts.[j]-1) js
@@ -125,20 +123,20 @@ type ProjectStructure(jobs:Set<int>,
 
     let computeBestSchedule() =
         let profitsToSchedules = new Dictionary<int, IntMap>()
-        let schedule = ssgs zeroOc
+        let schedule = ssgs zeroOc        
         let rec iterateMakespanDecrement() =
             if tryDecrementMakespan schedule then
                 let p = profit schedule
                 if not(profitsToSchedules.ContainsKey(p)) then
                     profitsToSchedules.Add(p, new IntMap(schedule))
-                iterateMakespanDecrement()
-        profitsToSchedules.Add(profit(schedule), new IntMap(schedule))
+                iterateMakespanDecrement()        
+        profitsToSchedules.Add(profit schedule, new IntMap(schedule))
         iterateMakespanDecrement()
         let bestSchedule = profitsToSchedules.[Seq.max profitsToSchedules.Keys]
         ((fun r t -> neededOvercapacityInPeriod bestSchedule r t), bestSchedule)
 
     let scheduleToGrid sts r =
-        let nrows = capacities(r) + zmax r
+        let nrows = capacities r + zmax r
         let grid = Array2D.zeroCreate nrows T
         for t in horizon do
             let actJobs = activeInPeriodSet sts t
@@ -150,6 +148,7 @@ type ProjectStructure(jobs:Set<int>,
         grid
 
     // Interface methods
+    member ps.AfterLatestGaps = afterLatestGaps
     member ps.ComputeOptimalSchedule = computeBestSchedule
     member ps.SerialScheduleGenerationScheme = ssgs
     member ps.ScheduleToGrid = scheduleToGrid    

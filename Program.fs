@@ -6,7 +6,7 @@ open PSPLibParser
 
 module Program =
     let solveAndVisualize () =
-        let testFilename = "../../Projekte/Modellendogen0005.DAT"
+        let testFilename = "../../Projekte/Modellendogen0001.DAT"
         let ps = PSPLibParser.parse testFilename
 
         let (z1,sts1) = GamsSolver.solve ps
@@ -18,6 +18,6 @@ module Program =
     let main argv =
         //BatchRunner.stripAdditionalData "../../Projekte"
         //BatchRunner.addCostsAndLevelsToProjs "../../Projekte"
-        solveAndVisualize ()        
+        solveAndVisualize ()
         0
     
