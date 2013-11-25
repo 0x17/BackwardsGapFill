@@ -153,6 +153,10 @@ type ProjectStructure(jobs:Set<int>,
     member ps.ComputeOptimalSchedule = computeBestSchedule
     member ps.SerialScheduleGenerationScheme = ssgs
     member ps.ScheduleToGrid = scheduleToGrid    
+    member ps.FinishingTimesToStartingTimes (fts:IntMap) =
+        let sts = new IntMap()
+        for j in jobs do sts.Add(j, fts.[j] - durations j)
+        sts
     // Interface properties
     member ps.Jobs = jobs
     member ps.ActualJobs = actualJobs
@@ -170,11 +174,7 @@ type ProjectStructure(jobs:Set<int>,
     member ps.LatestFinishingTimes = lfts
     member ps.Kappa = kappa
     member ps.UStar = ustar
-    member ps.ZMax = zmax
-    member ps.FinishingTimesToStartingTimes (fts:IntMap) =
-        let sts = new IntMap()
-        for j in jobs do sts.Add(j, fts.[j] - durations j)
-        sts
+    member ps.ZMax = zmax   
 
     static member Create(jobs, durations, demands, costs, capacities, preds, resources, topOrdering, reachedLevels, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (ix+1,e)) arr |> Map.ofSeq

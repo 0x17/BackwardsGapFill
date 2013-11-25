@@ -26,5 +26,10 @@ module BatchRunner =
             let levels = RandomData.randomReachedLevels()
             PSPLibParser.serializeReachedLevels levels fn
 
+    let stripAdditionalData dirPath =
+        for fn in projFilenames dirPath do
+            let origLines = File.ReadAllLines(fn) |> Seq.takeWhile (fun line -> not(line.StartsWith("OVERCAPACITY")))
+            File.WriteAllLines(fn, origLines)
+
     let collectSolverStatsForProjs dirPath solver =
         ignore

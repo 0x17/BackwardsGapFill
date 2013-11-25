@@ -5,7 +5,7 @@ open Utils
 open PSPLibParser
 
 module Program =
-    let exampleProject() =
+    (*let exampleProject() =
         let predRelation = [|(1, []); (2, [1]); (3, [1]); (4, [2]); (5, [3]); (6, [1]); (7, [4; 5; 6])|]
                            |> Array.map (fun (j, predsj) -> (j, Set.ofSeq predsj))
                            |> arrayToFunc
@@ -20,9 +20,9 @@ module Program =
                                 topOrdering=topSort jobset predRelation,
                                 reachedLevels=RandomData.randomReachedLevels(),
                                 kappa=(fun r -> 1),
-                                zmax=(fun r -> 0))
+                                zmax=(fun r -> 0))*)
 
-    let oldMain argv =
+    (*let oldMain argv =
         let testFilename = "../../Testmodell.dat"
         let ps = exampleProject()
         PSPLibParser.serializeCosts (RandomData.randomCosts ps.Jobs.Count) testFilename
@@ -40,10 +40,10 @@ module Program =
         //let grid = ps.ScheduleToGrid (fun r -> 2) os 1
         //printf "%s" (array2DToStr grid)
         //System.IO.File.WriteAllText("test.txt", (array2DToStr grid))
-        System.Console.ReadKey() |> ignore
+        System.Console.ReadKey() |> ignore*)
 
     let testVis() =
-        let testFilename = "../../Projekte/Modellendogen0001.DAT"
+        let testFilename = "../../Projekte/Modellendogen0005.DAT"
         let ps = PSPLibParser.parse testFilename
 
         let (z1,sts1) = GamsSolver.solve ps
@@ -56,7 +56,8 @@ module Program =
 
     [<EntryPoint>]
     let main argv =
-        testVis()
+        //BatchRunner.stripAdditionalData "../../Projekte"
         //convertProjs()
+        testVis()        
         0
     

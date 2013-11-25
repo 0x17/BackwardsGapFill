@@ -101,13 +101,14 @@ module ScheduleVisualisation =
         let resCb = new ComboBox()
         resCb.DataSource <- Array.ofSeq ps.Resources
         resCb.Location <- new Point(10, lblOffsetY+30)
-        resCb.SelectedValueChanged.Add(fun v -> updateGridForRes (resCb.SelectedIndex+1))
+        resCb.SelectedValueChanged.Add(fun _ -> updateGridForRes (resCb.SelectedIndex+1))
         mainForm.Controls.Add(resCb)
 
         addLbl ("Makespan: " + sts.[sts.Keys.Count].ToString()) (new Point(10, lblOffsetY+60))
         
         addLbl ("Horizon: " + string ps.TimeHorizon.Length) (new Point(10, lblOffsetY+120))
 
+        mainForm.Closed.Add(fun _ -> Application.Exit())
         mainForm.Show()
 
     let showSchedules data =
