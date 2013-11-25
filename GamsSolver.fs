@@ -77,8 +77,7 @@ module GamsSolver =
         let ws = new GAMSWorkspace(workingDirectory="../../", debug=DebugLevel.Off)
         let opt = ws.AddOptions()
         opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"
-        //opt.MIP <- "GUROBI"
-        opt.MIP <- "CPLEX"
+        opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0001
         let job = ws.AddJobFromFile("model.gms")
         let db = createDatabase ws ps
