@@ -14,7 +14,7 @@ module PSPLibParser =
     let parseCapsOnly filename =
         let lines = File.ReadAllLines(filename)
         let resOffset = offsetStartingWith "RESOURCEAVAILABILITIES" lines
-        lines.[resOffset+2].Split() |> Array.filter (fun s -> s <> "") |> Array.map (fun cstr -> Int32.Parse(cstr))
+        lines.[resOffset+2].Split() |> Array.filter (fun s -> s <> "") |> Array.map (fun cstr -> Int32.Parse cstr)
 
     let serializeCommon title mapping filename =
         title+":\n"+
@@ -72,15 +72,15 @@ module PSPLibParser =
         let jobs = Set.ofSeq [1..numJobs]
         let resources = Set.ofSeq [1..numRes]
 
-        let linesToFuncCommon beginTitle endTitle =
+        let linesToFuncCommon beginTitle endTitle t =
             let relevantLines = lines.[offsets(beginTitle)+1..offsets(endTitle)-1]
             let relevantLinesStr = System.String.Join("\n", relevantLines)
-            let mapping = mapFromStr relevantLinesStr
+            let mapping = mapFromStr relevantLinesStr t
             mapToFunc mapping
 
-        let kappaFunc = linesToFuncCommon "oc-costs" "max-oc"
-        let zmaxFunc = linesToFuncCommon "max-oc" "costs"
-        let costsFunc = linesToFuncCommon "costs" "rlevels"
+        let kappaFunc = linesToFuncCommon "oc-costs" "max-oc" float
+        let zmaxFunc = linesToFuncCommon "max-oc" "costs" int
+        let costsFunc = linesToFuncCommon "costs" "rlevels" float
 
         let levelsLines = lines.[offsets("rlevels")+1..lines.Length-1]
         let reachedLevels = deserializeReachedLevels levelsLines

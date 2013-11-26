@@ -6,17 +6,17 @@ open Utils
 type IntMap = Dictionary<int,int>
 type IntLst = List<int>
 
-type ProjectStructure(jobs:Set<int>,
-                      durations:int -> int,
-                      demands:int -> int -> int,
-                      costs:int -> int,
-                      preds:int -> Set<int>,
-                      resources:Set<int>,
-                      capacities:int -> int,
-                      topOrdering:int seq,
+type ProjectStructure(jobs:         Set<int>,
+                      durations:    int -> int,
+                      demands:      int -> int -> int,
+                      costs:        int -> float,
+                      preds:        int -> Set<int>,
+                      resources:    Set<int>,
+                      capacities:   int -> int,
+                      topOrdering:  int seq,
                       reachedLevels:Set<int>,
-                      kappa:int->int,
-                      zmax:int->int) =
+                      kappa:        int->float,
+                      zmax:         int->int) =
     let firstJob = Set.minElement jobs
     let lastJob = Set.maxElement jobs
     let actualJobs = Set.difference jobs (Set.ofSeq [firstJob; lastJob])
@@ -31,30 +31,30 @@ type ProjectStructure(jobs:Set<int>,
 
     let jobWithoutPreds = Set.isEmpty << preds
 
-    let computeEsts() =
-        let ests = new IntMap()
+    let computeEsts () =
+        let ests = new IntMap ()
         for j in Seq.filter jobWithoutPreds jobs do
-            ests.Add(j, 0)
+            ests.Add (j, 0)
         for j in topOrdering do
-            if not(ests.ContainsKey(j)) then
+            if not(ests.ContainsKey j) then
                 ests.Add(j, lastPredFinishingTime ests j)
         ests
 
-    let ests = computeEsts()
+    let ests = computeEsts ()
     let efts = (fun j -> ft ests j)
 
-    let computeLfts() =
-        let lfts = new IntMap()
+    let computeLfts () =
+        let lfts = new IntMap ()
         let rec traversePreds j =
             for i in preds j do
                 let stj = st lfts j
-                lfts.[i] <- if lfts.ContainsKey(i) then Seq.min [lfts.[i]; stj] else stj
+                lfts.[i] <- if lfts.ContainsKey i then Seq.min [lfts.[i]; stj] else stj
                 traversePreds i
-        lfts.Add(lastJob, T)
+        lfts.Add (lastJob, T)
         traversePreds lastJob
         lfts
 
-    let lfts = computeLfts()
+    let lfts = computeLfts ()
     let lsts = (fun j -> st lfts j)    
 
     let isFinishedAtEndOfPeriod (sts:IntMap) t j = ft sts j <= t
@@ -72,18 +72,18 @@ type ProjectStructure(jobs:Set<int>,
         |> Seq.forall (fun (r,t) -> residualCapacity z sts r t >= demands j r)
     
     let ssgs z =
-        let sts = new IntMap()
+        let sts = new IntMap ()
         for job in topOrdering do
             let mutable t = ests.[job]
             while not(arePredsFinished sts job t) || not(enoughCapacityForJob z sts job t) do
                 t <- t+1
-            sts.Add(job,t)
+            sts.Add (job,t)
         sts
 
     let afterLatestGaps (sts:IntMap) =
-        let alg = new IntLst()
+        let alg = new IntLst ()
         if sts.[lastJob] > ests.[lastJob] then            
-            let rest = new Stack<int>([lastJob])
+            let rest = new Stack<int> ([lastJob])
             while rest.Count > 0 do
                 let j = rest.Pop ()
                 alg.Add j
@@ -101,7 +101,7 @@ type ProjectStructure(jobs:Set<int>,
     let neededOvercapacityInPeriod (sts:IntMap) r t = List.max [0; -residualCapacity zeroOc sts r t]
     let totalOvercapacityCosts (sts:IntMap) =
         cartesianProduct resources [0..makespan sts]
-        |> Seq.sumBy (fun (r,t) -> kappa r * neededOvercapacityInPeriod sts r t)
+        |> Seq.sumBy (fun (r,t) -> kappa r * float(neededOvercapacityInPeriod sts r t))
 
     let tryDecrementMakespan (sts:IntMap) =
         let alg = afterLatestGaps sts
@@ -112,26 +112,23 @@ type ProjectStructure(jobs:Set<int>,
         else false       
 
     let urel = [|(1, 0.0); (2, 0.05); (3, 0.10); (4, 0.15); (5, 0.20)|] |> arrayToFunc
-    let umax = 2 * Seq.sumBy costs actualJobs
+    let umax = 2.0 * Seq.sumBy costs actualJobs
     let u l t = float(umax) * float(T-t)/float(T) * (1.0 - urel l)
     let ustar t = reachedLevels |> Seq.map (fun l -> u l t) |> Seq.max |> int
 
     let profit (sts:IntMap) =
         let revenue = ustar (makespan sts)
         let tcosts = totalOvercapacityCosts sts + Seq.sumBy costs actualJobs
-        revenue - tcosts
+        revenue - int tcosts
 
-    let computeBestSchedule() =
-        let profitsToSchedules = new Dictionary<int, IntMap>()
+    let computeBestSchedule () =
+        let profitsToSchedules = new Dictionary<int, IntMap> ()
         let schedule = ssgs zeroOc        
-        let rec iterateMakespanDecrement() =
-            if tryDecrementMakespan schedule then
-                let p = profit schedule
-                if not(profitsToSchedules.ContainsKey(p)) then
-                    profitsToSchedules.Add(p, new IntMap(schedule))
-                iterateMakespanDecrement()        
-        profitsToSchedules.Add(profit schedule, new IntMap(schedule))
-        iterateMakespanDecrement()
+        profitsToSchedules.Add (profit schedule, new IntMap(schedule))
+        while tryDecrementMakespan schedule do
+            let p = profit schedule
+            if not(profitsToSchedules.ContainsKey p) then
+                profitsToSchedules.Add(p, new IntMap(schedule))
         let bestSchedule = profitsToSchedules.[Seq.max profitsToSchedules.Keys]
         ((fun r t -> neededOvercapacityInPeriod bestSchedule r t), bestSchedule)
 
@@ -148,13 +145,14 @@ type ProjectStructure(jobs:Set<int>,
         grid
 
     // Interface methods
+    member ps.Profit = profit
     member ps.AfterLatestGaps = afterLatestGaps
     member ps.ComputeOptimalSchedule = computeBestSchedule
     member ps.SerialScheduleGenerationScheme = ssgs
     member ps.ScheduleToGrid = scheduleToGrid    
     member ps.FinishingTimesToStartingTimes (fts:IntMap) =
-        let sts = new IntMap()
-        for j in jobs do sts.Add(j, fts.[j] - durations j)
+        let sts = new IntMap ()
+        for j in jobs do sts.Add (j, fts.[j] - durations j)
         sts
     // Interface properties
     member ps.Jobs = jobs
