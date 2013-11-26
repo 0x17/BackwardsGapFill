@@ -25,6 +25,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DocumentationFile>bin\Debug\BackwardsGapFillFSharp.XML</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
+    <StartWorkingDirectory>..\..\</StartWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -61,6 +62,7 @@
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
     <Compile Include="BatchRunner.fs" />
+    <Compile Include="GraphVisualisation.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>

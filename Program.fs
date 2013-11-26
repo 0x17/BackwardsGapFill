@@ -6,8 +6,10 @@ open PSPLibParser
 
 module Program =
     let solveAndVisualize () =
-        let testFilename = "../../Projekte/Modellendogen0001.DAT"
+        let testFilename = @"Projekte/Modellendogen0001.DAT"
         let ps = PSPLibParser.parse testFilename
+
+        GraphVisualisation.visualizePrecedenceGraph ps @"Modellendogen0001"
 
         let (z1,sts1) = GamsSolver.solve ps
         let (z2,sts2) = ps.ComputeOptimalSchedule()
@@ -16,12 +18,12 @@ module Program =
 
         ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1, z1);                                             
                                              ("BGF Heuristik", ps, sts2, z2);
-                                             ("SSGS Heuristik", ps, sts3, z3)]
+                                             ("SSGS Heuristik", ps, sts3, z3)]       
 
     [<EntryPoint>]
     let main argv =
-        //BatchRunner.stripAdditionalData "../../Projekte"
-        //BatchRunner.addCostsAndLevelsToProjs "../../Projekte"
+        //BatchRunner.stripAdditionalData @"Projekte"
+        //BatchRunner.addCostsAndLevelsToProjs @"Projekte"
         solveAndVisualize ()
         0
     

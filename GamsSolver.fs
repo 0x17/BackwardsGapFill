@@ -77,9 +77,9 @@ module GamsSolver =
         (z, fts)
 
     let solve (ps:ProjectStructure) =
-        let ws = new GAMSWorkspace (workingDirectory="../../", debug=DebugLevel.Off)
+        let ws = new GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
-        opt.License <- "C:\GAMS\gamslice_Kurs_Nov13.txt"
+        opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"
         opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0001
         let job = ws.AddJobFromFile "model.gms"

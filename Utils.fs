@@ -3,6 +3,7 @@
 open System.Collections.Generic
 open System
 open System.IO
+open System.Diagnostics
 
 module Utils =
     let mapToFunc m k = Map.find k m
@@ -42,3 +43,15 @@ module Utils =
     let slurpLines = File.ReadAllLines
     let spit filename content = File.WriteAllText (filename, content)
     let spitAppend filename content = File.AppendAllText (filename, content)
+
+    type RunBehavior =
+        | Blocking
+        | NonBlocking
+
+    let runCmd behavior cmd args =
+        let psi = new ProcessStartInfo(cmd)
+        psi.Arguments <- args
+        let p = Process.Start psi
+        match behavior with
+        | Blocking -> p.WaitForExit ()
+        | NonBlocking -> ()

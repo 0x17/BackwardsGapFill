@@ -6,6 +6,14 @@ open System.Windows.Forms
 open System.Data
 
 module ScheduleVisualisation =
+    let saveViewToPng (view:Control) filename =
+        let bmp = new Bitmap (view.Width, view.Height)
+        view.DrawToBitmap(bmp, new Rectangle(Point.Empty, bmp.Size))
+        bmp.Save (filename+".png")
+
+    let saveViews prefix views =
+        Seq.iteri (fun i view -> saveViewToPng view (prefix+string(i+1))) views
+        
     let show caption (ps:ProjectStructure) (sts:IntMap) (z:int->int->int) =
         let lblOffsetY = 500       
 
@@ -117,6 +125,10 @@ module ScheduleVisualisation =
         mainForm.Closed.Add(fun _ -> Application.Exit ())
         mainForm.Show ()
 
+        dgv
+
     let showSchedules data =
-        for (caption,ps,sts,z) in data do show caption ps sts z
+        Seq.map (fun (caption,ps,sts,z) -> show caption ps sts z) data |> saveViews "schedule"
         System.Windows.Forms.Application.Run ()
+
+    
