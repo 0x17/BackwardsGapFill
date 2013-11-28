@@ -19,7 +19,7 @@ type ProjectStructure(jobs:         Set<int>,
                       zmax:         int->int) =
     let firstJob = Set.minElement jobs
     let lastJob = Set.maxElement jobs
-    let actualJobs = Set.difference jobs (Set.ofSeq [firstJob; lastJob])
+    let actualJobs = Set.difference jobs (set [firstJob; lastJob])
 
     let T = Seq.sumBy durations jobs
     let horizon = [1..T]
@@ -57,7 +57,7 @@ type ProjectStructure(jobs:         Set<int>,
     let lfts = computeLfts ()
     let lsts = (fun j -> st lfts j)    
 
-    let isFinishedAtEndOfPeriod (sts:IntMap) t j = ft sts j <= t
+    let isFinishedAtEndOfPeriod (sts:IntMap) t j = sts.ContainsKey j && ft sts j <= t
     let arePredsFinished (sts:IntMap) j t = Seq.forall (isFinishedAtEndOfPeriod sts t) <| preds j
 
     let isActiveInPeriod (sts:IntMap) t j = sts.[j] < t && t <= ft sts j        
@@ -78,6 +78,29 @@ type ProjectStructure(jobs:         Set<int>,
             while not(arePredsFinished sts job t) || not(enoughCapacityForJob z sts job t) do
                 t <- t+1
             sts.Add (job,t)
+        sts
+
+    let psgs z =
+        let sts = new IntMap (dict [(Seq.head topOrdering, 0)])
+        let running = new IntLst (Seq.take 1 topOrdering)
+        let rest = new IntLst (Seq.skip 1 topOrdering)
+
+        let eligibleAtDecisionPoint t = Seq.filter (fun j -> arePredsFinished sts j t && enoughCapacityForJob z sts j t) rest
+        let nextDecisionPoint running = running |> Seq.map (ft sts) |> Seq.min
+        let rec scheduleEligible t =
+            let eligible = eligibleAtDecisionPoint t
+            if not(Seq.isEmpty eligible) then
+                let j = eligible |> Seq.minBy rest.IndexOf
+                sts.Add (j, t)
+                rest.Remove j |> ignore
+                scheduleEligible t
+        let running t = sts.Keys |> Seq.filter (fun j -> t <= ft sts j)
+
+        let mutable t = 0
+        while rest.Count > 0 do
+            t <- running t |> nextDecisionPoint 
+            scheduleEligible t
+            t <- t+1
         sts
 
     let afterLatestGaps (sts:IntMap) =
@@ -143,35 +166,36 @@ type ProjectStructure(jobs:         Set<int>,
                     Array2D.set grid colCtr (t-1) j
                     colCtr <- colCtr - 1
         grid
+    
+    member val Jobs = jobs
+    member val ActualJobs = actualJobs
+    member val Durations = durations
+    member val Demands = demands
+    member val Costs = costs
+    member val Capacities = capacities
+    member val Preds = preds
+    member val Resources = resources    
+    member val Kappa = kappa
+    member val UStar = ustar
+    member val ZMax = zmax
+    member val TimeHorizon = horizon
+    member val ReachedLevels = reachedLevels
 
-    // Interface methods
+    member val EarliestStartingTimes = ests
+    member val LatestStartingTimes = lsts
+    member val EarliestFinishingTimes = efts
+    member val LatestFinishingTimes = lfts
+
     member ps.Profit = profit
     member ps.AfterLatestGaps = afterLatestGaps
     member ps.ComputeOptimalSchedule = computeBestSchedule
     member ps.SerialScheduleGenerationScheme = ssgs
+    member ps.ParallelScheduleGenerationScheme = psgs
     member ps.ScheduleToGrid = scheduleToGrid    
     member ps.FinishingTimesToStartingTimes (fts:IntMap) =
         let sts = new IntMap ()
         for j in jobs do sts.Add (j, fts.[j] - durations j)
         sts
-    // Interface properties
-    member ps.Jobs = jobs
-    member ps.ActualJobs = actualJobs
-    member ps.Durations = durations
-    member ps.Demands = demands
-    member ps.Costs = costs
-    member ps.Capacities = capacities
-    member ps.Preds = preds
-    member ps.Resources = resources
-    member ps.ReachedLevels = reachedLevels
-    member ps.TimeHorizon = horizon
-    member ps.EarliestStartingTimes = ests
-    member ps.LatestStartingTimes = lsts
-    member ps.EarliestFinishingTimes = efts
-    member ps.LatestFinishingTimes = lfts
-    member ps.Kappa = kappa
-    member ps.UStar = ustar
-    member ps.ZMax = zmax   
 
     static member Create(jobs, durations, demands, costs, capacities, preds, resources, topOrdering, reachedLevels, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (ix+1,e)) arr |> Map.ofSeq

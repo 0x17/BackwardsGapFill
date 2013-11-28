@@ -20,8 +20,8 @@ module GraphVisualisation =
         for j in ps.Jobs do
             let durStr = string(ps.Durations j)
             let resStr = String.concat "," (ps.Resources |> Seq.map (string << (ps.Demands j)))
-            sb.Append(string(j)+"[label=\"(" + durStr + ")  "+ string(j) + " (" + resStr + ")\"];") |> ignore
-        Utils.spit (filename+".dot") (header + sb.ToString () + footer)
+            sb.Append(string(j)+"[label=\"(" + durStr + ") "+ string(j) + " (" + resStr + ")\"];") |> ignore
+        spit (filename+".dot") (header + sb.ToString () + footer)
 
     let runDotOnFile filename =
         let dotPath = @"C:\Program Files (x86)\Graphviz2.34\bin\dot.exe"
