@@ -71,19 +71,18 @@ type ProjectStructure(jobs:         Set<int>,
         cartesianProduct resources [stj+1..stj+durations j]
         |> Seq.forall (fun (r,t) -> residualCapacity z sts r t >= demands j r)
     
-    let ssgs z =
+    let ssgs ordering z =
         let sts = new IntMap ()
-        for job in topOrdering do
+        for job in ordering do
             let mutable t = ests.[job]
             while not(arePredsFinished sts job t) || not(enoughCapacityForJob z sts job t) do
                 t <- t+1
             sts.Add (job,t)
         sts
 
-    let psgs z =
-        let sts = new IntMap (dict [(Seq.head topOrdering, 0)])
-        let running = new IntLst (Seq.take 1 topOrdering)
-        let rest = new IntLst (Seq.skip 1 topOrdering)
+    let psgs ordering z =
+        let sts = new IntMap (dict [(Seq.head ordering, 0)])
+        let rest = new IntLst (Seq.skip 1 ordering)
 
         let eligibleAtDecisionPoint t = Seq.filter (fun j -> arePredsFinished sts j t && enoughCapacityForJob z sts j t) rest
         let nextDecisionPoint running = running |> Seq.map (ft sts) |> Seq.min
@@ -126,12 +125,15 @@ type ProjectStructure(jobs:         Set<int>,
         cartesianProduct resources [0..makespan sts]
         |> Seq.sumBy (fun (r,t) -> kappa r * float(neededOvercapacityInPeriod sts r t))
 
+    let scheduleFeasibleWithMaxOC (sts:IntMap) =
+        cartesianProduct resources [0..makespan sts]
+        |> Seq.forall (fun (r,t) -> neededOvercapacityInPeriod sts r t <= zmax r)
+
     let tryDecrementMakespan (sts:IntMap) =
         let alg = afterLatestGaps sts
         if alg.Count > 0 then
-            onePeriodLeftShift sts alg;
-            cartesianProduct resources [0..makespan sts]
-            |> Seq.forall (fun (r,t) -> neededOvercapacityInPeriod sts r t < zmax r)
+            onePeriodLeftShift sts alg
+            scheduleFeasibleWithMaxOC sts
         else false       
 
     let urel = [|(1, 0.0); (2, 0.05); (3, 0.10); (4, 0.15); (5, 0.20)|] |> arrayToFunc
@@ -144,14 +146,21 @@ type ProjectStructure(jobs:         Set<int>,
         let tcosts = totalOvercapacityCosts sts + Seq.sumBy costs actualJobs
         revenue - int tcosts
 
-    let computeBestSchedule () =
+    let modifiedPsgsHeuristic ordering () =
+        let schedule = psgs ordering (fun r t -> zmax r)
+        let z = (fun r t -> neededOvercapacityInPeriod schedule r t)
+        (z, schedule)
+
+    let backwardsGapFillHeuristic () =
         let profitsToSchedules = new Dictionary<int, IntMap> ()
-        let schedule = ssgs zeroOc        
+        let schedule = psgs topOrdering zeroOc
         profitsToSchedules.Add (profit schedule, new IntMap(schedule))
+
         while tryDecrementMakespan schedule do
             let p = profit schedule
             if not(profitsToSchedules.ContainsKey p) then
                 profitsToSchedules.Add(p, new IntMap(schedule))
+
         let bestSchedule = profitsToSchedules.[Seq.max profitsToSchedules.Keys]
         ((fun r t -> neededOvercapacityInPeriod bestSchedule r t), bestSchedule)
 
@@ -188,10 +197,12 @@ type ProjectStructure(jobs:         Set<int>,
 
     member ps.Profit = profit
     member ps.AfterLatestGaps = afterLatestGaps
-    member ps.ComputeOptimalSchedule = computeBestSchedule
-    member ps.SerialScheduleGenerationScheme = ssgs
-    member ps.ParallelScheduleGenerationScheme = psgs
-    member ps.ScheduleToGrid = scheduleToGrid    
+    member ps.ModifiedPsgsHeuristicDefault = modifiedPsgsHeuristic topOrdering 
+    member ps.ModifiedPsgsHeuristic = modifiedPsgsHeuristic
+    member ps.BackwardsGapFillHeuristic = backwardsGapFillHeuristic
+    member ps.SerialScheduleGenerationScheme = ssgs topOrdering
+    member ps.ParallelScheduleGenerationScheme = psgs topOrdering
+    member ps.ScheduleToGrid = scheduleToGrid
     member ps.FinishingTimesToStartingTimes (fts:IntMap) =
         let sts = new IntMap ()
         for j in jobs do sts.Add (j, fts.[j] - durations j)

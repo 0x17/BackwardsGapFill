@@ -76,6 +76,9 @@ module GamsSolver =
 
         (z, fts)
 
+    let optTopSort jobs (optSchedule:IntMap) =
+        jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
+
     let solve (ps:ProjectStructure) =
         let ws = new GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()

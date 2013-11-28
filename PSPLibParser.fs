@@ -30,7 +30,7 @@ module PSPLibParser =
         System.String.Join("\n", Set.toArray rlevels |> Array.map string)
         |> spitAppend filename
 
-    let deserializeReachedLevels (levelsLines:string[]) = (Array.map int >> Set.ofSeq) levelsLines
+    let deserializeReachedLevels (levelsLines:string[]) = (Array.map int >> set) levelsLines
 
     let parseSuccs lines =
         let parseSuccLine line = 
@@ -41,7 +41,7 @@ module PSPLibParser =
     let succsToPreds (succs:Map<int,int seq>) =
         let findPreds j = Seq.filter (fun i -> succs |> Map.find i |> Seq.exists (fun x -> x = j)) (keys succs)
         let arr = Array.zeroCreate (Seq.length (keys succs))
-        for i in [0..arr.Length-1] do arr.[i] <- Set.ofSeq (findPreds (i+1))
+        for i in [0..arr.Length-1] do arr.[i] <- set (findPreds (i+1))
         arr
 
     let parseDurations lines = [| for line in lines -> int (parts line).[2] |]
@@ -69,8 +69,8 @@ module PSPLibParser =
         let capacities = parseCapacities numRes lines.[offsets("cap")+2]
 
         let numJobs = Seq.length durations
-        let jobs = Set.ofSeq [1..numJobs]
-        let resources = Set.ofSeq [1..numRes]
+        let jobs = set [1..numJobs]
+        let resources = set [1..numRes]
 
         let linesToFuncCommon beginTitle endTitle t =
             let relevantLines = lines.[offsets(beginTitle)+1..offsets(endTitle)-1]
