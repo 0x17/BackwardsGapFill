@@ -39,6 +39,15 @@ module Utils =
             let x = Seq.find (Set.isEmpty << (Set.intersect jobs) << preds) jobs
             x :: topSort (Set.remove x jobs) preds
 
+    let allTopSorts jobs preds =
+        let rec traversePath lambda rest =
+            if Set.isEmpty rest then [lambda]
+            else
+                List.ofSeq rest
+                |> List.filter (Set.isEmpty << (Set.intersect rest) << preds)
+                |> List.collect (fun candidate -> traversePath (lambda @ [candidate]) (Set.remove candidate rest))
+        traversePath [] jobs
+
     let slurp = File.ReadAllText
     let slurpLines = File.ReadAllLines
     let spit filename content = File.WriteAllText (filename, content)

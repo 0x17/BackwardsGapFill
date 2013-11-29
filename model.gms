@@ -13,6 +13,7 @@ alias(j,i);
 alias(t,tau);
 
 parameters
+         solvetime       CPU-Zeit
          zmax(r)         Maximale ZK
          kappa(r)        Kosten pro Einheit ZK
          capacities(r)   Kapazitäten
@@ -70,6 +71,8 @@ oclimits(r,t)             .. z(r,t) =l= zmax(r);
 model rcpsp /all/;
 solve rcpsp using mip maximizing profit;
 
-execute_unload "results.gdx" x.l x.m z.l z.m
+solvetime = rcpsp.resusd;
+
+execute_unload "results.gdx" x.l x.m z.l z.m solvetime
 
 display z.l;

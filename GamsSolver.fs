@@ -39,7 +39,7 @@ module GamsSolver =
             let costsParam = db.AddParameter ("costs", 1, "Kosten")
             addParamEntries costsParam "j" ps.ActualJobs ps.Costs
             let ustarParam = db.AddParameter ("ustar", 1, "Erlös bei Makespan t")
-            addParamEntriesToF ustarParam "t" ps.TimeHorizon ps.UStar
+            addParamEntries ustarParam "t" ps.TimeHorizon ps.UStar
 
             let demandsParam = db.AddParameter ("demands", 2, "Bedarf")
             Utils.cartesianProduct ps.Jobs ps.Resources
@@ -74,7 +74,9 @@ module GamsSolver =
                 let t = parseKey vrec.Keys.[1]
                 fts.Add (j, t)
 
-        (z, fts)
+        let solveTime = (outdb.GetParameter "solveTime").FirstRecord().Value
+
+        (z, fts, solveTime)       
 
     let optTopSort jobs (optSchedule:IntMap) =
         jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
@@ -84,7 +86,7 @@ module GamsSolver =
         let opt = ws.AddOptions ()
         opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"
         opt.MIP <- "GUROBI"
-        opt.OptCR <- 0.0001
+        opt.OptCR <- 0.0
         let job = ws.AddJobFromFile "model.gms"
         let db = createDatabase ws ps
         //let writer = new System.IO.StringWriter() // forward string writer to stdout
@@ -92,5 +94,5 @@ module GamsSolver =
         job.Run (opt, writer, db)
         // Parse elapsed time from string writer content
         opt.Dispose ()
-        let (z, fts) = processOutput job.OutDB
-        ((fun r t -> z.[(r,t)]), ps.FinishingTimesToStartingTimes fts)
+        let (z, fts, solveTime) = processOutput job.OutDB
+        ((fun r t -> z.[(r,t)]), ps.FinishingTimesToStartingTimes fts, solveTime)

@@ -71,18 +71,18 @@ type ProjectStructure(jobs:         Set<int>,
         cartesianProduct resources [stj+1..stj+durations j]
         |> Seq.forall (fun (r,t) -> residualCapacity z sts r t >= demands j r)
     
-    let ssgs ordering z =
+    let ssgs λ z =
         let sts = new IntMap ()
-        for job in ordering do
+        for job in λ do
             let mutable t = ests.[job]
             while not(arePredsFinished sts job t) || not(enoughCapacityForJob z sts job t) do
                 t <- t+1
             sts.Add (job,t)
         sts
 
-    let psgs ordering z =
-        let sts = new IntMap (dict [(Seq.head ordering, 0)])
-        let rest = new IntLst (Seq.skip 1 ordering)
+    let psgs λ z =
+        let sts = new IntMap (dict [(Seq.head λ, 0)])
+        let rest = new IntLst (Seq.skip 1 λ)
 
         let eligibleAtDecisionPoint t = Seq.filter (fun j -> arePredsFinished sts j t && enoughCapacityForJob z sts j t) rest
         let nextDecisionPoint running = running |> Seq.map (ft sts) |> Seq.min
@@ -139,21 +139,24 @@ type ProjectStructure(jobs:         Set<int>,
     let urel = [|(1, 0.0); (2, 0.05); (3, 0.10); (4, 0.15); (5, 0.20)|] |> arrayToFunc
     let umax = 2.0 * Seq.sumBy costs actualJobs
     let u l t = float(umax) * float(T-t)/float(T) * (1.0 - urel l)
-    let ustar t = reachedLevels |> Seq.map (fun l -> u l t) |> Seq.max |> int
+    let ustar t = reachedLevels |> Seq.map (fun l -> u l t) |> Seq.max
 
     let profit (sts:IntMap) =
         let revenue = ustar (makespan sts)
         let tcosts = totalOvercapacityCosts sts + Seq.sumBy costs actualJobs
-        revenue - int tcosts
+        revenue - tcosts
 
-    let modifiedPsgsHeuristic ordering () =
-        let schedule = psgs ordering (fun r t -> zmax r)
+    let modifiedSgsHeuristic sgsfunc λ () =
+        let schedule = sgsfunc λ (fun r t -> zmax r)
         let z = (fun r t -> neededOvercapacityInPeriod schedule r t)
         (z, schedule)
 
-    let backwardsGapFillHeuristic () =
-        let profitsToSchedules = new Dictionary<int, IntMap> ()
-        let schedule = psgs topOrdering zeroOc
+    let modifiedPsgsHeuristic = modifiedSgsHeuristic psgs
+    let modifiedSsgsHeuristic = modifiedSgsHeuristic ssgs
+
+    let backwardsGapFillHeuristic λ () =
+        let profitsToSchedules = new Dictionary<float, IntMap> ()
+        let schedule = psgs λ zeroOc
         profitsToSchedules.Add (profit schedule, new IntMap(schedule))
 
         while tryDecrementMakespan schedule do
@@ -196,9 +199,14 @@ type ProjectStructure(jobs:         Set<int>,
     member val LatestFinishingTimes = lfts
 
     member ps.Profit = profit
+    member ps.Makespan = makespan
+    member ps.TotalOvercapacityCosts = totalOvercapacityCosts
     member ps.AfterLatestGaps = afterLatestGaps
     member ps.ModifiedPsgsHeuristicDefault = modifiedPsgsHeuristic topOrdering 
     member ps.ModifiedPsgsHeuristic = modifiedPsgsHeuristic
+    member ps.ModifiedSsgsHeuristicDefault = modifiedSsgsHeuristic topOrdering
+    member ps.ModifiedSsgsHeuristic = modifiedSsgsHeuristic
+    member ps.BackwardsGapFillHeuristicDefault = backwardsGapFillHeuristic topOrdering
     member ps.BackwardsGapFillHeuristic = backwardsGapFillHeuristic
     member ps.SerialScheduleGenerationScheme = ssgs topOrdering
     member ps.ParallelScheduleGenerationScheme = psgs topOrdering

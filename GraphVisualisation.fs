@@ -20,7 +20,7 @@ module GraphVisualisation =
         for j in ps.Jobs do
             let durStr = string(ps.Durations j)
             let resStr = String.concat "," (ps.Resources |> Seq.map (string << (ps.Demands j)))
-            sb.Append(string(j)+"[label=\"(" + durStr + ") "+ string(j) + " (" + resStr + ")\"];") |> ignore
+            sb.Append(string(j)+"[label=\"(" + durStr + ") "+ string(j) + " (" + resStr + ")\"];\n") |> ignore
         spit (filename+".dot") (header + sb.ToString () + footer)
 
     let runDotOnFile filename =
