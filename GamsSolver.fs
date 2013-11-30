@@ -87,6 +87,7 @@ module GamsSolver =
         opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"
         opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0
+        opt.ResLim <- System.Double.MaxValue
         let job = ws.AddJobFromFile "model.gms"
         let db = createDatabase ws ps
         //let writer = new System.IO.StringWriter() // forward string writer to stdout

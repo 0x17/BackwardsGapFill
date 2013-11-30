@@ -48,7 +48,7 @@ module Program =
             let totalOc = float(nps.TotalOvercapacityCosts sts)
             let parts = Array.map (fun n -> n.ToString().Replace('.',',')) [| kappa; profit; makespan; totalOc; solveTime |]
             sb.Append (System.String.Join(";", parts) + "\n") |> ignore
-        spit "kappaVariations.csv" (sb.ToString())
+            spit "kappaVariations.csv" (sb.ToString())
 
     [<EntryPoint>]
     let main argv =

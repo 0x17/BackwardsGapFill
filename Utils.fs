@@ -10,7 +10,7 @@ module Utils =
     let arrayToFunc s k = Map.ofArray s |>  Map.find k
     let map2DToFunc m k1 k2 = Map.find k2 <| Map.find k1 m
 
-    let keys m = Map.toSeq  m |> Seq.map fst
+    let keys m = Map.toSeq m |> Seq.map fst
     let vals m = Map.toSeq m |> Seq.map snd
 
     let cartesianProduct xs ys = Seq.collect (fun x -> Seq.map (fun y -> (x,y)) ys) xs
