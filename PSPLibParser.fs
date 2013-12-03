@@ -49,6 +49,7 @@ module PSPLibParser =
     let parseCapacities numRes line = Seq.take numRes (parts line) |> Seq.map int |> Array.ofSeq
     let countRes capLine = Regex.Matches(capLine, "R \d").Count
 
+    // TODO: Robust machen -> falls Felder nicht definiert einfach null setzen damit parseAttr oben überflüssig
     let parse filename =
         let lines = File.ReadAllLines(filename)
 

@@ -6,6 +6,13 @@ open System.IO
 open System.Diagnostics
 
 module Utils =
+    let numsGeq x = Seq.initInfinite (fun i -> x+i)
+
+    let contains o = Seq.exists (fun e -> e=o)
+    let indexOf seq elem = Seq.findIndex (fun e -> e=elem) seq
+    let remove pred = List.filter (not << pred)
+    let without o = remove (fun e -> e=o)
+
     let mapToFunc m k = Map.find k m
     let arrayToFunc s k = Map.ofArray s |>  Map.find k
     let map2DToFunc m k1 k2 = Map.find k2 <| Map.find k1 m
@@ -15,8 +22,6 @@ module Utils =
 
     let cartesianProduct xs ys = Seq.collect (fun x -> Seq.map (fun y -> (x,y)) ys) xs
 
-    let dictToStr (d:Dictionary<int,int>) =
-        String.Join("\n", Seq.map (fun k -> k.ToString () + "->" + d.[k].ToString ()) d.Keys)
     let mapToStr (m:Map<int,int>) =
         String.Join("\n", Seq.map (fun k -> k.ToString () + "->" + (m.Item k).ToString ()) (keys m))
     let mapFromStr (s:string) t =

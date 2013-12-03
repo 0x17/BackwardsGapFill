@@ -1,9 +1,12 @@
 ﻿namespace RCPSP
 
 open System
+open System.Collections.Generic
 open System.Drawing
 open System.Windows.Forms
 open System.Data
+
+open Utils
 
 module ScheduleVisualisation =
     let saveViewToPng (view:Control) filename =
@@ -24,6 +27,7 @@ module ScheduleVisualisation =
             let lbl = new Label ()
             lbl.Text <- text
             lbl.Location <- loc
+            lbl.Size <- new Size (200, 20)
             mainForm.Controls.Add lbl
 
         let dgv = new DataGridView ()
@@ -34,7 +38,7 @@ module ScheduleVisualisation =
 
         let initJobToColorMap () =
             let r = new Random 23
-            let colMap = new System.Collections.Generic.Dictionary<int, Color> ()
+            let colMap = new Dictionary<int, Color> ()
             colMap.Add (0, Color.White)
             for j in ps.Jobs do
                 let rval () = r.Next (20, 256)
@@ -112,11 +116,11 @@ module ScheduleVisualisation =
         resCb.SelectedValueChanged.Add(fun _ -> updateGridForRes (resCb.SelectedIndex+1))
         mainForm.Controls.Add resCb
 
-        addLbl ("Makespan: " + sts.[sts.Keys.Count].ToString ()) (new Point (10, lblOffsetY+60))
+        addLbl ("Makespan: " + sts.[Seq.length (keys sts)].ToString ()) (new Point (10, lblOffsetY+60))
         
         addLbl ("Horizon: " + string ps.TimeHorizon.Length) (new Point (10, lblOffsetY+120))
 
-        let sumOc = Utils.cartesianProduct ps.Resources ps.TimeHorizon |> Seq.sumBy (fun (r,t) -> float(z r t) * (ps.Kappa r))
+        let sumOc = cartesianProduct ps.Resources ps.TimeHorizon |> Seq.sumBy (fun (r,t) -> float(z r t) * (ps.Kappa r))
         addLbl ("Total OC costs: " + string sumOc) (new Point(10, lblOffsetY+150))
 
         let profit = ps.Profit sts

@@ -55,32 +55,31 @@ module GamsSolver =
         db
 
     let processOutput (outdb:GAMSDatabase) =
-        let parseKey (str:string) = System.Int32.Parse (str.Substring 1)
-
-        let zvar = outdb.GetVariable "z"
-        let z = new System.Collections.Generic.Dictionary<int*int, int> ()
-        for vrecsym in zvar do
-            let vrec : GAMSVariableRecord = downcast vrecsym
-            let r = parseKey vrec.Keys.[0]
-            let t = parseKey vrec.Keys.[1]
-            z.Add ((r, t), int vrec.Level)
-
         let xvar = outdb.GetVariable "x"
-        let fts = new IntMap ()        
-        for vrecsym in xvar do
-            let vrec : GAMSVariableRecord = downcast vrecsym
-            if vrec.Level = 1.0 then
-                let j = parseKey vrec.Keys.[0]
-                let t = parseKey vrec.Keys.[1]
-                fts.Add (j, t)
+        let zvar = outdb.GetVariable "z"
+
+        let parseKey (str:string) = System.Int32.Parse (str.Substring 1)
+        let symToRec (vrecsym:GAMSSymbolRecord) : GAMSVariableRecord = downcast vrecsym
+
+        let zRecords = [for vrecsym in zvar do yield symToRec vrecsym]
+        let addZEntry acc (vrec:GAMSVariableRecord) =
+            Map.add ((parseKey vrec.Keys.[0]),(parseKey vrec.Keys.[1])) (int vrec.Level) acc
+        let z = Seq.fold addZEntry Map.empty zRecords 
+        let zFunc = (fun r t -> z.[(r,t)])
+        
+        let relevantXRecords = [for vrecsym in xvar do if (symToRec vrecsym).Level = 1.0 then yield symToRec vrecsym]
+        let addFinishTimeEntry acc (vrec:GAMSVariableRecord) =
+            Map.add (parseKey vrec.Keys.[0]) (parseKey vrec.Keys.[1]) acc
+        let fts = Seq.fold addFinishTimeEntry Map.empty relevantXRecords
 
         let solveTime = (outdb.GetParameter "solveTime").FirstRecord().Value
 
-        (z, fts, solveTime)       
+        (zFunc, fts, solveTime)       
 
     let optTopSort jobs (optSchedule:IntMap) =
         jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
 
+    // TODO: Solvestats auslesen!
     let solve (ps:ProjectStructure) =
         let ws = new GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
@@ -96,4 +95,4 @@ module GamsSolver =
         // Parse elapsed time from string writer content
         opt.Dispose ()
         let (z, fts, solveTime) = processOutput job.OutDB
-        ((fun r t -> z.[(r,t)]), ps.FinishingTimesToStartingTimes fts, solveTime)
+        (z, ps.FinishingTimesToStartingTimes fts, solveTime)
