@@ -17,11 +17,13 @@ module ScheduleVisualisation =
     let saveViews prefix views =
         Seq.iteri (fun i view -> saveViewToPng view (prefix+string(i+1))) views
         
-    let show caption (ps:ProjectStructure) (sts:IntMap) (z:int->int->int) =
+    let show caption (ps:ProjectStructure) (sts:IntMap) =
         let lblOffsetY = 500       
 
         let mainForm = new Form (Width = 1280, Height = 720, Text = "Ablaufplan - " + caption)
         mainForm.StartPosition <- FormStartPosition.CenterScreen
+
+        let z = ps.NeededOCForSchedule sts
 
         let addLbl text loc =
             let lbl = new Label ()
@@ -132,7 +134,7 @@ module ScheduleVisualisation =
         dgv
 
     let showSchedules data =
-        Seq.map (fun (caption,ps,sts,z) -> show caption ps sts z) data |> saveViews "schedule"
+        Seq.map (fun (caption,ps,sts) -> show caption ps sts) data |> saveViews "schedule"
         System.Windows.Forms.Application.Run ()
 
     

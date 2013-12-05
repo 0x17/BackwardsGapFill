@@ -58,6 +58,9 @@ module Utils =
     let spit filename content = File.WriteAllText (filename, content)
     let spitAppend filename content = File.AppendAllText (filename, content)
 
+    let spitMap filename m = spit filename << mapToStr
+    let slurpMap filename = mapFromStr <| slurp filename
+
     type RunBehavior =
         | Blocking
         | NonBlocking

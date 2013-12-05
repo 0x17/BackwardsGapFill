@@ -4,7 +4,6 @@ open System.Collections.Generic
 open Utils
 
 type IntMap = Map<int,int>
-type IntLst = List<int>
 
 type ProjectStructure(jobs:         Set<int>,
                       durations:    int -> int,
@@ -24,31 +23,29 @@ type ProjectStructure(jobs:         Set<int>,
     let T = Seq.sumBy durations jobs
     let horizon = [1..T]
 
+    let succs i = jobs |> Seq.filter (fun j -> (preds j).Contains i) |> Set.ofSeq
+    let revTopOrdering = topSort jobs succs
+
     let ft (sts:IntMap) j = sts.[j] + durations j
     let st (fts:IntMap) j = fts.[j] - durations j
 
     let lastPredFinishingTime sts = Seq.max << Seq.map (ft sts) << preds
+    let firstSuccStartingTime fts = Seq.min << Seq.map (st fts) << succs
+
+    let elsftForJob seedKey seedVal func sts j =
+        Map.add j (if j = seedKey then seedVal else func sts j) sts
     
     let computeEsts () =
-        let estForJob ests j =
-            let t = if j = firstJob then 0 else lastPredFinishingTime ests j
-            Map.add j t ests
-        Seq.fold estForJob Map.empty topOrdering
-
-    let ests = computeEsts ()
-    let efts = (fun j -> ft ests j)
+        Seq.fold (elsftForJob firstJob 0 lastPredFinishingTime) Map.empty topOrdering
 
     let computeLfts () =
-        let rec traversePreds lfts j =
-            let addPred acc i =
-                let stj = st lfts j
-                let t = if Map.containsKey i acc then Seq.min [acc.[i]; stj] else stj
-                traversePreds (acc.Add(i,t)) i
-            preds j |> Seq.fold addPred lfts
-        traversePreds (Map.ofList [(lastJob, T)]) lastJob 
+        Seq.fold (elsftForJob lastJob T firstSuccStartingTime) Map.empty revTopOrdering
+
+    let ests = computeEsts ()
+    let efts = ft ests
 
     let lfts = computeLfts ()
-    let lsts = (fun j -> st lfts j)    
+    let lsts = st lfts
 
     let isFinishedAtEndOfPeriod (sts:IntMap) t j = sts.ContainsKey j && ft sts j <= t
     let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
@@ -76,7 +73,7 @@ type ProjectStructure(jobs:         Set<int>,
     
     let psgs λ z =
         let nextDecisionPoint sts running = running |> Seq.map (ft sts) |> Seq.min
-        let running sts t = (keys sts) |> Seq.filter (fun j -> t <= ft sts j)
+        let running sts t = keys sts |> Seq.filter (fun j -> t <= ft sts j)
         
         let rec scheduleEligible sts rest t =
             let eligible = Seq.filter (fun j -> predsAndCapacityFeasible sts j z t) rest
@@ -85,29 +82,26 @@ type ProjectStructure(jobs:         Set<int>,
                 let j = eligible |> Seq.minBy (indexOf rest)
                 scheduleEligible (Map.add j t sts) (without j rest) t
 
-        let rec buildSchedule sts rest t =
+        let rec traverseDecisionPoints sts rest t =
             if List.isEmpty rest then sts
             else
                 let nt = nextDecisionPoint sts (running sts t)
                 let pair = scheduleEligible sts rest nt
-                buildSchedule (fst pair) (snd pair) (nt+1)
+                traverseDecisionPoints (fst pair) (snd pair) (nt+1)
 
-        let rest = List.ofSeq (Seq.skip 1 λ)
-        buildSchedule (Map.ofSeq [(Seq.head λ, 0)]) rest 0
+        traverseDecisionPoints (Map.ofSeq [(Seq.head λ, 0)]) (List.ofSeq (Seq.skip 1 λ)) 0
 
-    let afterLatestGaps (sts:IntMap) =
-        let alg = new IntLst ()
-        if sts.[lastJob] > ests.[lastJob] then            
-            let rest = new Stack<int> ([lastJob])
-            while rest.Count > 0 do
-                let j = rest.Pop ()
-                alg.Add j
+    let afterLatestGaps sts =
+        let rec processRest alg rest =
+            if List.isEmpty rest then alg
+            else
+                let j = List.head rest
                 let latestFt = lastPredFinishingTime sts j
-                if latestFt = sts.[j] then
-                    preds j
-                    |> Seq.filter (fun i -> ft sts i = latestFt)
-                    |> Seq.iter rest.Push
-        alg
+                let latestPreds = if latestFt = sts.[j] then (preds j |> Seq.filter (fun i -> ft sts i = latestFt)) else Seq.empty
+                let nrest = Seq.fold (fun acc i -> i :: acc) rest.Tail latestPreds
+                processRest (j :: alg) nrest
+        if sts.[lastJob] = ests.[lastJob] then List.empty
+        else processRest List.empty [lastJob]
 
     let onePeriodLeftShift sts js =
         Map.map (fun j stj -> stj-(if contains j js then 1 else 0)) sts
@@ -127,51 +121,24 @@ type ProjectStructure(jobs:         Set<int>,
 
     let tryDecrementMakespan sts =
         let alg = afterLatestGaps sts
-        if alg.Count > 0 then
+        if alg.IsEmpty then None
+        else
             let nsts = onePeriodLeftShift sts alg
             if scheduleFeasibleWithMaxOC nsts then Some(nsts)
             else None
-        else None
 
     let urel = [|(1, 0.0); (2, 0.05); (3, 0.10); (4, 0.15); (5, 0.20)|] |> arrayToFunc
     let umax = 2.0 * Seq.sumBy costs actualJobs
     let u l t = float(umax) * float(T-t)/float(T) * (1.0 - urel l)
     let ustar t = reachedLevels |> Seq.map (fun l -> u l t) |> Seq.max
 
-    let profit sts =
-        let revenue = ustar (makespan sts)
-        let tcosts = totalOvercapacityCosts sts + Seq.sumBy costs actualJobs
-        revenue - tcosts
-
-    let modifiedSgsHeuristic sgsfunc λ () =
-        let schedule = sgsfunc λ (fun r t -> zmax r)
-        let z = (fun r t -> neededOvercapacityInPeriod schedule r t)
-        (z, schedule)
-
-    let modifiedPsgsHeuristic = modifiedSgsHeuristic psgs
-    let modifiedSsgsHeuristic = modifiedSgsHeuristic ssgs
-
-    let backwardsGapFillHeuristic λ () =
-        let rec buildProfitToSchedulesMapping acc sts =
-            let nstsOption = tryDecrementMakespan sts
-            if nstsOption.IsSome then
-                let nsts = nstsOption.Value
-                let p = profit nsts
-                let nval = if Map.containsKey p acc then sts else nsts
-                buildProfitToSchedulesMapping (Map.add p nval acc) nsts
-            else acc
-
-        let schedule = ssgs λ zeroOc
-        let profitsToSchedules = buildProfitToSchedulesMapping (Map.ofList [profit schedule, schedule]) schedule
-
-        let bestSchedule = profitsToSchedules.[Seq.max (keys profitsToSchedules)]
-        ((fun r t -> neededOvercapacityInPeriod bestSchedule r t), bestSchedule)
+    let modifiedSgsHeuristic sgsfunc λ () = sgsfunc λ (fun r t -> zmax r)
 
     // Idee: ohne weiter Planung nötige ZK für einplanen in jetzigem t berechnen und variieren von tlower..tupper?
-    let cleverSsgs λ z =
+    let cleverSsgsHeuristic λ z =
         let computeCandidateSchedule sts j t =
             let candidate = Map.add j t sts
-            let jix = Seq.findIndex (fun i -> i = j) λ
+            let jix = indexOf λ j
             let subλ = Seq.skip (jix+1) λ
             ssgsCore candidate subλ z
 
@@ -185,12 +152,33 @@ type ProjectStructure(jobs:         Set<int>,
         let scheduleJob acc job =
             let tlower = numsGeq ests.[job] |> Seq.find (arePredsFinished acc job)
             let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob z acc job)
-            Map.add job (chooseBestPeriod acc job tlower tupper) acc
-        let sts = Seq.fold scheduleJob Map.empty λ
+            Map.add job (chooseBestPeriod acc job tlower tupper) acc        
+        Seq.fold scheduleJob Map.empty λ
 
-        ((fun r t -> neededOvercapacityInPeriod sts r t), sts)
+    member ps.Profit sts =
+        let revenue = ustar (makespan sts)
+        let tcosts = totalOvercapacityCosts sts + Seq.sumBy costs actualJobs
+        revenue - tcosts
 
-    let scheduleToGrid sts r =
+    member ps.ModifiedPsgsHeuristic = modifiedSgsHeuristic psgs
+    member ps.ModifiedSsgsHeuristic = modifiedSgsHeuristic ssgs
+
+    member ps.BackwardsGapFillHeuristic λ () =
+        let rec buildProfitToSchedulesMapping acc sts =
+            let nstsOption = tryDecrementMakespan sts
+            if nstsOption.IsSome then
+                let nsts = nstsOption.Value
+                let p = ps.Profit nsts
+                let nval = if Map.containsKey p acc then sts else nsts
+                buildProfitToSchedulesMapping (Map.add p nval acc) nsts
+            else acc
+
+        let schedule = ssgs λ zeroOc
+        let profitsToSchedules = buildProfitToSchedulesMapping (Map.ofList [ps.Profit schedule, schedule]) schedule
+
+        profitsToSchedules.[Seq.max (keys profitsToSchedules)]
+
+    member ps.ScheduleToGrid sts r =
         let nrows = capacities r + zmax r
         let grid = Array2D.zeroCreate nrows T
         for t in horizon do
@@ -202,48 +190,41 @@ type ProjectStructure(jobs:         Set<int>,
                     colCtr <- colCtr - 1
         grid
 
-    let finishingTimesToStartingTimes fts =
+    member ps.FinishingTimesToStartingTimes fts =
         Map.map (fun j ftj -> ftj - durations j) fts
 
-    let calculateGap optimalSts sts =
-        let optProfit = profit optimalSts
-        (optProfit - profit sts) / optProfit
-    
-    member val Jobs = jobs
-    member val ActualJobs = actualJobs
-    member val Durations = durations
-    member val Demands = demands
-    member val Costs = costs
-    member val Capacities = capacities
-    member val Preds = preds
-    member val Resources = resources    
-    member val Kappa = kappa
-    member val UStar = ustar
-    member val ZMax = zmax
-    member val TimeHorizon = horizon
-    member val ReachedLevels = reachedLevels
+    member ps.CalculateGap optimalSts sts =
+        let optProfit = ps.Profit optimalSts
+        (optProfit - ps.Profit sts) / optProfit
+            
+    member ps.Jobs = jobs
+    member ps.ActualJobs = actualJobs
+    member ps.Durations = durations
+    member ps.Demands = demands
+    member ps.Costs = costs
+    member ps.Capacities = capacities
+    member ps.Preds = preds
+    member ps.Resources = resources    
+    member ps.Kappa = kappa
+    member ps.UStar = ustar
+    member ps.ZMax = zmax
+    member ps.TimeHorizon = horizon
+    member ps.ReachedLevels = reachedLevels
 
-    member val EarliestStartingTimes = ests
-    member val LatestStartingTimes = lsts
-    member val EarliestFinishingTimes = efts
-    member val LatestFinishingTimes = lfts
+    member ps.EarliestFinishingTimes = efts
+    member ps.LatestFinishingTimes = lfts
 
-    member ps.Profit = profit
     member ps.Makespan = makespan
     member ps.TotalOvercapacityCosts = totalOvercapacityCosts
-    member ps.AfterLatestGaps = afterLatestGaps
-    member ps.ModifiedPsgsHeuristicDefault = modifiedPsgsHeuristic topOrdering 
-    member ps.ModifiedPsgsHeuristic = modifiedPsgsHeuristic
-    member ps.ModifiedSsgsHeuristicDefault = modifiedSsgsHeuristic topOrdering
-    member ps.ModifiedSsgsHeuristic = modifiedSsgsHeuristic
-    member ps.BackwardsGapFillHeuristicDefault = backwardsGapFillHeuristic topOrdering
-    member ps.BackwardsGapFillHeuristic = backwardsGapFillHeuristic
+
+    member ps.ModifiedPsgsHeuristicDefault = ps.ModifiedPsgsHeuristic topOrdering 
+    member ps.ModifiedSsgsHeuristicDefault = ps.ModifiedSsgsHeuristic topOrdering
+    member ps.BackwardsGapFillHeuristicDefault = ps.BackwardsGapFillHeuristic topOrdering
     member ps.SerialScheduleGenerationScheme = ssgs topOrdering
-    member ps.CleverSSGS = cleverSsgs topOrdering
+    member ps.CleverSSGSHeuristic = cleverSsgsHeuristic topOrdering
     member ps.ParallelScheduleGenerationScheme = psgs topOrdering
-    member ps.ScheduleToGrid = scheduleToGrid
-    member ps.FinishingTimesToStartingTimes = finishingTimesToStartingTimes
-    member ps.CalculateGap = calculateGap
+
+    member ps.NeededOCForSchedule sts = neededOvercapacityInPeriod sts
 
     static member Create(jobs, durations, demands, costs, capacities, preds, resources, topOrdering, reachedLevels, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (ix+1,e)) arr |> Map.ofSeq

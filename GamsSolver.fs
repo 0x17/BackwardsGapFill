@@ -74,7 +74,7 @@ module GamsSolver =
 
         let solveTime = (outdb.GetParameter "solveTime").FirstRecord().Value
 
-        (zFunc, fts, solveTime)       
+        (fts, solveTime)       
 
     let optTopSort jobs (optSchedule:IntMap) =
         jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
@@ -94,5 +94,5 @@ module GamsSolver =
         job.Run (opt, writer, db)
         // Parse elapsed time from string writer content
         opt.Dispose ()
-        let (z, fts, solveTime) = processOutput job.OutDB
-        (z, ps.FinishingTimesToStartingTimes fts, solveTime)
+        let (fts, solveTime) = processOutput job.OutDB
+        (ps.FinishingTimesToStartingTimes fts, solveTime)
