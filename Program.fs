@@ -68,12 +68,17 @@ module Program =
         ScheduleVisualisation.showSchedules [("SSGS2", ps, sts)]
         ()
 
+    let showUStarPlot () =
+        let ps = testProjectStructure
+        PlotVisualisation.generatePlot ps.UStar ps.TimeHorizon "ustar.dat"
+
     [<EntryPoint>]
     let main argv =
         //BatchRunner.stripAdditionalData @"Projekte"
         //BatchRunner.addCostsAndLevelsToProjs @"Projekte"
-        solveAndVisualize ()
+        //solveAndVisualize ()
         //buildTableForVaryingKappas ()
         //trySSGS2 ()
+        showUStarPlot ()
         0
     

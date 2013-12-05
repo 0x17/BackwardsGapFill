@@ -65,8 +65,7 @@ type ProjectStructure(jobs:         Set<int>,
     
     let ssgsCore sts λ z =
         let scheduleJob acc j =
-            let t = numsGeq ests.[j] |> Seq.find (predsAndCapacityFeasible acc j z)
-            Map.add j t acc
+            Map.add j (numsGeq ests.[j] |> Seq.find (predsAndCapacityFeasible acc j z)) acc
         Seq.fold scheduleJob sts λ
 
     let ssgs λ z = ssgsCore Map.empty λ z
