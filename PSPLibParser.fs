@@ -5,6 +5,8 @@ open System.Text.RegularExpressions
 open System.IO
 
 open Utils
+open Serialization
+open TopologicalSorting
 
 module PSPLibParser =
     let offsetStartingWith str lines = Seq.findIndex (fun (line:string) -> line.StartsWith(str)) lines

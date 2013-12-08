@@ -1,6 +1,7 @@
 ﻿namespace RCPSP
 
 open GAMS
+open Utils
 
 module GamsSolver =
     let addSetEntries (set:GAMSSet) name entries =
@@ -42,7 +43,7 @@ module GamsSolver =
             addParamEntries ustarParam "t" ps.TimeHorizon ps.UStar
 
             let demandsParam = db.AddParameter ("demands", 2, "Bedarf")
-            Utils.cartesianProduct ps.Jobs ps.Resources
+            ps.Jobs >< ps.Resources
             |> Seq.iter (fun (j,r) -> demandsParam.AddRecord("j"+string(j), "r"+string(r)).Value <- float(ps.Demands j r))
 
             let eftsParam = db.AddParameter ("efts", 1, "Früheste Startzeitpunkte")
@@ -72,16 +73,19 @@ module GamsSolver =
             Map.add (parseKey vrec.Keys.[0]) (parseKey vrec.Keys.[1]) acc
         let fts = Seq.fold addFinishTimeEntry Map.empty relevantXRecords
 
-        let solveTime = (outdb.GetParameter "solveTime").FirstRecord().Value
+        let parval (param:GAMSParameter) = param.FirstRecord().Value
+        let solveTime = outdb.GetParameter "solveTime" |> parval
+        let solveStat = outdb.GetParameter "slvStat" |> parval
 
-        (fts, solveTime)       
+        (fts, solveTime, solveStat)       
 
     let optTopSort jobs (optSchedule:IntMap) =
         jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
 
-    // TODO: Solvestats auslesen!
+    exception SolveError of float
+
     let solve (ps:ProjectStructure) =
-        let ws = new GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
+        let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
         opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"
         opt.MIP <- "GUROBI"
@@ -89,10 +93,10 @@ module GamsSolver =
         opt.ResLim <- System.Double.MaxValue
         let job = ws.AddJobFromFile "model.gms"
         let db = createDatabase ws ps
-        //let writer = new System.IO.StringWriter() // forward string writer to stdout
         let writer = System.Console.Out
         job.Run (opt, writer, db)
-        // Parse elapsed time from string writer content
         opt.Dispose ()
-        let (fts, solveTime) = processOutput job.OutDB
+        let (fts, solveTime, solveStat) = processOutput job.OutDB
+        if solveStat <> 1.0 then
+            raise (SolveError(solveStat))
         (ps.FinishingTimesToStartingTimes fts, solveTime)

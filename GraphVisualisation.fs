@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.Diagnostics
 
 open Utils
+open Serialization
 
 module GraphVisualisation =
     let predsToEdgeRelation jobs preds =
@@ -14,7 +15,7 @@ module GraphVisualisation =
         let header = "digraph precedence {"
         let footer = "}"
         let edgeRelation = predsToEdgeRelation ps.Jobs ps.Preds
-        let sb = new StringBuilder()
+        let sb = StringBuilder()
         for (i,j) in edgeRelation do
             sb.Append(string(i)+"->"+string(j)+"\n") |> ignore
         for j in ps.Jobs do

@@ -14,6 +14,7 @@ alias(t,tau);
 
 parameters
          solvetime       CPU-Zeit
+         slvstat         Termination status
          zmax(r)         Maximale ZK
          kappa(r)        Kosten pro Einheit ZK
          capacities(r)   Kapazitäten
@@ -72,7 +73,8 @@ model rcpsp /all/;
 solve rcpsp using mip maximizing profit;
 
 solvetime = rcpsp.resusd;
+slvstat = rcpsp.solvestat;
 
-execute_unload "results.gdx" x.l x.m z.l z.m solvetime
+execute_unload "results.gdx" x.l x.m z.l z.m solvetime slvstat;
 
 display z.l;

@@ -11,7 +11,7 @@ open Utils
 module ScheduleVisualisation =
     let saveViewToPng (view:Control) filename =
         let bmp = new Bitmap (view.Width, view.Height)
-        view.DrawToBitmap(bmp, new Rectangle(Point.Empty, bmp.Size))
+        view.DrawToBitmap(bmp, Rectangle(Point.Empty, bmp.Size))
         bmp.Save (filename+".png")
 
     let saveViews prefix views =
@@ -29,7 +29,7 @@ module ScheduleVisualisation =
             let lbl = new Label ()
             lbl.Text <- text
             lbl.Location <- loc
-            lbl.Size <- new Size (200, 20)
+            lbl.Size <- Size (200, 20)
             mainForm.Controls.Add lbl
 
         let dgv = new DataGridView ()
@@ -39,8 +39,8 @@ module ScheduleVisualisation =
         let remZeroes str = if str = "0" then "" else str
 
         let initJobToColorMap () =
-            let r = new Random 23
-            let colMap = new Dictionary<int, Color> ()
+            let r = Random 23
+            let colMap = Dictionary<int, Color> ()
             colMap.Add (0, Color.White)
             for j in ps.Jobs do
                 let rval () = r.Next (20, 256)
@@ -51,7 +51,7 @@ module ScheduleVisualisation =
         let updateCapLbl cap =
             capLbl.Text <- "Capacity: " + string cap
         updateCapLbl (ps.Capacities 1)
-        capLbl.Location <- new Point (10, lblOffsetY+90)
+        capLbl.Location <- Point (10, lblOffsetY+90)
         mainForm.Controls.Add capLbl
         
         let colMap = initJobToColorMap()
@@ -110,23 +110,23 @@ module ScheduleVisualisation =
         mainForm.VerticalScroll.Enabled <- true
         mainForm.AutoScroll <- true
 
-        addLbl "Selected resource" (new Point (10, lblOffsetY))
+        addLbl "Selected resource" (Point (10, lblOffsetY))
 
         let resCb = new ComboBox ()
         resCb.DataSource <- Array.ofSeq ps.Resources
-        resCb.Location <- new Point (10, lblOffsetY+30)
+        resCb.Location <- Point (10, lblOffsetY+30)
         resCb.SelectedValueChanged.Add(fun _ -> updateGridForRes (resCb.SelectedIndex+1))
         mainForm.Controls.Add resCb
 
-        addLbl ("Makespan: " + sts.[Seq.length (keys sts)].ToString ()) (new Point (10, lblOffsetY+60))
+        addLbl ("Makespan: " + sts.[Seq.length (keys sts)].ToString ()) (Point (10, lblOffsetY+60))
         
-        addLbl ("Horizon: " + string ps.TimeHorizon.Length) (new Point (10, lblOffsetY+120))
+        addLbl ("Horizon: " + string ps.TimeHorizon.Length) (Point (10, lblOffsetY+120))
 
-        let sumOc = cartesianProduct ps.Resources ps.TimeHorizon |> Seq.sumBy (fun (r,t) -> float(z r t) * (ps.Kappa r))
-        addLbl ("Total OC costs: " + string sumOc) (new Point(10, lblOffsetY+150))
+        let sumOc = ps.Resources >< ps.TimeHorizon |> Seq.sumBy (fun (r,t) -> float(z r t) * (ps.Kappa r))
+        addLbl ("Total OC costs: " + string sumOc) (Point(10, lblOffsetY+150))
 
         let profit = ps.Profit sts
-        addLbl ("Profit: " + string profit) (new Point(10, lblOffsetY+180))
+        addLbl ("Profit: " + string profit) (Point(10, lblOffsetY+180))
 
         mainForm.Closed.Add(fun _ -> Application.Exit ())
         mainForm.Show ()
