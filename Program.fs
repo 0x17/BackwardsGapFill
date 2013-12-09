@@ -13,7 +13,8 @@ module Program =
     let loadOptimalSchedule = slurpMap
 
     let testProjectStructure =
-        let testFilename = @"Projekte/Modellendogen0001.DAT"
+        //let testFilename = @"C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\CarolinGA\Release\Win32\veraltet\10+2\Modellendogen001.DAT"
+        let testFilename = @"Projekte\Modellendogen0001.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
@@ -118,7 +119,7 @@ module Program =
         //solveAndVisualize ()
         //buildTableForVaryingKappas ()
         //trySSGS2 ()
-        //showUStarPlot ()                
+        showUStarPlot ()                
         //genTopSorts  ()
-        countingTopOrderings ()
+        //countingTopOrderings ()
         0

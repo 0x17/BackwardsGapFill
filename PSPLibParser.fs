@@ -9,7 +9,9 @@ open Serialization
 open TopologicalSorting
 
 module PSPLibParser =
-    let offsetStartingWith str lines = Seq.findIndex (fun (line:string) -> line.StartsWith(str)) lines
+    let offsetStartingWith str lines =
+        try Seq.findIndex (fun (line:string) -> line.StartsWith(str)) lines
+        with | :? System.Collections.Generic.KeyNotFoundException -> -1
 
     let parseNumJobs filename = Int32.Parse(File.ReadAllLines(filename).[5].Split([|':'|]).[1].Trim())
     let parseNumResources filename = Int32.Parse((File.ReadAllLines(filename).[8].Split([|':'|]).[1].Split() |> Array.filter (fun s -> s <> "")).[0])
@@ -50,8 +52,7 @@ module PSPLibParser =
     let parseDemands numRes lines = [| for line in lines -> Array.map int ((parts line).[3..3+numRes-1]) |]
     let parseCapacities numRes line = Seq.take numRes (parts line) |> Seq.map int |> Array.ofSeq
     let countRes capLine = Regex.Matches(capLine, "R \d").Count
-
-    // TODO: Robust machen -> falls Felder nicht definiert einfach null setzen damit parseAttr oben überflüssig
+    
     let parse filename =
         let lines = File.ReadAllLines(filename)
 
@@ -76,19 +77,22 @@ module PSPLibParser =
         let resources = set [1..numRes]
 
         let linesToFuncCommon beginTitle endTitle t =
-            let relevantLines = lines.[offsets(beginTitle)+1..offsets(endTitle)-1]
-            let relevantLinesStr = System.String.Join("\n", relevantLines)
-            let mapping = mapFromStr relevantLinesStr t
-            mapToFunc mapping
+            if offsets(beginTitle) = -1 then (fun x -> t "0")
+            else
+                let relevantLines = lines.[offsets(beginTitle)+1..offsets(endTitle)-1]
+                let relevantLinesStr = System.String.Join("\n", relevantLines)
+                let mapping = mapFromStr relevantLinesStr t
+                mapToFunc mapping
 
         let kappaFunc = linesToFuncCommon "oc-costs" "max-oc" float
         let zmaxFunc = linesToFuncCommon "max-oc" "costs" int
         let costsFunc = linesToFuncCommon "costs" "rlevels" float
 
-        let levelsLines = lines.[offsets("rlevels")+1..lines.Length-1]
+        let levelsLines = if offsets("rlevels") = -1 then [||] else lines.[offsets("rlevels")+1..lines.Length-1]
         let reachedLevels = deserializeReachedLevels levelsLines
 
+        let ordering = topSort jobs predsFunc
         ProjectStructure.Create(jobs, durations, demands,
                                 costsFunc, capacities, predsFunc,
-                                resources, topSort jobs predsFunc,
+                                resources, ordering,
                                 reachedLevels, kappaFunc, zmaxFunc)

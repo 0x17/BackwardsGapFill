@@ -240,4 +240,4 @@ type ProjectStructure(jobs:         Set<int>,
     static member Create(jobs, durations, demands, costs, capacities, preds, resources, topOrdering, reachedLevels, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq
         ProjectStructure(jobs, arrayToBaseOneMap durations |> mapToFunc, demands |> Array.map arrayToBaseOneMap |> arrayToBaseOneMap |> map2DToFunc,
-                             costs, preds, resources, capacities |> arrayToBaseOneMap |> mapToFunc, topOrdering, reachedLevels, kappa, zmax)
+                         costs, preds, resources, capacities |> arrayToBaseOneMap |> mapToFunc, topOrdering, reachedLevels, kappa, zmax)
