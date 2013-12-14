@@ -23,11 +23,15 @@ module PSPLibParser =
     let serializeCommon title mapping filename =
         title+":\n"+
         mapToStr mapping + "\n"
+        |> replace ',' '.'
         |> spitAppend filename
 
-    let serializeKappa = serializeCommon "OVERCAPACITY COSTS"
-    let serializeZMax = serializeCommon "MAX OVERCAPACITY"
-    let serializeCosts = serializeCommon "COSTS"
+    let serializeKappa : Map<int,float> -> string -> unit =
+        serializeCommon "OVERCAPACITY COSTS"
+    let serializeZMax : Map<int,int> -> string -> unit =
+        serializeCommon "MAX OVERCAPACITY"
+    let serializeCosts : Map<int,int> -> string -> unit =
+        serializeCommon "COSTS"
 
     let serializeReachedLevels (rlevels:Set<int>) filename =
         "REACHED LEVELS:\n" +

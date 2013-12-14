@@ -55,3 +55,7 @@ module Utils =
         match behavior with
         | Blocking -> p.WaitForExit ()
         | NonBlocking -> ()
+
+    let replace oldChar newChar = String.map (fun c -> if c = oldChar then newChar else c)
+
+    let onWindows = Environment.OSVersion.Platform = PlatformID.Win32NT

@@ -85,9 +85,12 @@ module GamsSolver =
     exception SolveError of float
 
     let solve (ps:ProjectStructure) =
-        let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
+        //let sysDir = @"/home/andre/Downloads/gams24.2_linux_x64_64_sfx/"
+        //let sysDir = @"C:\GAMS\"
+        let ws = GAMSWorkspace ((*systemDirectory=sysDir,*) workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
         opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"
+        //opt.License <- @"/home/andre/Downloads/gams24.2_linux_x64_64_sfx/gamslice.txt"
         opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0
         opt.ResLim <- System.Double.MaxValue

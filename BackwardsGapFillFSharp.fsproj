@@ -69,7 +69,6 @@
     <Compile Include="TopologicalSorting.fs" />
     <Compile Include="RandomData.fs" />
     <Compile Include="ProjectStructure.fs" />
-    <Compile Include="ProjectGenerator.fs" />
     <Compile Include="ScheduleVisualisation.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />

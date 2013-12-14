@@ -134,7 +134,8 @@ module ScheduleVisualisation =
         dgv
 
     let showSchedules data =
-        Seq.map (fun (caption,ps,sts) -> show caption ps sts) data |> saveViews "schedule"
+        //Seq.map (fun (caption,ps,sts) -> show caption ps sts) data |> saveViews "schedule"
+        Seq.iter (fun (caption,ps,sts) -> show caption ps sts |> ignore) data
         System.Windows.Forms.Application.Run ()
 
     

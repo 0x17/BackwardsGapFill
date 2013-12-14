@@ -11,7 +11,7 @@ module BatchRunner =
             let nres = PSPLibParser.parseNumResources fn
             let res = [1..nres]
 
-            let kappaVal = 1
+            let kappaVal = 0.5
             let kappa = res |> Seq.map (fun r -> (r, kappaVal)) |> Map.ofSeq
             PSPLibParser.serializeKappa kappa fn
 

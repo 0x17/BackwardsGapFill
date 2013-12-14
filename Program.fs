@@ -13,48 +13,43 @@ module Program =
     let loadOptimalSchedule = slurpMap
 
     let testProjectStructure =
-        //let testFilename = @"C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\CarolinGA\Release\Win32\veraltet\10+2\Modellendogen001.DAT"
-        let testFilename = @"Projekte\Modellendogen0001.DAT"
+        //let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
+        let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
-        GraphVisualisation.visualizePrecedenceGraph testProjectStructure @"Modellendogen0001"
+        GraphVisualisation.visualizePrecedenceGraph testProjectStructure @"Modellendogen001"
 
     let solveAndVisualize () =
-        let ps = testProjectStructure       
+        let ps = testProjectStructure
 
-        //let (sts1,solveTime) = GamsSolver.solve ps
-        //saveOptimalSchedule ps "optsched.txt" sts1
-        let (sts1,solveTime) = (loadOptimalSchedule "optsched.txt", 0)
+        //visualizeGraph ()
+
+        let (sts1,solveTime) = GamsSolver.solve ps
+        saveOptimalSchedule ps "optsched.txt" sts1
+        
+        //let (sts1,solveTime) = (loadOptimalSchedule "optsched.txt", 0)
+
         let sts2 = ps.BackwardsGapFillHeuristicDefault ()
-        let zeroOc r t = 0
-        let sts3 = ps.SerialScheduleGenerationScheme zeroOc
-        let sts4 = ps.ParallelScheduleGenerationScheme zeroOc
-        let sts5 = ps.ModifiedPsgsHeuristicDefault ()
+        let sts3 = ps.SerialScheduleGenerationScheme ()
+        let sts4 = ps.ParallelScheduleGenerationScheme ()
 
-        let optTopSort = GamsSolver.optTopSort ps.Jobs sts1
-        let sts6 = ps.ModifiedPsgsHeuristic (Seq.ofList optTopSort) ()
+        //let optTopSort = GamsSolver.optTopSort ps.Jobs sts1
+        //let sts5 = ps.CleverSSGSHeuristic (Seq.ofList optTopSort)
 
-        let sts7 = ps.ModifiedSsgsHeuristicDefault ()
-        //let sts8 = ps.CleverSSGSHeuristicAllOrderings ()
+        let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
 
-        //printf "Gap = %.2f" <| ps.CalculateGap sts1 sts8        
+        printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
 
-        ScheduleVisualisation.showSchedules [("SSGS Heuristik w/out OC", ps, sts3);
-                                             ("PSGS Heuristik w/out OC", ps, sts4);                                             
-                                             ("BGF Heuristik", ps, sts2);
-                                             ("Modified PSGS Heuristik", ps, sts5);
-                                             ("Modified PSGS Heuristik - Optimal λ", ps, sts6);
-                                             ("Modified SSGS Heuristik", ps, sts7);
-                                             ("MIP Modell", ps, sts1);
-                                             (*("SSGS2", ps, sts8);*)]
+        ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1);
+                                             ("SSGS2", ps, sts5);]
         ()
 
     let buildTableForVaryingKappas () =
         spit "kappaVariations.csv" "kappa;profit;makespan;total-oc;solve-time\n"
         let ps = testProjectStructure
         let infty = 999999999999999.0
-        for kappa in infty :: [1.0 .. 0.1 .. 2.0] do
+        for kappa in infty :: [0.0 .. 0.1 .. 2.0] do
             let kappaFunc = (fun r -> kappa)
             let nps = ProjectStructure (ps.Jobs, ps.Durations, ps.Demands, ps.Costs, ps.Preds,
                                             ps.Resources, ps.Capacities, topSort ps.Jobs ps.Preds,
@@ -69,7 +64,7 @@ module Program =
 
     let trySSGS2 () =
         let ps = testProjectStructure
-        let sts = ps.CleverSSGSHeuristic ()
+        let sts = ps.CleverSSGSHeuristicDefault ()
         ScheduleVisualisation.showSchedules [("SSGS2", ps, sts)]
         ()
 
@@ -98,8 +93,12 @@ module Program =
 
     let countingTopOrderings () =
         let ps = testProjectStructure
+        let sw = System.Diagnostics.Stopwatch()
+        sw.Start ()
         let nsorts = countTopSorts ps.Jobs ps.Preds
-        printf "Num sorts = %O" nsorts
+        sw.Stop ()
+        printf "Num sorts = %O\n" nsorts
+        printf "Time elapsed = %d\n" sw.ElapsedMilliseconds
         System.Console.ReadKey () |> ignore
 
     let convertPrecedenceRelationToCArray () =
@@ -114,12 +113,14 @@ module Program =
 
     [<EntryPoint>]
     let main argv =
-        //BatchRunner.stripAdditionalData @"Projekte"
-        //BatchRunner.addCostsAndLevelsToProjs @"Projekte"
-        //solveAndVisualize ()
+        //let projectFolder = @"Projekte/12Jobs"
+        //BatchRunner.stripAdditionalData projectFolder
+        //BatchRunner.addCostsAndLevelsToProjs projectFolder
+        solveAndVisualize ()
         //buildTableForVaryingKappas ()
         //trySSGS2 ()
-        showUStarPlot ()                
+        //showUStarPlot ()                
         //genTopSorts  ()
         //countingTopOrderings ()
+        //convertPrecedenceRelationToCArray ()
         0

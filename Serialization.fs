@@ -6,8 +6,8 @@ open System
 open Utils
 
 module Serialization =
-    let mapToStr (m:Map<int,int>) =
-        String.Join("\n", Seq.map (fun k -> k.ToString () + "->" + (m.Item k).ToString ()) (keys m))
+    let mapToStr m =
+        String.Join("\n", Seq.map (fun k -> k.ToString () + "->" + (Map.find k m).ToString ()) (keys m))
     let mapFromStr (s:string) t =
         let parseLine (line:string) =
             let lhsAndRhs = line.Split ([|"->"|], StringSplitOptions.None)
