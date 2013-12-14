@@ -9,9 +9,6 @@ open PSPLibParser
 open ScheduleVisualisation
 
 module Program =
-    let saveOptimalSchedule ps filename = spitMap filename (fst <| GamsSolver.solve ps)
-    let loadOptimalSchedule = slurpMap
-
     let testProjectStructure =
         //let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
         let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
@@ -25,19 +22,19 @@ module Program =
 
         //visualizeGraph ()
 
-        let (sts1,solveTime) = GamsSolver.solve ps
-        saveOptimalSchedule ps "optsched.txt" sts1
+        //let (sts1,solveTime) = GamsSolver.solve ps
+        //spitMap "optsched.txt" sts1
         
-        //let (sts1,solveTime) = (loadOptimalSchedule "optsched.txt", 0)
+        let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
 
         let sts2 = ps.BackwardsGapFillHeuristicDefault ()
         let sts3 = ps.SerialScheduleGenerationScheme ()
         let sts4 = ps.ParallelScheduleGenerationScheme ()
 
-        //let optTopSort = GamsSolver.optTopSort ps.Jobs sts1
-        //let sts5 = ps.CleverSSGSHeuristic (Seq.ofList optTopSort)
+        let optTopSort = GamsSolver.optTopSort ps.Jobs sts1
+        let sts5 = ps.CleverSSGSHeuristic (Seq.ofList optTopSort)
 
-        let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
+        //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
 
         printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
 
