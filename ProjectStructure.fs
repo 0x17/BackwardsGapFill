@@ -187,7 +187,7 @@ type ProjectStructure(jobs, durations, demands, costs, preds: int -> Set<int>,
 
     member ps.CalculateGap optimalSts sts =
         let optProfit = ps.Profit optimalSts
-        (optProfit - ps.Profit sts) / optProfit
+        (optProfit - ps.Profit sts) / optProfit |> abs
             
     member ps.Jobs = jobs
     member ps.ActualJobs = actualJobs
@@ -217,6 +217,11 @@ type ProjectStructure(jobs, durations, demands, costs, preds: int -> Set<int>,
     member ps.CleverSSGSHeuristicAllOrderings () =
         let winner = Seq.maxBy (ps.Profit << cleverSsgsHeuristic) (allTopSorts jobs preds)
         cleverSsgsHeuristic winner
+
+    member ps.CleverSSGSHeuristicOrderingStats optimalSts =
+        let addPair acc ordering =
+            Map.add ordering (cleverSsgsHeuristic ordering |> ps.CalculateGap optimalSts) acc
+        Seq.fold addPair Map.empty (allTopSorts jobs preds)
 
     member ps.ParallelScheduleGenerationScheme () = psgs topOrdering
 

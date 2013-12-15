@@ -10,8 +10,8 @@ open ScheduleVisualisation
 
 module Program =
     let testProjectStructure =
-        //let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
-        let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
+        let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
+        //let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
@@ -23,8 +23,7 @@ module Program =
         //visualizeGraph ()
 
         //let (sts1,solveTime) = GamsSolver.solve ps
-        //spitMap "optsched.txt" sts1
-        
+        //spitMap "optsched.txt" sts1        
         let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
 
         let sts2 = ps.BackwardsGapFillHeuristicDefault ()
@@ -42,8 +41,18 @@ module Program =
                                              ("SSGS2", ps, sts5);]
         ()
 
+    let buildTableForOrderingStats () =        
+        let outFilename = "orderingStats.csv"
+        spit outFilename "ordering;gap\n"
+        let ps = testProjectStructure
+        let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
+        let stats = ps.CleverSSGSHeuristicOrderingStats sts1
+        let lstStr (lst:seq<int>) = System.String.Join(",", lst)
+        Map.iter (fun k v -> spitAppend outFilename (lstStr(k)+";"+(string(v) |> replace '.' ',')+"\n")) stats
+
     let buildTableForVaryingKappas () =
-        spit "kappaVariations.csv" "kappa;profit;makespan;total-oc;solve-time\n"
+        let outFilename = "kappaVariations.csv"
+        spit outFilename "kappa;profit;makespan;total-oc;solve-time\n"
         let ps = testProjectStructure
         let infty = 999999999999999.0
         for kappa in infty :: [0.0 .. 0.1 .. 2.0] do
@@ -55,8 +64,8 @@ module Program =
             let profit = nps.Profit sts
             let makespan = float(nps.Makespan sts)
             let totalOc = float(nps.TotalOvercapacityCosts sts)
-            let parts = Array.map (fun n -> n.ToString().Replace('.',',')) [| kappa; profit; makespan; totalOc; solveTime |]
-            spitAppend "kappaVariations.csv" (System.String.Join(";", parts) + "\n")
+            let parts = Array.map (fun n -> n.ToString() |> replace '.' ',') [| kappa; profit; makespan; totalOc; solveTime |]
+            spitAppend outFilename (System.String.Join(";", parts) + "\n")
         ()
 
     let trySSGS2 () =
@@ -113,8 +122,9 @@ module Program =
         //let projectFolder = @"Projekte/12Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addCostsAndLevelsToProjs projectFolder
-        solveAndVisualize ()
+        //solveAndVisualize ()
         //buildTableForVaryingKappas ()
+        buildTableForOrderingStats ()
         //trySSGS2 ()
         //showUStarPlot ()                
         //genTopSorts  ()
