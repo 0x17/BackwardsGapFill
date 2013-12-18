@@ -133,15 +133,13 @@ type ProjectStructure(jobs, durations, demands, costs, preds: int -> Set<int>,
             let subλ = Seq.skip (inc jix) λ
             ssgsCore candidate subλ
 
-        let scoreForScheduleCandidate candidate =
+        let scoreForScheduleCandidate candidate = // TODO: Merge with profit?
             (ustar << makespan) candidate - totalOvercapacityCosts candidate
 
         let chooseBestPeriod sts j tlower tupper =
             [tlower..tupper]
-            |> Seq.map (fun t -> (t, computeCandidateSchedule sts j t))
-            |> Seq.filter (fun pair -> scheduleFeasibleWithMaxOC (snd pair))
-            |> Seq.maxBy (fun pair -> scoreForScheduleCandidate (snd pair))
-            |> fst
+            |> Seq.filter (fun t -> enoughCapacityForJob sts j t)
+            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> scoreForScheduleCandidate)
 
         let scheduleJob acc job =
             let tlower = numsGeq ests.[job] |> Seq.find (arePredsFinished acc job)
