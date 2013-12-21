@@ -175,7 +175,7 @@ type ProjectStructure(jobs, durations, demands, costs, preds: int -> Set<int>,
             let actJobs = activeInPeriodSet sts t
             let mutable colCtr = dec nrows
             for j in actJobs do
-                for k in [1..demands j r] do
+                for k in 1..demands j r do
                     Array2D.set grid colCtr (dec t) j
                     colCtr <- dec colCtr
         grid

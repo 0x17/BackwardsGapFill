@@ -79,14 +79,14 @@ module ScheduleVisualisation =
             let nrows = Array2D.length1 grid
             let ncols = Array2D.length2 grid
 
-            for t in [1..ncols] do
+            for t in 1..ncols do
                 let dgvc = new DataGridViewColumn ()
                 dgvc.Width <- 20
                 dgvc.CellTemplate <- cell
                 dgvc.HeaderText <- t.ToString ()
                 dgv.Columns.Add dgvc |> ignore
 
-            for k in [1..nrows] do            
+            for k in 1..nrows do            
                 let dgvr = new DataGridViewRow ()
                 dgvr.Height <- 12
                 dgvr.HeaderCell.Value <- (nrows-k+1).ToString ()

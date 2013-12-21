@@ -49,7 +49,7 @@ module PSPLibParser =
     let succsToPreds (succs:Map<int,int seq>) =
         let findPreds j = Seq.filter (fun i -> succs |> Map.find i |> Seq.exists (fun x -> x = j)) (keys succs)
         let arr = Array.zeroCreate (Seq.length (keys succs))
-        for i in [0..arr.Length-1] do arr.[i] <- set (findPreds (i+1))
+        for i in 0..arr.Length-1 do arr.[i] <- set (findPreds (i+1))
         arr
 
     let parseDurations lines = [| for line in lines -> int (parts line).[2] |]
