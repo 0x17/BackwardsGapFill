@@ -30,15 +30,6 @@ module PSPLibParser =
         serializeCommon "OVERCAPACITY COSTS"
     let serializeZMax : Map<int,int> -> string -> unit =
         serializeCommon "MAX OVERCAPACITY"
-    let serializeCosts : Map<int,int> -> string -> unit =
-        serializeCommon "COSTS"
-
-    let serializeReachedLevels (rlevels:Set<int>) filename =
-        "REACHED LEVELS:\n" +
-        System.String.Join("\n", Set.toArray rlevels |> Array.map string)
-        |> spitAppend filename
-
-    let deserializeReachedLevels (levelsLines:string[]) = (Array.map int >> set) levelsLines
 
     let parseSuccs lines =
         let parseSuccLine line = 
@@ -60,9 +51,8 @@ module PSPLibParser =
     let parse filename =
         let lines = File.ReadAllLines(filename)
 
-        let titles = ["PRECEDENCE RELATIONS"; "REQUESTS/DURATIONS"; "RESOURCEAVAILABILITIES"; "OVERCAPACITY COSTS";
-                      "MAX OVERCAPACITY"; "COSTS"; "REACHED LEVELS"]
-        let shortTitles = [|"prec"; "reqdur"; "cap"; "oc-costs"; "max-oc"; "costs"; "rlevels"|]
+        let titles = ["PRECEDENCE RELATIONS"; "REQUESTS/DURATIONS"; "RESOURCEAVAILABILITIES"; "OVERCAPACITY COSTS"; "MAX OVERCAPACITY"]
+        let shortTitles = [|"prec"; "reqdur"; "cap"; "oc-costs"; "max-oc"|]
         let offsets = titles |> List.mapi (fun i title -> (shortTitles.[i], offsetStartingWith (title+":") lines)) |> Map.ofList |> mapToFunc
 
         let numRes = countRes lines.[offsets("cap")+1]
@@ -78,25 +68,22 @@ module PSPLibParser =
 
         let numJobs = Seq.length durations
         let jobs = set [1..numJobs]
-        let resources = set [1..numRes]
+        let resources = set [1..numRes]       
 
         let linesToFuncCommon beginTitle endTitle t =
-            if offsets(beginTitle) = -1 then (fun x -> t "0")
+            if offsets beginTitle = -1 then (fun x -> t "0")
             else
-                let relevantLines = lines.[offsets(beginTitle)+1..offsets(endTitle)-1]
+                let last = (if endTitle = "EOF" then lines.Length else offsets endTitle) - 1
+                let relevantLines = lines.[(offsets beginTitle)+1..last]
                 let relevantLinesStr = System.String.Join("\n", relevantLines)
                 let mapping = mapFromStr relevantLinesStr t
                 mapToFunc mapping
 
         let kappaFunc = linesToFuncCommon "oc-costs" "max-oc" float
-        let zmaxFunc = linesToFuncCommon "max-oc" "costs" int
-        let costsFunc = linesToFuncCommon "costs" "rlevels" float
-
-        let levelsLines = if offsets("rlevels") = -1 then [||] else lines.[offsets("rlevels")+1..lines.Length-1]
-        let reachedLevels = deserializeReachedLevels levelsLines
+        let zmaxFunc = linesToFuncCommon "max-oc" "EOF" int
 
         let ordering = topSort jobs predsFunc
         ProjectStructure.Create(jobs, durations, demands,
-                                costsFunc, capacities, predsFunc,
+                                capacities, predsFunc,
                                 resources, ordering,
-                                reachedLevels, kappaFunc, zmaxFunc)
+                                kappaFunc, zmaxFunc)

@@ -122,7 +122,7 @@ module ScheduleVisualisation =
         
         addLbl ("Horizon: " + string ps.TimeHorizon.Length) (Point (10, lblOffsetY+120))
 
-        let sumOc = ps.Resources >< ps.TimeHorizon |> Seq.sumBy (fun (r,t) -> float(z r t) * (ps.Kappa r))
+        let sumOc = ps.Resources >< ps.TimeHorizon |> Seq.sumBy (fun (r,t) -> float (z r t) * (ps.Kappa r))
         addLbl ("Total OC costs: " + string sumOc) (Point(10, lblOffsetY+150))
 
         let profit = ps.Profit sts

@@ -9,22 +9,22 @@ open PSPLibParser
 open ScheduleVisualisation
 
 module Program =
-    let testProjectStructure =
+    let testProjectStructure () =
         let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
         //let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
-        GraphVisualisation.visualizePrecedenceGraph testProjectStructure @"Modellendogen001"
+        GraphVisualisation.visualizePrecedenceGraph (testProjectStructure ()) @"Modellendogen001"
 
     let solveAndVisualize () =
-        let ps = testProjectStructure
+        let ps = testProjectStructure ()
 
         //visualizeGraph ()
 
-        //let (sts1,solveTime) = GamsSolver.solve ps
-        //spitMap "optsched.txt" sts1        
-        let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
+        let (sts1,solveTime) = GamsSolver.solve ps
+        spitMap "optsched.txt" sts1        
+        //let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
 
         let sts2 = ps.BackwardsGapFillHeuristicDefault ()
         let sts3 = ps.SerialScheduleGenerationScheme ()
@@ -44,7 +44,7 @@ module Program =
     let buildTableForOrderingStats () =        
         let outFilename = "orderingStats.csv"
         spit outFilename "ordering;gap\n"
-        let ps = testProjectStructure
+        let ps = testProjectStructure ()
         let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
         let stats = ps.CleverSSGSHeuristicOrderingStats sts1
         let lstStr (lst:seq<int>) = System.String.Join(",", lst)
@@ -53,30 +53,30 @@ module Program =
     let buildTableForVaryingKappas () =
         let outFilename = "kappaVariations.csv"
         spit outFilename "kappa;profit;makespan;total-oc;solve-time\n"
-        let ps = testProjectStructure
+        let ps = testProjectStructure ()
         let infty = 999999999999999.0
         for kappa in infty :: [0.0 .. 0.1 .. 2.0] do
             let kappaFunc = (fun r -> kappa)
-            let nps = ProjectStructure (ps.Jobs, ps.Durations, ps.Demands, ps.Costs, ps.Preds,
+            let nps = ProjectStructure (ps.Jobs, ps.Durations, ps.Demands, ps.Preds,
                                             ps.Resources, ps.Capacities, topSort ps.Jobs ps.Preds,
-                                            ps.ReachedLevels, kappaFunc, ps.ZMax)
+                                            kappaFunc, ps.ZMax)
             let (sts,solveTime) = GamsSolver.solve nps
             let profit = nps.Profit sts
-            let makespan = float(nps.Makespan sts)
-            let totalOc = float(nps.TotalOvercapacityCosts sts)
+            let makespan = float (nps.Makespan sts)
+            let totalOc = float (nps.TotalOvercapacityCosts sts)
             let parts = Array.map (fun n -> n.ToString() |> replace '.' ',') [| kappa; profit; makespan; totalOc; solveTime |]
             spitAppend outFilename (System.String.Join(";", parts) + "\n")
         ()
 
     let trySSGS2 () =
-        let ps = testProjectStructure
+        let ps = testProjectStructure ()
         let sts = ps.CleverSSGSHeuristicDefault ()
         ScheduleVisualisation.showSchedules [("SSGS2", ps, sts)]
         ()
 
-    let showUStarPlot () =
-        let ps = testProjectStructure
-        PlotVisualisation.generatePlot ps.UStar ps.TimeHorizon "ustar"
+    let showRevenuePlot () =
+        let ps = testProjectStructure ()
+        PlotVisualisation.generatePlot ps.U ps.TimeHorizon "revenue"
 
     let genTopSorts () =
         let jobs = set [1..6]
@@ -98,7 +98,7 @@ module Program =
         //()
 
     let countingTopOrderings () =
-        let ps = testProjectStructure
+        let ps = testProjectStructure ()
         let sw = System.Diagnostics.Stopwatch()
         sw.Start ()
         let nsorts = countTopSorts ps.Jobs ps.Preds
@@ -108,7 +108,7 @@ module Program =
         System.Console.ReadKey () |> ignore
 
     let convertPrecedenceRelationToCArray () =
-        let ps = testProjectStructure
+        let ps = testProjectStructure ()
         let sb = StringBuilder ("static int adjMx[NUM_JOBS*NUM_JOBS] = {\n")
         for i in ps.Jobs do
             let succs = ps.Succs i
@@ -121,12 +121,12 @@ module Program =
     let main argv =
         //let projectFolder = @"Projekte/12Jobs"
         //BatchRunner.stripAdditionalData projectFolder
-        //BatchRunner.addCostsAndLevelsToProjs projectFolder
-        //solveAndVisualize ()
+        //BatchRunner.addAdditionalDataToProjs projectFolder
+        solveAndVisualize ()
         //buildTableForVaryingKappas ()
-        buildTableForOrderingStats ()
+        //buildTableForOrderingStats ()
         //trySSGS2 ()
-        //showUStarPlot ()                
+        //showRevenuePlot ()                
         //genTopSorts  ()
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()

@@ -37,14 +37,12 @@ module GamsSolver =
             addParamEntriesToF capacitiesParam "r" ps.Resources ps.Capacities
             let durationsParam = db.AddParameter ("durations", 1, "Dauern")
             addParamEntriesToF durationsParam "j" ps.Jobs ps.Durations
-            let costsParam = db.AddParameter ("costs", 1, "Kosten")
-            addParamEntries costsParam "j" ps.ActualJobs ps.Costs
-            let ustarParam = db.AddParameter ("ustar", 1, "Erlös bei Makespan t")
-            addParamEntries ustarParam "t" ps.TimeHorizon ps.UStar
+            let uParam = db.AddParameter ("u", 1, "Erlös bei Makespan t")
+            addParamEntries uParam "t" ps.TimeHorizon ps.U
 
             let demandsParam = db.AddParameter ("demands", 2, "Bedarf")
             ps.Jobs >< ps.Resources
-            |> Seq.iter (fun (j,r) -> demandsParam.AddRecord("j"+string(j), "r"+string(r)).Value <- float(ps.Demands j r))
+            |> Seq.iter (fun (j,r) -> demandsParam.AddRecord("j"+string(j), "r"+string(r)).Value <- float (ps.Demands j r))
 
             let eftsParam = db.AddParameter ("efts", 1, "Früheste Startzeitpunkte")
             addParamEntriesToF eftsParam "j" ps.Jobs ps.EarliestFinishingTimes
