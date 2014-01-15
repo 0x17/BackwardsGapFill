@@ -10,8 +10,8 @@ open ScheduleVisualisation
 
 module Program =
     let testProjectStructure () =
-        let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
-        //let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
+        //let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
+        let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
@@ -119,7 +119,7 @@ module Program =
 
     [<EntryPoint>]
     let main argv =
-        //let projectFolder = @"Projekte/12Jobs"
+        //let projectFolder = @"Projekte/32Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
         solveAndVisualize ()

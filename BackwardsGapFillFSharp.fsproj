@@ -67,7 +67,6 @@
     <Compile Include="Utils.fs" />
     <Compile Include="Serialization.fs" />
     <Compile Include="TopologicalSorting.fs" />
-    <Compile Include="RandomData.fs" />
     <Compile Include="ProjectStructure.fs" />
     <Compile Include="ScheduleVisualisation.fs" />
     <Compile Include="PSPLibParser.fs" />

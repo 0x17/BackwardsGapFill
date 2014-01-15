@@ -19,8 +19,7 @@ parameters
          kappa(r)        Kosten pro Einheit ZK
          capacities(r)   Kapazitäten
          durations(j)    Dauern
-         costs(j)        Kosten
-         ustar(t)        Erlös bei Makespan t
+         u(t)        Erlös bei Makespan t
          efts(j)         Früheste Startzeitpunkte
          lfts(j)         Späteste Endzeitpunkte
          demands(j,r)    Bedarf;
@@ -31,13 +30,13 @@ set pred(i,j) yes gdw. i Vorgänger von j ist;
 
 *$ontext
 $GDXIN ProjectStructureData.gdx
-$load j t r zmax kappa capacities durations costs ustar efts lfts demands pred
+$load j t r zmax kappa capacities durations u efts lfts demands pred
 $GDXIN
 *$offtext
 
 $ontext
  $gdxout ExampleData
- $unload j t r zmax kappa capacities durations costs ustar efts lfts demands pred
+ $unload j t r zmax kappa capacities durations u efts lfts demands pred
  $gdxout
 $offtext
 
@@ -63,7 +62,7 @@ equations        objective   Zielfunktion
                  once        Jeden AG genau 1x einplanen
                  oclimits    Beschränke buchbare ZK;
 
-objective                 .. profit =e= sum(j$lastJob(j), sum(t$tw(j,t), x(j,t)*ustar(t)))-sum(j$actual(j), costs(j))-sum(r, sum(t, z(r,t)*kappa(r)));
+objective                 .. profit =e= sum(j$lastJob(j), sum(t$tw(j,t), x(j,t)*u(t)))-sum(r, sum(t, z(r,t)*kappa(r)));
 precedence(i,j)$pred(i,j) .. sum(t$tw(i,t), ord(t)*x(i,t)) =l= sum(t$tw(j,t), ord(t)*x(j,t)) - durations(j);
 resusage(r,t)             .. sum(j$actual(j), demands(j,r)*sum(tau$fw(j,t,tau), x(j,tau))) =l= capacities(r) + z(r,t);
 once(j)                   .. sum(t$tw(j,t), x(j,t)) =e= 1;

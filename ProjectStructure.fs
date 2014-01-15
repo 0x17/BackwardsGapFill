@@ -125,6 +125,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     let minOcCosts = 0
     let maxOcCosts = Seq.sumBy (fun r -> kappa r * float (zmax r * T)) resources
 
+    //let minMakespanApprox = 
+
     let u t = -1.0 / float (T - efts lastJob) * float t + 1.0
 
     let profit sts =
