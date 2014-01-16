@@ -85,5 +85,4 @@ module PSPLibParser =
         let ordering = topSort jobs predsFunc
         ProjectStructure.Create(jobs, durations, demands,
                                 capacities, predsFunc,
-                                resources, ordering,
-                                kappaFunc, zmaxFunc)
+                                resources, kappaFunc, zmaxFunc)

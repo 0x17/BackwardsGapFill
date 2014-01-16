@@ -22,9 +22,9 @@ module Program =
 
         //visualizeGraph ()
 
-        let (sts1,solveTime) = GamsSolver.solve ps
-        spitMap "optsched.txt" sts1        
-        //let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
+        //let (sts1,solveTime) = GamsSolver.solve ps
+        //spitMap "optsched.txt" sts1
+        let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
 
         let sts2 = ps.BackwardsGapFillHeuristicDefault ()
         let sts3 = ps.SerialScheduleGenerationScheme ()
@@ -58,8 +58,7 @@ module Program =
         for kappa in infty :: [0.0 .. 0.1 .. 2.0] do
             let kappaFunc = (fun r -> kappa)
             let nps = ProjectStructure (ps.Jobs, ps.Durations, ps.Demands, ps.Preds,
-                                            ps.Resources, ps.Capacities, topSort ps.Jobs ps.Preds,
-                                            kappaFunc, ps.ZMax)
+                                            ps.Resources, ps.Capacities, kappaFunc, ps.ZMax)
             let (sts,solveTime) = GamsSolver.solve nps
             let profit = nps.Profit sts
             let makespan = float (nps.Makespan sts)

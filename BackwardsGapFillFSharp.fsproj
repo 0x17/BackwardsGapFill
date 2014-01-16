@@ -23,7 +23,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <DocumentationFile>bin\Debug\BackwardsGapFillFSharp.XML</DocumentationFile>
+    <DocumentationFile>
+    </DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
     <StartWorkingDirectory>..\..\</StartWorkingDirectory>
   </PropertyGroup>
@@ -52,7 +53,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="GAMS.net4">
-      <HintPath>..\..\..\..\..\..\..\GAMS\win64\24.1\GAMS.net4.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\GAMS\win64\24.2\GAMS.net4.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />

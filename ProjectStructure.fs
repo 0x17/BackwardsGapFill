@@ -9,7 +9,7 @@ open TopologicalSorting
 type IntMap = Map<int,int>
 
 type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
-                      resources, capacities, topOrdering, kappa, zmax) =
+                      resources, capacities, kappa, zmax) =
     let firstJob = Set.minElement jobs
     let lastJob = Set.maxElement jobs
     let actualJobs = Set.difference jobs (set [firstJob; lastJob])
@@ -18,6 +18,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     let horizon = [1..T]
 
     let succs = memoize (fun i -> jobs |> Seq.filter (fun j -> (preds j).Contains i) |> Set.ofSeq)
+
+    let topOrdering = topSort jobs preds
     let revTopOrdering = topSort jobs succs
 
     let ft (sts:IntMap) j = sts.[j] + durations j
@@ -25,15 +27,12 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     let lastPredFinishingTime sts = Seq.max << Seq.map (ft sts) << preds
     let firstSuccStartingTime fts = Seq.min << Seq.map (st fts) << succs
-
-    let elsftForJob seedKey seedVal func sts j =
-        Map.add j (if j = seedKey then seedVal else func sts j) sts
     
-    let computeEsts () =
-        Seq.fold (elsftForJob firstJob 0 lastPredFinishingTime) Map.empty topOrdering
-
-    let computeLfts () =
-        Seq.fold (elsftForJob lastJob T firstSuccStartingTime) Map.empty revTopOrdering
+    let (computeEsts, computeLfts) =        
+        let elsftForJob seedKey seedVal func sts j =
+            Map.add j (if j = seedKey then seedVal else func sts j) sts
+        ((fun () -> Seq.fold (elsftForJob firstJob 0 lastPredFinishingTime) Map.empty topOrdering),
+         (fun () -> Seq.fold (elsftForJob lastJob T firstSuccStartingTime) Map.empty revTopOrdering))
 
     let ests = computeEsts ()
     let efts = ft ests
@@ -50,28 +49,26 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     let demandInPeriod sts r t = activeInPeriodSet sts t |> Seq.sumBy (fun j -> demands j r)
 
     let residualCapacity sts r t = capacities r - demandInPeriod sts r t
+        
+    let enoughCapacityForJob z sts j stj =
+        resources >< [stj+1..stj+durations j]
+        |> Seq.forall (fun (r,t) -> residualCapacity sts r t + z r t >= demands j r)
 
-    let (enoughCapacityForJob, enoughTotalCapacityForJob) =
-        let enoughCapacityForJobWithOC ocfunc sts j stj =
-            resources >< [stj+1..stj+durations j]
-            |> Seq.forall (fun (r,t) -> residualCapacity sts r t + ocfunc r >= demands j r)    
-        (enoughCapacityForJobWithOC (fun r -> 0), enoughCapacityForJobWithOC zmax)
-
-    let predsAndCapacityFeasible sts job t = arePredsFinished sts job t && enoughCapacityForJob sts job t
+    let predsAndCapacityFeasible z sts job t = arePredsFinished sts job t && enoughCapacityForJob z sts job t
     
-    let ssgsCore sts λ =
+    let ssgsCore z sts λ =
         let scheduleJob acc j =
-            Map.add j (numsGeq ests.[j] |> Seq.find (predsAndCapacityFeasible acc j)) acc
+            Map.add j (numsGeq ests.[j] |> Seq.find (predsAndCapacityFeasible z acc j)) acc
         Seq.fold scheduleJob sts λ
 
-    let ssgs λ = ssgsCore Map.empty λ
+    let ssgs z λ = ssgsCore z Map.empty λ
     
-    let psgs λ =
+    let psgs z λ =
         let nextDecisionPoint sts running = running |> Seq.map (ft sts) |> Seq.min
         let running sts t = keys sts |> Seq.filter (fun j -> t <= ft sts j)
         
         let rec scheduleEligible sts rest t =
-            let eligible = Seq.filter (fun j -> predsAndCapacityFeasible sts j t) rest
+            let eligible = Seq.filter (fun j -> predsAndCapacityFeasible z sts j t) rest
             if Seq.isEmpty eligible then (sts,rest)
             else
                 let j = eligible |> Seq.minBy (indexOf rest)
@@ -122,12 +119,20 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
             if scheduleFeasibleWithMaxOC nsts then Some(nsts)
             else None
 
-    let minOcCosts = 0
-    let maxOcCosts = Seq.sumBy (fun r -> kappa r * float (zmax r * T)) resources
+    let zeroOc r t = 0
+    let maxOc r t = zmax r
 
-    //let minMakespanApprox = 
+    let u =        
+        let maxOcSchedule = ssgs maxOc topOrdering
 
-    let u t = -1.0 / float (T - efts lastJob) * float t + 1.0
+        let minOcCosts = 0.0
+        let maxOcCosts = totalOvercapacityCosts maxOcSchedule            
+
+        let minMakespanApprox = maxOcSchedule |> makespan
+        let maxMakespanApprox = ssgs zeroOc topOrdering |> makespan
+
+        let c = (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox)
+        (fun (t:int) -> -c * float t + c * float maxMakespanApprox)
 
     let profit sts =
         let revenue = (u << makespan) sts
@@ -139,18 +144,18 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
             let candidate = Map.add j t sts
             let jix = indexOf λ j
             let subλ = Seq.skip (inc jix) λ
-            ssgsCore candidate subλ
+            ssgsCore zeroOc candidate subλ
 
         let scoreForScheduleCandidate = profit
 
         let chooseBestPeriod sts j tlower tupper =
             [tlower..tupper]
-            |> Seq.filter (fun t -> enoughTotalCapacityForJob sts j t)
+            |> Seq.filter (fun t -> enoughCapacityForJob maxOc sts j t)
             |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> scoreForScheduleCandidate)
 
         let scheduleJob acc job =
             let tlower = numsGeq ests.[job] |> Seq.find (arePredsFinished acc job)
-            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob acc job)
+            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob zeroOc acc job)
             Map.add job (chooseBestPeriod acc job tlower tupper) acc        
 
         Seq.fold scheduleJob Map.empty λ
@@ -167,7 +172,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
                 buildProfitToSchedulesMapping (Map.add p nval acc) nsts
             else acc
 
-        let schedule = ssgs λ
+        let schedule = ssgs zeroOc λ
         let profitsToSchedules = buildProfitToSchedulesMapping (Map.ofList [ps.Profit schedule, schedule]) schedule
 
         profitsToSchedules.[Seq.max (keys profitsToSchedules)]
@@ -211,7 +216,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     member ps.TotalOvercapacityCosts = totalOvercapacityCosts
 
     member ps.BackwardsGapFillHeuristicDefault = ps.BackwardsGapFillHeuristic topOrdering
-    member ps.SerialScheduleGenerationScheme () = ssgs topOrdering
+    member ps.SerialScheduleGenerationScheme () = ssgs zeroOc topOrdering
     member ps.CleverSSGSHeuristicDefault () = cleverSsgsHeuristic topOrdering
     member ps.CleverSSGSHeuristic = cleverSsgsHeuristic
     member ps.CleverSSGSHeuristicAllOrderings () =
@@ -223,13 +228,12 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
             Map.add ordering (cleverSsgsHeuristic ordering |> ps.CalculateGap optimalSts) acc
         Seq.fold addPair Map.empty (allTopSorts jobs preds)
 
-    member ps.ParallelScheduleGenerationScheme () = psgs topOrdering
+    member ps.ParallelScheduleGenerationScheme () = psgs zeroOc topOrdering
 
     member ps.NeededOCForSchedule sts = neededOvercapacityInPeriod sts
 
-    static member Create(jobs, durations, demands, capacities, preds, resources, topOrdering, kappa, zmax) =
+    static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq
         ProjectStructure(jobs, arrayToBaseOneMap durations |> mapToFunc,
                          demands |> Array.map arrayToBaseOneMap |> arrayToBaseOneMap |> map2DToFunc,
-                         preds, resources, capacities |> arrayToBaseOneMap |> mapToFunc,
-                         topOrdering, kappa, zmax)
+                         preds, resources, capacities |> arrayToBaseOneMap |> mapToFunc, kappa, zmax)
