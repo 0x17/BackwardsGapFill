@@ -124,14 +124,13 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     let u =        
         let maxOcSchedule = ssgs maxOc topOrdering
+        let minMakespanApprox = makespan maxOcSchedule 
+        let maxMakespanApprox = makespan (ssgs zeroOc topOrdering)
 
         let minOcCosts = 0.0
-        let maxOcCosts = totalOvercapacityCosts maxOcSchedule            
+        let maxOcCosts = totalOvercapacityCosts maxOcSchedule 
 
-        let minMakespanApprox = maxOcSchedule |> makespan
-        let maxMakespanApprox = ssgs zeroOc topOrdering |> makespan
-
-        let c = (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox)
+        let c = (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox + boolToInt (minMakespanApprox = maxMakespanApprox))
         (fun (t:int) -> -c * float t + c * float maxMakespanApprox)
 
     let profit sts =

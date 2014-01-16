@@ -10,8 +10,10 @@ open ScheduleVisualisation
 
 module Program =
     let testProjectStructure () =
-        //let testFilename = @"Projekte/12Jobs/Modellendogen002.DAT"
-        let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
+        //let testFilename = @"Projekte/12Jobs/Modellendogen001.DAT"
+        let testFilename = @"Projekte/12Jobs/EXPL1.DAT"
+        //let testFilename = @"Projekte/32JobsB/EXPL1.DAT"
+        //let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
@@ -20,19 +22,17 @@ module Program =
     let solveAndVisualize () =
         let ps = testProjectStructure ()
 
-        //visualizeGraph ()
+        visualizeGraph ()
 
-        //let (sts1,solveTime) = GamsSolver.solve ps
-        //spitMap "optsched.txt" sts1
-        let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
+        let (sts1,solveTime) = GamsSolver.solve ps
+        spitMap "optsched.txt" sts1
+        //let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
 
         let sts2 = ps.BackwardsGapFillHeuristicDefault ()
         let sts3 = ps.SerialScheduleGenerationScheme ()
         let sts4 = ps.ParallelScheduleGenerationScheme ()
 
-        let optTopSort = GamsSolver.optTopSort ps.Jobs sts1
-        let sts5 = ps.CleverSSGSHeuristic (Seq.ofList optTopSort)
-
+        let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
         //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
 
         printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
@@ -116,12 +116,21 @@ module Program =
         sb.Append("};") |> ignore
         spit "test.c" (sb.ToString())
 
+    let writeGaps outFilename =
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/20Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
+        spit outFilename "GAPS:\n"
+        for f in projFiles do
+            let ps = PSPLibParser.parse f
+            let (optSched, solveTime) = GamsSolver.solve ps
+            let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
+            spitAppend outFilename (sprintf "%s -> Gap = %.2f\n" f (ps.CalculateGap optSched heurSched))
+
     [<EntryPoint>]
     let main argv =
-        //let projectFolder = @"Projekte/32Jobs"
+        //let projectFolder = @"Projekte/20Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
-        solveAndVisualize ()
+        //solveAndVisualize ()
         //buildTableForVaryingKappas ()
         //buildTableForOrderingStats ()
         //trySSGS2 ()
@@ -129,4 +138,5 @@ module Program =
         //genTopSorts  ()
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()
+        writeGaps @"gaps.txt"
         0
