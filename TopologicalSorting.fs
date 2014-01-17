@@ -27,3 +27,9 @@ module TopologicalSorting =
         else            
             Seq.filter (Set.isEmpty << Set.intersect jobs << preds) jobs
             |> Seq.sumBy (fun eligible -> countTopSorts (Set.remove eligible jobs) preds)
+
+    let feasibleTopSort jobs preds ordering =
+        let rec helper e rest =
+            if not(Set.isEmpty (Set.intersect (preds e) (Set.ofSeq rest))) then false
+            else helper (List.head rest) (List.tail rest)
+        helper (List.head ordering) (List.tail ordering)
