@@ -156,25 +156,31 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
         Seq.fold scheduleJob Map.empty λ
 
-    let cleverSsgsHeuristicGAOrdering =
+    let cleverSsgsHeuristicGAOrdering () =
         let exchange λ rix oix =
             let r = List.nth λ rix
             let o = List.nth λ oix
             List.mapi (fun i e -> if i = rix then o else if i = oix then r else e) λ
 
-        let exchangeFeasible λ rix oix = feasibleTopSort jobs preds (exchange λ rix oix)
+        let exchangeFeasible λ rix oix =
+            let len = List.length λ
+            if rix < 0 || oix < 0 || rix >= len || oix >= len then false
+            else feasibleTopSort jobs preds (exchange λ rix oix)
 
         let mutate =
-            let oscSeq = Seq.initInfinite (fun n -> (pown -1 (n+1)) * (n/2 + 1))
+            let f n = (pown -1 (n+1)) * (n/2 + 1)
             fun λ ->
                 let rix = rand 0 (List.length λ)
-                let oix = Seq.find (fun i -> exchangeFeasible λ rix i) oscSeq
-                exchange λ rix oix
+                let oscSeq = Seq.initInfinite (fun n -> rix + f n)
+                let oix = Seq.find (fun i -> exchangeFeasible λ rix i || i > List.length λ) oscSeq
+                if oix > List.length λ then λ
+                else exchange λ rix oix
 
         //let cross λ1 λ2 =
             //let rval = rand 0 (List.length λ1)
 
         let mutationStep acc =
+            printf "Step"
             let mutations = [1..10] |> List.map (fun i -> mutate acc)
             List.maxBy (fun m -> profit <| cleverSsgsHeuristic m) (acc :: mutations)
 
@@ -240,11 +246,14 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     member ps.BackwardsGapFillHeuristicDefault = ps.BackwardsGapFillHeuristic topOrdering
     member ps.SerialScheduleGenerationScheme () = ssgs zeroOc topOrdering
+
     member ps.CleverSSGSHeuristicDefault () = cleverSsgsHeuristic topOrdering
     member ps.CleverSSGSHeuristic = cleverSsgsHeuristic
+    member ps.CleverSsgsHeuristicGAOrdering = cleverSsgsHeuristicGAOrdering
+
     member ps.CleverSSGSHeuristicAllOrderings () =
         let winner = Seq.maxBy (ps.Profit << cleverSsgsHeuristic) (allTopSorts jobs preds)
-        cleverSsgsHeuristic winner
+        cleverSsgsHeuristic winner    
 
     member ps.CleverSSGSHeuristicOrderingStats optimalSts =
         let addPair acc ordering =

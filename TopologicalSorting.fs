@@ -30,6 +30,7 @@ module TopologicalSorting =
 
     let feasibleTopSort jobs preds ordering =
         let rec helper e rest =
-            if not(Set.isEmpty (Set.intersect (preds e) (Set.ofSeq rest))) then false
+            if List.isEmpty rest then true
+            else if not(Set.isEmpty (Set.intersect (preds e) (Set.ofSeq rest))) then false
             else helper (List.head rest) (List.tail rest)
         helper (List.head ordering) (List.tail ordering)

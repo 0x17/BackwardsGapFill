@@ -13,8 +13,8 @@ module Program =
         //let testFilename = @"Projekte/12Jobs/Modellendogen001.DAT"
         //let testFilename = @"Projekte/12Jobs/EXPL1.DAT"
         //let testFilename = @"Projekte/32JobsB/EXPL1.DAT"
-        //let testFilename = @"Projekte/32Jobs/Modellendogen0027.DAT"
-        let testFilename = @"Projekte/16Jobs/EXPL41.DAT"
+        let testFilename = @"Projekte/32Jobs/Modellendogen0027.DAT"
+        //let testFilename = @"Projekte/16Jobs/EXPL41.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
@@ -23,7 +23,7 @@ module Program =
     let solveAndVisualize () =
         let ps = testProjectStructure ()
 
-        visualizeGraph ()
+        //visualizeGraph ()
 
         let (sts1,solveTime) = GamsSolver.solve ps
         spitMap "optsched.txt" sts1
@@ -34,7 +34,8 @@ module Program =
         let sts4 = ps.ParallelScheduleGenerationScheme ()
 
         //let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
-        let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
+        //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
+        let sts5 = ps.CleverSsgsHeuristicGAOrdering ()
 
         printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
 
@@ -132,7 +133,7 @@ module Program =
         //let projectFolder = @"Projekte/16Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
-        //solveAndVisualize ()
+        solveAndVisualize ()
         //buildTableForVaryingKappas ()
         //buildTableForOrderingStats ()
         //trySSGS2 ()
@@ -140,5 +141,5 @@ module Program =
         //genTopSorts  ()
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()
-        writeGaps @"gaps.txt"
+        //writeGaps @"gaps.txt"
         0
