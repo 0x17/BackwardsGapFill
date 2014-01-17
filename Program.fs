@@ -11,9 +11,10 @@ open ScheduleVisualisation
 module Program =
     let testProjectStructure () =
         //let testFilename = @"Projekte/12Jobs/Modellendogen001.DAT"
-        let testFilename = @"Projekte/12Jobs/EXPL1.DAT"
+        //let testFilename = @"Projekte/12Jobs/EXPL1.DAT"
         //let testFilename = @"Projekte/32JobsB/EXPL1.DAT"
-        //let testFilename = @"Projekte/32Jobs/Modellendogen0001.DAT"
+        //let testFilename = @"Projekte/32Jobs/Modellendogen0027.DAT"
+        let testFilename = @"Projekte/16Jobs/EXPL41.DAT"
         PSPLibParser.parse testFilename
 
     let visualizeGraph () =
@@ -32,13 +33,13 @@ module Program =
         let sts3 = ps.SerialScheduleGenerationScheme ()
         let sts4 = ps.ParallelScheduleGenerationScheme ()
 
-        let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
-        //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
+        //let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
+        let sts5 = ps.CleverSSGSHeuristicAllOrderings ()
 
         printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
 
         ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1);
-                                             ("SSGS2", ps, sts5);]
+                                             ("SSGS2", ps, sts5)]
         ()
 
     let buildTableForOrderingStats () =        
@@ -57,8 +58,8 @@ module Program =
         let infty = 999999999999999.0
         for kappa in infty :: [0.0 .. 0.1 .. 2.0] do
             let kappaFunc = (fun r -> kappa)
-            let nps = ProjectStructure (ps.Jobs, ps.Durations, ps.Demands, ps.Preds,
-                                            ps.Resources, ps.Capacities, kappaFunc, ps.ZMax)
+            let nps = ProjectStructure (ps.Jobs, ps.Durations, ps.Demands, ps.Preds, ps.Resources,
+                                        ps.Capacities, kappaFunc, ps.ZMax)
             let (sts,solveTime) = GamsSolver.solve nps
             let profit = nps.Profit sts
             let makespan = float (nps.Makespan sts)
@@ -117,17 +118,18 @@ module Program =
         spit "test.c" (sb.ToString())
 
     let writeGaps outFilename =
-        let projFiles = System.IO.Directory.GetFiles(@"Projekte/20Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/16Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
         spit outFilename "GAPS:\n"
         for f in projFiles do
             let ps = PSPLibParser.parse f
             let (optSched, solveTime) = GamsSolver.solve ps
             let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
+            //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
             spitAppend outFilename (sprintf "%s -> Gap = %.2f\n" f (ps.CalculateGap optSched heurSched))
 
     [<EntryPoint>]
     let main argv =
-        //let projectFolder = @"Projekte/20Jobs"
+        //let projectFolder = @"Projekte/16Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
         //solveAndVisualize ()

@@ -86,7 +86,7 @@ module GamsSolver =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
         opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"
-        opt.MIP <- "CPLEX"
+        opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0
         opt.ResLim <- System.Double.MaxValue
         let job = ws.AddJobFromFile "model.gms"

@@ -137,7 +137,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
         let revenue = (u << makespan) sts
         float revenue - totalOvercapacityCosts sts
 
-    // Idee: ohne weiter Planung nötige ZK für einplanen in jetzigem t berechnen und variieren von tlower..tupper?
     let cleverSsgsHeuristic λ =
         let computeCandidateSchedule sts j t =
             let candidate = Map.add j t sts
@@ -145,12 +144,10 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
             let subλ = Seq.skip (inc jix) λ
             ssgsCore zeroOc candidate subλ
 
-        let scoreForScheduleCandidate = profit
-
         let chooseBestPeriod sts j tlower tupper =
             [tlower..tupper]
             |> Seq.filter (fun t -> enoughCapacityForJob maxOc sts j t)
-            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> scoreForScheduleCandidate)
+            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> profit)
 
         let scheduleJob acc job =
             let tlower = numsGeq ests.[job] |> Seq.find (arePredsFinished acc job)
