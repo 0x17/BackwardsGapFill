@@ -216,7 +216,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     member ps.CleverSSGSHeuristicDefault () = cleverSsgsHeuristic topOrdering
     member ps.CleverSSGSHeuristic = cleverSsgsHeuristic
-    member ps.CleverSsgsHeuristicGAOrdering =
+    member ps.CleverSsgsHeuristicGAOrdering () =
         let bestλ = ActivityListGA.optimizeActivityList jobs preds (profit << cleverSsgsHeuristic)
         cleverSsgsHeuristic bestλ
 

@@ -77,6 +77,7 @@
     <Compile Include="BatchRunner.fs" />
     <Compile Include="GraphVisualisation.fs" />
     <Compile Include="PlotVisualisation.fs" />
+    <Compile Include="Runners.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="packages.config" />
