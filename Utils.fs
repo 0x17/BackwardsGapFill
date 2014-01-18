@@ -59,3 +59,9 @@ module Utils =
     let replace oldChar newChar = String.map (fun c -> if c = oldChar then newChar else c)
 
     let onWindows = Environment.OSVersion.Platform = PlatformID.Win32NT
+
+    let rec shuffle lst =
+        if List.isEmpty lst then lst
+        else
+            let rix = rand 0 (lst.Length-1)
+            lst.Item(rix) :: shuffle (List.filter (fun x -> x <> lst.Item(rix)) lst)
