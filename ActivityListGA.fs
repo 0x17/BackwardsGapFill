@@ -23,14 +23,8 @@ module ActivityListGA =
             else exchange λ rix oix
 
         let mutationStep acc =
-            printf "Step %O\n" acc
             let mutations = [1..100] |> List.map (fun i -> foldItselfTimes mutate acc (rand 1 10))
             let curMax = List.maxBy (fun m -> utility m) (acc :: mutations)
-            printf "%.2f\n" (utility curMax)
             curMax
 
-        let nsteps = 100
-        foldItselfTimes mutationStep (topSort jobs preds) nsteps
-
-        //let cross λ1 λ2 =
-            //let rval = rand 0 (List.length λ1)
+        foldItselfConverge mutationStep (topSort jobs preds)

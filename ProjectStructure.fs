@@ -163,13 +163,13 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
             let nstsOption = tryDecrementMakespan sts
             if nstsOption.IsSome then
                 let nsts = nstsOption.Value
-                let p = ps.Profit nsts
+                let p = profit nsts
                 let nval = if Map.containsKey p acc then sts else nsts
                 buildProfitToSchedulesMapping (Map.add p nval acc) nsts
             else acc
 
         let schedule = ssgs zeroOc λ
-        let profitsToSchedules = buildProfitToSchedulesMapping (Map.ofList [ps.Profit schedule, schedule]) schedule
+        let profitsToSchedules = buildProfitToSchedulesMapping (Map.ofList [profit schedule, schedule]) schedule
 
         profitsToSchedules.[Seq.max (keys profitsToSchedules)]
 
@@ -189,7 +189,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
         Map.map (fun j ftj -> ftj - durations j) fts
 
     member ps.CalculateGap optimalSts sts =
-        gap (ps.Profit optimalSts) (ps.Profit sts)
+        gap (profit optimalSts) (profit sts)
             
     member ps.Jobs = jobs
     member ps.ActualJobs = actualJobs

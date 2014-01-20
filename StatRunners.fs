@@ -10,12 +10,9 @@ open TopologicalSorting
 module StatRunners =
     let GAtoExhaustiveEnumGap () =
         let ps = testProjectStructure ()
-
         let utility = (ps.Profit << ps.CleverSSGSHeuristic)
-
         let enumOrdering = Seq.maxBy utility (allTopSorts ps.Jobs ps.Preds)
-        let gaOrdering = ActivityListGA.optimizeActivityList ps.Jobs ps.Preds utility
-        
+        let gaOrdering = ActivityListGA.optimizeActivityList ps.Jobs ps.Preds utility        
         printf "%.2f" (gap (utility enumOrdering) (utility gaOrdering))
 
     let buildTableForOrderingStats () =        
@@ -52,5 +49,5 @@ module StatRunners =
             let (optSched, solveTime) = GamsSolver.solve ps
             let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
             //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
+            //let heurSched = ps.CleverSsgsHeuristicGAOrdering ()
             spitAppend outFilename (sprintf "%s -> Gap = %.2f\n" f (ps.CalculateGap optSched heurSched))
-

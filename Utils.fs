@@ -44,6 +44,11 @@ module Utils =
         if n = 1 then f seed
         else f (foldItselfTimes f seed (dec n))
 
+    let rec foldItselfConverge f seed =
+        let v = f seed
+        if v <> seed then foldItselfConverge f v
+        else seed
+
     type RunBehavior =
         | Blocking
         | NonBlocking
