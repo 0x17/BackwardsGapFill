@@ -77,6 +77,7 @@
     <Compile Include="ActivityListGA.fs" />
     <Compile Include="ActivityListGATest.fs" />
     <Compile Include="ProjectStructure.fs" />
+    <Compile Include="PriorityRules.fs" />
     <Compile Include="ScheduleVisualisation.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
