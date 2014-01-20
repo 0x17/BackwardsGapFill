@@ -1,6 +1,9 @@
 ﻿namespace RCPSP
 
 open Runners
+open VisRunners
+open TempRunners
+open StatRunners
 
 module Program =
     [<EntryPoint>]
@@ -8,7 +11,8 @@ module Program =
         //let projectFolder = @"Projekte/16Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
-        solveAndVisualize ()
+        //solveAndVisualize ()
+        GAtoExhaustiveEnumGap ()
         //buildTableForVaryingKappas ()
         //buildTableForOrderingStats ()
         //trySSGS2 ()

@@ -65,3 +65,5 @@ module Utils =
         else
             let rix = rand 0 (lst.Length-1)
             lst.Item(rix) :: shuffle (List.filter (fun x -> x <> lst.Item(rix)) lst)
+
+    let gap (opt:float) (approx:float) = abs ((opt - approx) / opt)

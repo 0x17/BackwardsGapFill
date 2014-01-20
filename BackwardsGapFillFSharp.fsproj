@@ -57,6 +57,10 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
+    <Reference Include="nunit.framework">
+      <HintPath>packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
@@ -67,9 +71,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Utils.fs" />
+    <Compile Include="UtilsTest.fs" />
     <Compile Include="Serialization.fs" />
     <Compile Include="TopologicalSorting.fs" />
     <Compile Include="ActivityListGA.fs" />
+    <Compile Include="ActivityListGATest.fs" />
     <Compile Include="ProjectStructure.fs" />
     <Compile Include="ScheduleVisualisation.fs" />
     <Compile Include="PSPLibParser.fs" />
@@ -78,6 +84,9 @@
     <Compile Include="GraphVisualisation.fs" />
     <Compile Include="PlotVisualisation.fs" />
     <Compile Include="Runners.fs" />
+    <Compile Include="VisRunners.fs" />
+    <Compile Include="StatRunners.fs" />
+    <Compile Include="TempRunners.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="packages.config" />

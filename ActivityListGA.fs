@@ -4,12 +4,12 @@ open Utils
 open TopologicalSorting
 
 module ActivityListGA =
-    let optimizeActivityList jobs preds utility =
-        let exchange λ rix oix =
-            let r = List.nth λ rix
-            let o = List.nth λ oix
-            List.mapi (fun i e -> if i = rix then o else if i = oix then r else e) λ
+    let exchange λ rix oix =
+        let r = List.nth λ rix
+        let o = List.nth λ oix
+        List.mapi (fun i e -> if i = rix then o else if i = oix then r else e) λ
 
+    let optimizeActivityList jobs preds utility =
         let exchangeFeasible λ rix oix =
             let len = List.length λ
             if rix = oix || rix < 0 || oix < 0 || rix >= len || oix >= len then false
@@ -23,10 +23,10 @@ module ActivityListGA =
             else exchange λ rix oix
 
         let mutationStep acc =
-            printf "Step"
+            printf "Step %O\n" acc
             let mutations = [1..100] |> List.map (fun i -> foldItselfTimes mutate acc (rand 1 10))
             let curMax = List.maxBy (fun m -> utility m) (acc :: mutations)
-            printf "%.2f" (utility curMax)
+            printf "%.2f\n" (utility curMax)
             curMax
 
         let nsteps = 100

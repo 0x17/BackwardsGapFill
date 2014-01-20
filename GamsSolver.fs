@@ -1,6 +1,7 @@
 ﻿namespace RCPSP
 
 open GAMS
+
 open Utils
 
 module GamsSolver =

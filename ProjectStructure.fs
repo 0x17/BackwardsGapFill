@@ -189,8 +189,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
         Map.map (fun j ftj -> ftj - durations j) fts
 
     member ps.CalculateGap optimalSts sts =
-        let optProfit = ps.Profit optimalSts
-        (optProfit - ps.Profit sts) / optProfit |> abs
+        gap (ps.Profit optimalSts) (ps.Profit sts)
             
     member ps.Jobs = jobs
     member ps.ActualJobs = actualJobs
