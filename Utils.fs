@@ -72,3 +72,6 @@ module Utils =
             lst.Item(rix) :: shuffle (List.filter (fun x -> x <> lst.Item(rix)) lst)
 
     let gap (opt:float) (approx:float) = abs ((opt - approx) / opt)
+
+    let transitiveHull nodeToSet =
+        memoize (fun startNode -> foldItselfConverge (Set.unionMany << Set.map nodeToSet) (nodeToSet startNode))

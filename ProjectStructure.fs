@@ -17,7 +17,9 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     let T = Seq.sumBy durations jobs
     let horizon = [1..T]
 
+    let transPreds = transitiveHull preds
     let succs = memoize (fun i -> jobs |> Seq.filter (fun j -> (preds j).Contains i) |> Set.ofSeq)
+    let transSuccs = transitiveHull succs
 
     let topOrdering = topSort jobs preds
     let revTopOrdering = topSort jobs succs
@@ -39,6 +41,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     let lfts = computeLfts ()
     let lsts = st lfts
+
+    let deadline = lfts.[lastJob]
 
     let isFinishedAtEndOfPeriod (sts:IntMap) t j = sts.ContainsKey j && ft sts j <= t
     let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
@@ -198,14 +202,19 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     member ps.Capacities = capacities
     member ps.Preds = preds
     member ps.Succs = succs
+    member ps.TransPreds = transPreds
+    member ps.TransSuccs = transSuccs
     member ps.Resources = resources    
     member ps.Kappa = kappa
     member ps.U = u
     member ps.ZMax = zmax
     member ps.TimeHorizon = horizon
 
+    member ps.EarliestStartingTimes = mapToFunc ests
+    member ps.LatestStartingTimes = lsts
     member ps.EarliestFinishingTimes = efts
-    member ps.LatestFinishingTimes = lfts
+    member ps.LatestFinishingTimes = mapToFunc lfts
+    member ps.Deadline = deadline
 
     member ps.Makespan = makespan
     member ps.TotalOvercapacityCosts = totalOvercapacityCosts

@@ -48,7 +48,7 @@ module GamsSolver =
             let eftsParam = db.AddParameter ("efts", 1, "Früheste Startzeitpunkte")
             addParamEntriesToF eftsParam "j" ps.Jobs ps.EarliestFinishingTimes
             let lftsParam = db.AddParameter ("lfts", 1, "Späteste Endzeitpunkte")
-            addParamEntriesToF lftsParam "j" ps.Jobs (fun j -> ps.LatestFinishingTimes.[j])
+            addParamEntriesToF lftsParam "j" ps.Jobs ps.LatestFinishingTimes
 
         addSets ()
         addParams ()
