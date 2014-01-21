@@ -23,7 +23,6 @@ module ActivityListGA =
             else exchange λ rix oix
 
         let mutationStep population =
-            printf "Step"
             let mutations = population |> List.map (fun individual -> foldItselfTimes mutate individual (rand 1 10))
             let allConsidered = (population @ mutations)
             let curMax = List.maxBy utility allConsidered
@@ -39,12 +38,9 @@ module ActivityListGA =
         let maxUtil individuals = List.map utility individuals |> List.max
 
         let initialPopulation =
-            let feasibles =
-                (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
-                |> List.filter (feasibleTopSort ps.Jobs ps.Preds)
-            let maxUtility = maxUtil feasibles
-            feasibles
-            |> List.filter (fun i -> utility i = maxUtility)
+            let candidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
+            let maxUtility = maxUtil candidates
+            List.filter (fun i -> utility i = maxUtility) candidates
 
         folder mutationStep (maxUtil initialPopulation, initialPopulation)
 

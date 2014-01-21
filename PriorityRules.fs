@@ -1,18 +1,21 @@
 ﻿namespace RCPSP
 
+open Utils
+open TopologicalSorting
+
 module PriorityRules =
     let orderJobsBy (ps:ProjectStructure) f  =
-        ps.Jobs
-        |> Set.toList
-        |> List.sortBy f
+        topSortPreserveOrder (ps.Jobs |> Set.toList |> List.sortBy f) ps.Preds
+
+    let orderJobsByRev (ps:ProjectStructure) f = orderJobsBy ps (neg << f)
 
     let spt ps = orderJobsBy ps ps.Durations    
     let lis ps = orderJobsBy ps (Set.count << ps.Succs)    
     let mts ps = orderJobsBy ps (Set.count << ps.TransSuccs)
 
-    let lpt: ProjectStructure -> int list = List.rev << spt
-    let mis: ProjectStructure -> int list = List.rev << lis
-    let lts: ProjectStructure -> int list = List.rev << mts
+    let lpt ps = orderJobsByRev ps ps.Durations
+    let mis ps = orderJobsByRev ps (Set.count << ps.Succs)
+    let lts ps = orderJobsByRev ps (Set.count << ps.TransSuccs)
 
     let grpw (ps:ProjectStructure) =
         let rankPositionalWeight j =
@@ -34,7 +37,7 @@ module PriorityRules =
             ps.Deadline - ps.EarliestFinishingTimes j - ps.Durations j
         orderJobsBy ps slackTime
 
-    let grr ps = orderJobsBy ps (((*) -1) << (fun j -> ps.Resources |> Seq.sumBy (fun r -> ps.Demands j r)))
+    let grr ps = orderJobsByRev ps (fun j -> ps.Resources |> Seq.sumBy (fun r -> ps.Demands j r))
 
     let allRules = [spt; lis; mts; lpt; mis; lts; grpw; est; ect; lst; lct; mslk; grr]
 
