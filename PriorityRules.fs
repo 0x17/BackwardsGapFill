@@ -33,3 +33,5 @@ module PriorityRules =
 
     let grr ps = orderJobsBy ps (((*) -1) << (fun j -> ps.Resources |> Seq.sumBy (fun r -> ps.Demands j r)))
 
+    let allRules = [spt; lis; mts; lpt; mis; lts; grpw; est; ect; lst; lct; mslk; grr]
+

@@ -12,7 +12,7 @@ module StatRunners =
         let ps = testProjectStructure ()
         let utility = (ps.Profit << ps.CleverSSGSHeuristic)
         let enumOrdering = Seq.maxBy utility (allTopSorts ps.Jobs ps.Preds)
-        let gaOrdering = ActivityListGA.optimizeActivityList ps.Jobs ps.Preds utility        
+        let gaOrdering = List.maxBy utility (ActivityListGA.optimizeActivityList ps utility)
         printf "%.2f" (gap (utility enumOrdering) (utility gaOrdering))
 
     let buildTableForOrderingStats () =        
