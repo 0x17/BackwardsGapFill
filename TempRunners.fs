@@ -8,6 +8,11 @@ open TopologicalSorting
 open Runners
 
 module TempRunners =
+
+    let printTransitiveHulls () =
+        let ps = testProjectStructure ()
+        printf "%O\n%O\n" (ps.TransPreds ps.Jobs.MaximumElement) (ps.TransSuccs ps.Jobs.MinimumElement)
+
     let trySSGS2 () =
         let ps = testProjectStructure ()
         let sts = ps.CleverSSGSHeuristicDefault ()

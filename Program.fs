@@ -11,15 +11,21 @@ module Program =
         //let projectFolder = @"Projekte/16Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
-        //solveAndVisualize ()
+
+        solveAndVisualize ()
+
         //GAtoExhaustiveEnumGap ()
+
         //buildTableForVaryingKappas ()
         //buildTableForOrderingStats ()
+
         //trySSGS2 ()
         //showRevenuePlot ()                
         //genTopSorts  ()
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()
-        writeGaps @"gaps.txt"
+        //writeGaps @"gaps.txt"
+        //printTransitiveHulls ()
+
         System.Console.ReadKey () |> ignore
         0

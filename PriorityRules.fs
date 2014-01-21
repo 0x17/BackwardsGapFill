@@ -16,9 +16,12 @@ module PriorityRules =
 
     let grpw (ps:ProjectStructure) =
         let rankPositionalWeight j =
-            ps.TransSuccs j
-            |> Set.toList
-            |> List.maxBy ps.Durations
+            let allSuccs = ps.TransSuccs j
+            if Set.isEmpty allSuccs then 0
+            else
+                allSuccs
+                |> Set.toList
+                |> List.maxBy ps.Durations
         orderJobsBy ps rankPositionalWeight
 
     let est ps = orderJobsBy ps ps.EarliestStartingTimes

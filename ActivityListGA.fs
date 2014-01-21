@@ -22,6 +22,7 @@ module ActivityListGA =
             if oix = len then λ
             else exchange λ rix oix
 
+        // Profile
         let mutationStep population =
             let mutations = population |> List.map (fun individual -> foldItselfTimes mutate individual (rand 1 10))
             let allConsidered = (population @ mutations)

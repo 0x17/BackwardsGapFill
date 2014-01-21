@@ -74,4 +74,4 @@ module Utils =
     let gap (opt:float) (approx:float) = abs ((opt - approx) / opt)
 
     let transitiveHull nodeToSet =
-        memoize (fun startNode -> foldItselfConverge (Set.unionMany << Set.map nodeToSet) (nodeToSet startNode))
+        memoize (fun startNode -> foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))
