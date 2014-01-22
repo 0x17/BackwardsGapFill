@@ -1,0 +1,213 @@
+This diskette comes upon request with the paper:
+
+
+R.Kolisch, A.Sprecher and A.Drexl (1992):"Characterization and Generation
+   of a General Class of Resource-Constrained Project Scheduling Problems",
+   Working Paper, Institut fuer Betriebswirtschaftslehre, Christian-Albrechts-
+   Universitaet zu Kiel, Germany, to appear in Management Science.
+
+It contains the instance generator PROGEN as well as all instances which
+were used in the computational study of the paper. The content is organized
+as follows: There are five directories (PROGEN, INSTANCE, EXAMPLE, LHA, and
+PAR&SOL), with the following files:
+
+1. PROGEN: Contents are the executable version of PROGEN, the code of
+           the units TYPEDECL, PROGEN, NETWGEN, REQGEN, AVAILGEN, and INOUT.
+           The executable version of PROGEN can be started straight forward.
+
+           If the user wants to adjust the size of arrays to specific needs,
+           he can do so by employing the code of the units TYPEDECL and
+           PROGEN. For details he is kindly advised to confer to the appendix
+           of the paper.
+
+           Note that with the executable version of PROGEN the instances
+           used in the computational study are fully reproducable. In
+           the case of a new compilation one has to use the below listed
+           compiler options in order to attain a code which will guarantee
+           reproducibility w.r.t. the computational study.
+           Compiler options: {$A+}, {$B+}, {$D+}, {$E-}, {$F-}, {$G-},
+                             {$I+}, {$L+}, {$N-}, {$O-}, {$R+}, {$S+},
+                             {$V+}, {$X+}.
+
+2.INSTANCE:Contents are three compressed files (SMFF, SMCP, MMFF) with
+           each file in the LZH-format as well as the three files SMFF.OPT,
+           SMCP.OPT, and MMFF.OPT which contain the solutions derived with
+           the optimal procedures, the parameters, and the original file-
+           names.
+
+           SMFF.LZH
+
+                contains the compressed 480 instances for the single-mode
+                full factorial design experiment. The files are re-numbered
+                from 1 to 480 in order to ease computational studies. Further-
+                more the files are converted from the ProGen-format into the
+                Patterson-format (with suffix "rcp"). This format is as fol-
+                lows: Let denote
+
+                j=1,...,J : jobs
+                r=1,...,R : resource types
+                S(j)      : number of immediate successor-jobs of job j
+                S(j,s)    : s-th immediate successor-job of job j
+                d(j)      : non-preemptable duration of job j
+                K(r)      : resource availability of resource type r within
+                            each period
+                k(j,r)    : resource usage of job j w.r.t. resource type r
+
+                The format is:
+
+                J       R
+
+                K(1)    K(2)    ..     ..      K(R)
+
+                d(1)    k(1,1)  ..      k(1,R)  S(1)    S(1,1)  ..      S(1,S(1))
+                ..      ..      ..      ..      ..      ..      ..      ..
+                d(J)    k(J,1)  ..      k(J,R)  S(J)    0
+
+                Example: (J=5; R=2; K(1)=3; K(2)=2)
+
+                                     2
+                                    ÚÄ¿
+                               ÚÄÄÄ>³2³ ÄÄÄ¿
+                               ³    ÀÄÙ    ³
+                               ³    1,2    ³
+                               ³           ³
+                        0      ³     4     ³          0           d(j)
+                       ÚÄ¿ÄÄÄÄÄÙ    ÚÄ¿    ÀÄÄÄÄÄÄÄÄ>ÚÄ¿           ÚÄ¿
+                       ³1³ÄÄÄÄÄÄÄÄÄ>³3³ÄÄÄÄÄÄÄÄÄÄÄÄÄ>³5³           ³j³
+                       ÀÄÙÄÄÄÄÄ¿    ÀÄÙ     ÚÄÄÄÄÄÄÄ>ÀÄÙ           ÀÄÙ
+                       0,0     ³    1,1     ³        0,0      k(j,1), k(j,2)
+                               ³            ³
+                               ³     1      ³
+                               ³    ÚÄ¿     ³
+                               ÀÄÄÄ>³4³ÄÄÄÄÄÙ
+                                    ÀÄÙ
+                                    3,1
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³ 5       2                                         ³
+                    ³                                                   ³
+                    ³ 3       2                                         ³
+                    ³                                                   ³
+                    ³ 0       0       0       3       2       3       4 ³
+                    ³ 2       1       2       1       5                 ³
+                    ³ 4       1       1       1       5                 ³
+                    ³ 1       3       1       1       5                 ³
+                    ³ 0       0       0       0                         ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+           SMFF.OPT
+
+               contains for each of the 480 instances of the single-mode
+               full-factorial design experiment the following information:
+
+               NR    : The re-numbered file number (1-480)
+               ZOPT  : best objective function value derived with the
+                       Demeulemeester-algorithm.
+               TOTPT : The cpu-time in seconds needed to assure optimality
+                       of the solution. Note that for TOPT >= 3600 no
+                       optimal solution has been found and hence for
+                       TOPT < 3600 the optimal objective function value is
+                       ZOPT.
+               NC            : level of the network complexity
+               RF            : level of the resource factor
+               RS            : level of the resource strength
+               ORIG.FILENAME : Filename originally used before renumbering
+                               and converting the format.
+
+           SMCP.LZH
+
+                contains the 200 instances for the single-mode ceteris
+                paribus design experiment.  Again, these files are renumbered
+                and are converted into the Patterson-format.
+
+           SMCP.OPT
+
+               contains for each of the 200 instances of the single-mode
+               ceteris paribus experiment the following information:
+
+                NUMBER       : New file number
+                ZOPT         : Best ojective function value
+                TOPT         : See above
+                JOBS         : Number of jobs
+                RESOURCES    : Number of resource types
+                #START-JOBS  : Number of immediate successor jobs of the dummy
+                               source
+                RF           : Level of the resource factor
+                ORIG.FILENAME: See above
+
+
+           MMFF.LZH
+
+                contains the 536 feasible instances of the multi-
+                mode full factorial design experiment. The files were
+                re-numberd from 1 to 536 and are in the originally
+                ProGen-format.
+
+           MMFF.OPT
+
+               contains for each of the 536 instances of the multi-mode
+               full factorial design experiment the following information:
+
+                NUMBER       :  New file number
+                ZOPT         :  Optimal objective function value
+                TOPT         :  CPU-time needed to derive the optimal objective
+                                function value
+                RF(N)        :  Level of the resource factor for the nonre-
+                                newable resource types
+                RS(N)        :  Level of the resource strength for the non-
+                                renewable resource types
+                RF(R)        :  Level of the resource factor for the renewable
+                                resource types
+                RS(R)        :  Level of the resource strength for the renewable
+                                resource types
+                ORIG.FILENAME:  Original filename
+
+           The instances can either be extracted automatically or manually:
+
+           I)  Extracting instances automatically:
+
+               Typing
+
+               a:\extract
+
+               will automatically create for each type of instance a directory
+               on C:\ (e.g. C:\SMFF, C:\SMCP, and C:\MMFF). The files will then
+               be extracted into the appropriate directories.
+
+           II) Extracting instances manually:
+
+               All three files have to be extracted by using the archiver
+               LHA which is in a separate directory. Extracting a file works
+               as follows:
+
+               i)  copy one LZH-file and the program LHA.EXE in a separate
+                   directory
+
+               ii) Type the command: "LHA e filename *.*" to extract the
+                   instances in the file filename.LZH, e.g. "LHA e SMFF *.*"
+                   will extract the 480 single-mode instances.
+
+3.EXAMPLE: Contents are an example of a basedata-file (EXPL.BAS), an
+           instance-file (EXPL1.DAT) and an error-file (EXPL.ERR), respectively.
+           For further informations the user is kindly advised to confer
+           to the appendix of the paper. Instances to own needs should
+           be generated by using a copy of the basedata-file where the
+           parameters are appropriately adjusted.
+
+           Note that the file EXPL1.DAT differs from the file printed in
+           Table 27 with respect to job 3 in mode 1 using 9 units of the
+           nonrenewable resource 1 (8 units in the paper) as well as the
+           overall availability of the nonrenewable resource 1 with 44
+           units (43 units in the paper). Differences are due to running
+           the program with different compiler options.
+
+4.LHA:     Contents are the three files belonging to the package of the
+           archiver LHA (program, document- and help-file). In order to
+           use this archiver for our purposes we have to distribute the
+           total package.
+
+5.PARAMET  Content is the files PARAM.SET. It contains the parameters levels
+           for each field (base-file) used in the computational study. Each
+           base-file uniquely corresponds with its 10 instance-files (with
+           the original file name) generated.
+
