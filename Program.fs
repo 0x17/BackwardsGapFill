@@ -12,7 +12,7 @@ module Program =
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
 
-        solveAndVisualize ()
+        //solveAndVisualize ()
 
         //GAtoExhaustiveEnumGap ()
 
@@ -24,8 +24,12 @@ module Program =
         //genTopSorts  ()
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()
+
         //writeGaps @"gaps.txt"
+
         //printTransitiveHulls ()
+
+        countingTopOrderings ()
 
         System.Console.ReadKey () |> ignore
         0
