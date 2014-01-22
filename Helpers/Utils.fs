@@ -25,6 +25,7 @@ module Utils =
     let without o = remove ((=) o)
 
     let boolToInt v = if v then 1 else 0
+    let boolToFloat = float << boolToInt
 
     let mapToFunc m k = Map.find k m
     let arrayToFunc s k = Map.ofArray s |>  Map.find k
@@ -72,7 +73,7 @@ module Utils =
             let rix = rand 0 (lst.Length-1)
             lst.Item(rix) :: shuffle (List.filter (fun x -> x <> lst.Item(rix)) lst)
 
-    let gap (opt:float) (approx:float) = abs ((opt - approx) / opt)
+    let gap (opt:float) (approx:float) = abs ((opt - approx) / (opt + boolToFloat (opt = 0.0)))
 
     let transitiveHull nodeToSet =
         memoize (fun startNode -> foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))

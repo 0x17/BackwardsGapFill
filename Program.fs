@@ -25,11 +25,11 @@ module Program =
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()
 
-        //writeGaps @"gaps.txt"
+        writeGaps @"gaps.txt"
 
         //printTransitiveHulls ()
 
-        countingTopOrderings ()
+        //countingTopOrderings ()
 
         System.Console.ReadKey () |> ignore
         0

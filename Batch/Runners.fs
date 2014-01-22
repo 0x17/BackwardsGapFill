@@ -11,6 +11,7 @@ module Runners =
         //  @"Projekte/32Jobs/Modellendogen0027.DAT"
         //  @"Projekte/32Jobs/Modellendogen0003.DAT"
         //  @"Projekte/16Jobs/EXPL41.DAT"
-        //  @"Projekte/24Jobs/EXPL61.DAT"
-            @"Projekte/28Jobs/EXPL71.DAT"
+            @"Projekte/24Jobs/EXPL62.DAT"
+        //  @"Projekte/28Jobs/EXPL71.DAT"
+        //  @"Projekte/26Jobs/EXPL81.DAT"
         PSPLibParser.parse testFilename

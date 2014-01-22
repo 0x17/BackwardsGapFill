@@ -42,12 +42,12 @@ module StatRunners =
         ()
 
     let writeGaps outFilename =
-        let projFiles = System.IO.Directory.GetFiles(@"Projekte/16Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/24Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
         spit outFilename "GAPS:\n"
         for f in projFiles do
             let ps = PSPLibParser.parse f
             let (optSched, solveTime) = GamsSolver.solve ps
-            let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
+            //let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
             //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
-            //let heurSched = ps.CleverSsgsHeuristicGAOrdering ()
+            let heurSched = ActivityListOptimizer.optimizeHeuristic ps
             spitAppend outFilename (sprintf "%s -> Gap = %.2f\n" f (ps.CalculateGap optSched heurSched))
