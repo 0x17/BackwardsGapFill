@@ -42,7 +42,7 @@ module StatRunners =
         ()
 
     let writeGaps outFilename =
-        let projFiles = System.IO.Directory.GetFiles(@"Projekte/24Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/32Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
         spit outFilename "GAPS:\n"
         for f in projFiles do
             let ps = PSPLibParser.parse f

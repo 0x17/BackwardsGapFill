@@ -19,6 +19,8 @@ module Utils =
     let repeat x = Seq.initInfinite (fun _ -> x)
     let allBut lb ub j = [lb..j-1]@[j+1..ub]
 
+    let identity x = x
+
     let contains o = Seq.exists ((=) o)
     let indexOf seq elem = Seq.findIndex ((=) elem) seq
     let remove pred = List.filter (not << pred)
@@ -46,10 +48,12 @@ module Utils =
         if n = 1 then f seed
         else f (foldItselfTimes f seed (dec n))
 
-    let rec foldItselfConverge f seed =
+    let rec foldItselfConvergeHash f h seed =
         let v = f seed
-        if v <> seed then foldItselfConverge f v
+        if h v <> h seed then foldItselfConvergeHash f h v
         else seed
+
+    let foldItselfConverge f seed = foldItselfConvergeHash f identity seed
 
     type RunBehavior =
         | Blocking
@@ -77,3 +81,7 @@ module Utils =
 
     let transitiveHull nodeToSet =
         memoize (fun startNode -> foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))
+
+    let splitAt index lst =
+        (Seq.take index lst |> Seq.toList,
+         Seq.skip index lst |> Seq.toList)
