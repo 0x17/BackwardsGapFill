@@ -83,7 +83,7 @@ module GamsSolver =
 
     exception SolveError of float
 
-    let solve (ps:ProjectStructure) =
+    let solve ps =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
         opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"

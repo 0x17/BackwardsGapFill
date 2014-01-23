@@ -3,8 +3,7 @@
 open System.IO
 
 module BatchRunner =
-    let projExtension = "DAT"
-    let projFilenames dirPath = Directory.GetFiles(dirPath, "*."+projExtension, SearchOption.AllDirectories)
+    let projFilenames dirPath = Directory.GetFiles(dirPath, "*.DAT", SearchOption.AllDirectories)
 
     let addAdditionalDataToProjs dirPath =
         for fn in projFilenames dirPath do

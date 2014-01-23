@@ -10,9 +10,9 @@ open TopologicalSorting
 module StatRunners =
     let GAtoExhaustiveEnumGap () =
         let ps = testProjectStructure ()
-        let utility = (ps.Profit << ps.CleverSSGSHeuristic)
+        let utility = ps.Profit << ps.CleverSSGSHeuristic
         let enumOrdering = Seq.maxBy utility (allTopSorts ps.Jobs ps.Preds)
-        let gaOrdering = List.maxBy utility (ActivityListOptimizer.optimizeActivityList ps utility)
+        let gaOrdering = List.maxBy utility (ActivityListOptimizer.optimizeActivityList ps None utility)
         printf "%.2f" (gap (utility enumOrdering) (utility gaOrdering))
 
     let buildTableForOrderingStats () =        
@@ -42,12 +42,14 @@ module StatRunners =
         ()
 
     let writeGaps outFilename =
-        let projFiles = System.IO.Directory.GetFiles(@"Projekte/32Jobs", "*.DAT", System.IO.SearchOption.AllDirectories)
-        spit outFilename "GAPS:\n"
-        for f in projFiles do
-            let ps = PSPLibParser.parse f
+        let writeGapForProj f (ps:ProjectStructure) =
             let (optSched, solveTime) = GamsSolver.solve ps
             //let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
             //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
-            let heurSched = ActivityListOptimizer.optimizeHeuristic ps
+            let heurSched = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))
             spitAppend outFilename (sprintf "%s -> Gap = %.2f\n" f (ps.CalculateGap optSched heurSched))
+
+        spit outFilename "GAPS:\n"
+        PSPLibParser.foreachProjInPath @"Projekte/32Jobs" writeGapForProj
+
+        

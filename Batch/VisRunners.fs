@@ -22,7 +22,7 @@ module VisRunners =
 
         //let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
         //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()        
-        let sts5 = ActivityListOptimizer.optimizeHeuristic ps
+        let sts5 = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs sts1))
 
         printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
 

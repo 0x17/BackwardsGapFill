@@ -28,7 +28,7 @@ module GraphVisualisation =
         let dotPath = @"C:\Program Files (x86)\Graphviz2.34\bin\dot.exe"
         runCmd Blocking dotPath ("-Tpdf " + filename + ".dot -o " + filename + ".pdf")
 
-    let visualizePrecedenceGraph (ps:ProjectStructure) filename = 
+    let visualizePrecedenceGraph ps filename = 
         let viewerPath = @"C:\Program Files (x86)\SumatraPDF\SumatraPDF.exe"
         precedenceGraphToDot ps filename
         runDotOnFile filename

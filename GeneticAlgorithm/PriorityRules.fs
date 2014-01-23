@@ -7,7 +7,7 @@ module PriorityRules =
     let orderJobsBy (ps:ProjectStructure) f  =
         topSortPreserveOrder (ps.Jobs |> Set.toList |> List.sortBy f) ps.Preds
 
-    let orderJobsByRev (ps:ProjectStructure) f = orderJobsBy ps (neg << f)
+    let orderJobsByRev ps f = orderJobsBy ps (neg << f)
 
     let spt ps = orderJobsBy ps ps.Durations    
     let lis ps = orderJobsBy ps (Set.count << ps.Succs)    

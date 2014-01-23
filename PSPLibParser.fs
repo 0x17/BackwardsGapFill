@@ -86,3 +86,9 @@ module PSPLibParser =
         ProjectStructure.Create(jobs, durations, demands,
                                 capacities, predsFunc,
                                 resources, kappaFunc, zmaxFunc)
+
+    let foreachProjInPath path func =
+        let projFiles = System.IO.Directory.GetFiles(path, "*.DAT", System.IO.SearchOption.AllDirectories)
+        for f in projFiles do
+            let ps = parse f
+            func f ps

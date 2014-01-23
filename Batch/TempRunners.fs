@@ -62,3 +62,7 @@ module TempRunners =
         sb.Append("};") |> ignore
         spit "test.c" (sb.ToString())
 
+    let precomputeOptimalSchedules path =
+        PSPLibParser.foreachProjInPath path (fun f ps ->
+            spitMap (f+".OPTSCHED") (fst (GamsSolver.solve ps)))
+            

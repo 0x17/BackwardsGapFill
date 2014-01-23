@@ -5,9 +5,14 @@ open TopologicalSorting
 open Operators
 
 module ActivityListOptimizer =
-    let optimizeActivityList (ps:ProjectStructure) utility =
-        let initialPopulation =
-            let candidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
+    let optimizeActivityList (ps:ProjectStructure) (additionalCandidate:Option<int list>) utility =
+        let initpop =
+            let baseCandidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
+            let candidates =
+                match additionalCandidate with
+                    | Some addc -> addc :: baseCandidates
+                    | None -> baseCandidates
+
             let maxUtility = List.map utility candidates |> List.max
             let elite = List.filter (fun i -> utility i = maxUtility) candidates
             match elite with
@@ -40,9 +45,9 @@ module ActivityListOptimizer =
             (List.map utility (fst population) |> List.max,
              List.map utility (snd population) |> List.max)
 
-        let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initialPopulation
+        let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
         bestMales @ bestFemales
 
-    let optimizeHeuristic (ps:ProjectStructure) =
+    let optimizeHeuristic (ps:ProjectStructure) additionalCandidate =
         let utility = (ps.Profit << ps.CleverSSGSHeuristic)
-        ps.CleverSSGSHeuristic (optimizeActivityList ps utility |> List.head |> List.toSeq)
+        ps.CleverSSGSHeuristic (optimizeActivityList ps additionalCandidate utility |> List.head |> List.toSeq)
