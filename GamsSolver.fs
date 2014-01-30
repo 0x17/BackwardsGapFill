@@ -90,6 +90,7 @@ module GamsSolver =
         opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0
         opt.ResLim <- System.Double.MaxValue
+        opt.Threads <- 8
         let job = ws.AddJobFromFile "model.gms"
         let db = createDatabase ws ps
         let writer = System.Console.Out

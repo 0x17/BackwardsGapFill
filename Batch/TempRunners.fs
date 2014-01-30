@@ -64,5 +64,7 @@ module TempRunners =
 
     let precomputeOptimalSchedules path =
         PSPLibParser.foreachProjInPath path (fun f ps ->
-            spitMap (f+".OPTSCHED") (fst (GamsSolver.solve ps)))
+            let outfn = f+".OPTSCHED"
+            if not (System.IO.File.Exists(outfn)) then
+                spitMap outfn (fst (GamsSolver.solve ps)))
             
