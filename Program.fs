@@ -25,9 +25,9 @@ module Program =
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()
 
-        //writeGaps @"gaps.txt"
+        writeGaps @"gaps.txt"
 
-        precomputeOptimalSchedules @"Projekte/32Jobs"
+        //precomputeOptimalSchedules @"Projekte/32Jobs"
 
         //printTransitiveHulls ()
 

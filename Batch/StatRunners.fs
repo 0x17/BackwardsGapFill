@@ -43,11 +43,15 @@ module StatRunners =
 
     let writeGaps outFilename =
         let writeGapForProj f (ps:ProjectStructure) =
-            let (optSched, solveTime) = GamsSolver.solve ps
-            //let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
-            //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
-            let heurSched = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))
-            spitAppend outFilename (sprintf "%s -> Gap = %.2f\n" f (ps.CalculateGap optSched heurSched))
+            //let (optSched, solveTime) = GamsSolver.solve ps
+            let schedFn = f+".OPTSCHED"
+            if System.IO.File.Exists (schedFn) then
+                let optSched = slurpMap schedFn
+                //let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
+                //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
+                //let heurSched = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))
+                let heurSched = ActivityListOptimizer.optimizeHeuristic ps None
+                spitAppend outFilename (sprintf "%s -> Gap = %.2f\n" f (ps.CalculateGap optSched heurSched))
 
         spit outFilename "GAPS:\n"
         PSPLibParser.foreachProjInPath @"Projekte/32Jobs" writeGapForProj
