@@ -10,11 +10,14 @@ module VisRunners =
     let solveAndVisualize () =
         let ps = testProjectStructure ()
 
-        //visualizeGraph ()
+        visualizeGraph ()
 
-        let (sts1,solveTime) = GamsSolver.solve ps
-        spitMap "optsched.txt" sts1
-        //let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
+        let optSchedFn = testFilename + ".OPTSCHED"
+
+        //let (sts1,solveTime) = GamsSolver.solve ps        
+        //spitMap optSchedFn sts1
+
+        let (sts1,solveTime) = (slurpMap optSchedFn, 0)
 
         let sts2 = ps.BackwardsGapFillHeuristicDefault ()
         let sts3 = ps.SerialScheduleGenerationScheme ()
@@ -23,6 +26,7 @@ module VisRunners =
         //let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
         //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()        
         let sts5 = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs sts1))
+        //let sts5 = ActivityListOptimizer.optimizeHeuristic ps None
 
         printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
 

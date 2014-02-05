@@ -12,7 +12,7 @@ module Program =
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
 
-        //solveAndVisualize ()
+        solveAndVisualize ()
 
         //GAtoExhaustiveEnumGap ()
 
@@ -25,7 +25,7 @@ module Program =
         //countingTopOrderings ()
         //convertPrecedenceRelationToCArray ()
 
-        writeGaps @"gaps.txt"
+        //writeGaps @"gaps.txt"
 
         //precomputeOptimalSchedules @"Projekte/32Jobs"
 
