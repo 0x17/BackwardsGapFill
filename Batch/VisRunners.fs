@@ -10,7 +10,7 @@ module VisRunners =
     let solveAndVisualize () =
         let ps = testProjectStructure ()
 
-        visualizeGraph ()
+        //visualizeGraph ()
 
         let optSchedFn = testFilename + ".OPTSCHED"
 
@@ -25,11 +25,14 @@ module VisRunners =
 
         //let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
         //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()        
-        let sts5 = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs sts1))
+        //let sts5 = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs sts1))
         //let sts5 = ActivityListOptimizer.optimizeHeuristic ps None
+        
+        let sts6 = ActivityListOCOptimizer.optimizeHeuristic ps
 
-        printf "Gap = %.2f" <| ps.CalculateGap sts1 sts5
+        printf "Gap = %.2f" <| ps.CalculateGap sts1 sts6
 
         ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1);
-                                             ("SSGS2", ps, sts5)]
+                                             //("SSGS2/GA", ps, sts5);
+                                             ("SSGS/GA", ps, sts6)]
         ()

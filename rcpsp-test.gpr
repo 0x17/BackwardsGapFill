@@ -206,13 +206,6 @@ PlaneRownr=-1
 [RP:MODEL]
 1=
 
-[OPENWINDOW_1]
-MAXIM=1
-TOP=0
-LEFT=0
-HEIGHT=624
-WIDTH=1604
-
 [MRUFILES]
 1=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\model.lst
 2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\data.inc
@@ -220,3 +213,12 @@ WIDTH=1604
 4=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\exampleResults.gdx
 5=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\ProjectStructureData.gdx
 6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\GAMS-Modell\ProjectStructureData.gdx
+
+[OPENWINDOW_1]
+FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\ProjectStructureData.gdx
+FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\ProjectStructureData.gdx
+MAXIM=1
+TOP=0
+LEFT=0
+HEIGHT=624
+WIDTH=1604

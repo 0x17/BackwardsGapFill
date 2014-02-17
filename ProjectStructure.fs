@@ -221,6 +221,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     member ps.BackwardsGapFillHeuristicDefault = ps.BackwardsGapFillHeuristic topOrdering
     member ps.SerialScheduleGenerationScheme () = ssgs zeroOc topOrdering
+    member ps.SerialScheduleGenerationSchemeWithOC = ssgs
 
     member ps.CleverSSGSHeuristicDefault () = cleverSsgsHeuristic topOrdering
     member ps.CleverSSGSHeuristic = cleverSsgsHeuristic
