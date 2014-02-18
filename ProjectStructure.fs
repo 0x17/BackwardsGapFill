@@ -62,10 +62,11 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     
     let ssgsCore z sts λ =
         let scheduleJob acc j =
-            Map.add j (numsGeq ests.[j] |> Seq.find (predsAndCapacityFeasible z acc j)) acc
+            Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc
         Seq.fold scheduleJob sts λ
 
-    let ssgs z λ = ssgsCore z Map.empty λ
+    let ssgs z λ =
+        ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
     
     let psgs z λ =
         let nextDecisionPoint sts running = running |> Seq.map (ft sts) |> Seq.min
@@ -87,41 +88,12 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
         traverseDecisionPoints (Map.ofSeq [(Seq.head λ, 0)]) (List.ofSeq (Seq.skip 1 λ)) 0
 
-    let afterLatestGaps sts =
-        let rec processRest alg rest =
-            if List.isEmpty rest then alg
-            else
-                let j = List.head rest
-                let latestFt = lastPredFinishingTime sts j
-                let latestPreds =
-                    if latestFt = sts.[j] then (preds j |> Seq.filter (fun i -> ft sts i = latestFt))
-                    else Seq.empty
-                let nrest = Seq.fold (fun acc i -> i :: acc) rest.Tail latestPreds
-                processRest (j :: alg) nrest
-        if sts.[lastJob] = ests.[lastJob] then List.empty
-        else processRest List.empty [lastJob]
-
-    let onePeriodLeftShift sts js =
-        Map.map (fun j stj -> stj - (contains j js |> boolToInt)) sts
-
     let makespan sts = ft sts lastJob
 
     let neededOvercapacityInPeriod sts r t = List.max [0; -residualCapacity sts r t]
     let totalOvercapacityCosts sts =
         resources >< [0..makespan sts]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriod sts r t))
-
-    let scheduleFeasibleWithMaxOC sts =
-        resources >< [0..makespan sts]
-        |> Seq.forall (fun (r,t) -> neededOvercapacityInPeriod sts r t <= zmax r)
-
-    let tryDecrementMakespan sts =
-        let alg = afterLatestGaps sts
-        if alg.IsEmpty then None
-        else
-            let nsts = onePeriodLeftShift sts alg
-            if scheduleFeasibleWithMaxOC nsts then Some(nsts)
-            else None
 
     let zeroOc r t = 0
     let maxOc r t = zmax r
@@ -141,41 +113,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
         let revenue = (u << makespan) sts
         float revenue - totalOvercapacityCosts sts
 
-    let cleverSsgsHeuristic λ =
-        let computeCandidateSchedule sts j t =
-            let candidate = Map.add j t sts
-            let jix = indexOf λ j
-            let subλ = Seq.skip (inc jix) λ
-            ssgsCore zeroOc candidate subλ
-
-        let chooseBestPeriod sts j tlower tupper =
-            [tlower..tupper]
-            |> Seq.filter (fun t -> enoughCapacityForJob maxOc sts j t)
-            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> profit)
-
-        let scheduleJob acc job =
-            let tlower = numsGeq ests.[job] |> Seq.find (arePredsFinished acc job)
-            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob zeroOc acc job)
-            Map.add job (chooseBestPeriod acc job tlower tupper) acc        
-
-        Seq.fold scheduleJob Map.empty λ
-
     member ps.Profit = profit
-
-    member ps.BackwardsGapFillHeuristic λ () =
-        let rec buildProfitToSchedulesMapping acc sts =
-            let nstsOption = tryDecrementMakespan sts
-            if nstsOption.IsSome then
-                let nsts = nstsOption.Value
-                let p = profit nsts
-                let nval = if Map.containsKey p acc then sts else nsts
-                buildProfitToSchedulesMapping (Map.add p nval acc) nsts
-            else acc
-
-        let schedule = ssgs zeroOc λ
-        let profitsToSchedules = buildProfitToSchedulesMapping (Map.ofList [profit schedule, schedule]) schedule
-
-        profitsToSchedules.[Seq.max (keys profitsToSchedules)]
 
     member ps.ScheduleToGrid sts r =
         let nrows = capacities r + zmax r
@@ -194,8 +132,13 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     member ps.CalculateGap optimalSts sts =
         gap (profit optimalSts) (profit sts)
+
+    member ps.ScheduleFeasibleWithMaxOC sts =
+        resources >< [0..makespan sts]
+        |> Seq.forall (fun (r,t) -> neededOvercapacityInPeriod sts r t <= zmax r)
             
     member ps.Jobs = jobs
+    member ps.LastJob = lastJob
     member ps.ActualJobs = actualJobs
     member ps.Durations = durations
     member ps.Demands = demands
@@ -216,28 +159,20 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
     member ps.LatestFinishingTimes = mapToFunc lfts
     member ps.Deadline = deadline
 
+    member ps.EnoughCapacityForJob = enoughCapacityForJob
+    member ps.LastPredFinishingTime = lastPredFinishingTime
+
     member ps.Makespan = makespan
     member ps.TotalOvercapacityCosts = totalOvercapacityCosts
 
-    member ps.BackwardsGapFillHeuristicDefault = ps.BackwardsGapFillHeuristic topOrdering
     member ps.SerialScheduleGenerationScheme () = ssgs zeroOc topOrdering
-    member ps.SerialScheduleGenerationSchemeWithOC = ssgs
-
-    member ps.CleverSSGSHeuristicDefault () = cleverSsgsHeuristic topOrdering
-    member ps.CleverSSGSHeuristic = cleverSsgsHeuristic
-
-    member ps.CleverSSGSHeuristicAllOrderings () =
-        let winner = Seq.maxBy (profit << cleverSsgsHeuristic) (allTopSorts jobs preds)
-        cleverSsgsHeuristic winner    
-
-    member ps.CleverSSGSHeuristicOrderingStats optimalSts =
-        let addPair acc ordering =
-            Map.add ordering (cleverSsgsHeuristic ordering |> ps.CalculateGap optimalSts) acc
-        Seq.fold addPair Map.empty (allTopSorts jobs preds)
+    member ps.SerialScheduleGenerationSchemeWithOC = ssgs     
 
     member ps.ParallelScheduleGenerationScheme () = psgs zeroOc topOrdering
 
     member ps.NeededOCForSchedule sts = neededOvercapacityInPeriod sts
+
+    member ps.DemandInPeriod = demandInPeriod
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq

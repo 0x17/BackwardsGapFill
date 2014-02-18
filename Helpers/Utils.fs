@@ -39,10 +39,11 @@ module Utils =
     let (><) xs ys = Seq.collect (fun x -> Seq.map (fun y -> (x,y)) ys) xs      
 
     let parts (str:string) = Array.filter (fun (s:string) -> s.Length > 0) (str.Split [|' '|])
-
-    let rgen = System.Random ()
-    let rand lb ub = rgen.Next (lb, inc ub)
-    let randomlyChoose nums = Seq.nth (rgen.Next (0, Seq.length nums)) nums
+        
+    let (rand, randomlyChoose: seq<obj> -> obj) =
+        let rgen = System.Random ( 23 )
+        ((fun lb ub -> rgen.Next (lb, inc ub)),
+         (fun nums -> Seq.nth (rgen.Next (0, Seq.length nums)) nums))
 
     let rec foldItselfTimes f seed n =
         if n = 1 then f seed
@@ -85,3 +86,20 @@ module Utils =
     let splitAt index lst =
         (Seq.take index lst |> Seq.toList,
          Seq.skip index lst |> Seq.toList)
+
+    let multiplex transform pair =
+        (transform (fst pair), transform (snd pair))
+
+    let recombine index lstA lstB =
+        let partA = Seq.take index lstA |> Seq.toList
+        let partB = Seq.skip index lstB |> Seq.toList
+        partA @ partB
+
+    let (stopwatchStart, stopwatchStop) =
+        let sw = new Stopwatch ()
+        ((fun () -> sw.Reset (); sw.Start ()),
+         (fun () -> sw.Stop(); sw.Elapsed))
+
+    let bypassAndPrint x =
+        printf "%O\n" x
+        x

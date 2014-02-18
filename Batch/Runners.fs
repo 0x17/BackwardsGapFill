@@ -13,7 +13,8 @@ module Runners =
         //  @"Projekte/24Jobs/EXPL62.DAT"
         //  @"Projekte/28Jobs/EXPL71.DAT"
         //  @"Projekte/26Jobs/EXPL81.DAT"
-            @"Projekte/32Jobs/Modellendogen0049.DAT"
+        //  @"Projekte/32Jobs/Modellendogen0049.DAT"
+            @"Projekte/32Jobs/Modellendogen0001.DAT"
 
     let testProjectStructure () =
         PSPLibParser.parse testFilename

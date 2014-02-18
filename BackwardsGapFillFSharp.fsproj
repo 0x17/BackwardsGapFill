@@ -75,6 +75,9 @@
     <Compile Include="Helpers\Serialization.fs" />
     <Compile Include="Helpers\TopologicalSorting.fs" />
     <Compile Include="ProjectStructure.fs" />
+    <Compile Include="FastSSGS.fs" />
+    <Compile Include="BackwardsGapFill.fs" />
+    <Compile Include="ModifiedSSGS.fs" />
     <Compile Include="GeneticAlgorithm\Operators.fs" />
     <Compile Include="GeneticAlgorithm\OperatorsTest.fs" />
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />

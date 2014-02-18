@@ -8,10 +8,6 @@ module ActivityListOCOptimizer =
     type Individual = { al: int list; oc: int list list }    
 
     let optimizeIndividual (ps:ProjectStructure) (utility:Individual->float) =
-        let multiplex transform population =
-            (transform (fst population),
-             transform (snd population))
-
         let numRes = Seq.length ps.Resources
         let numPeriods = ps.TimeHorizon.Length
 
@@ -27,9 +23,10 @@ module ActivityListOCOptimizer =
                 | [a;b] -> ([a], [b])
                 | _ -> splitAt (elite.Length/2) elite
 
+        let generationSize = min (fst initpop).Length (snd initpop).Length
+
         //==================================================================================================================
-        let mutateAl al =
-            foldItselfTimes (swapNeighborhood ps.Jobs ps.Preds) al (rand 1 10)
+        let mutateAl al = foldItselfTimes (swapNeighborhood ps.Jobs ps.Preds) al (rand 1 10)
 
         let mutateOc (oc: int list list) =
             (*List.mapi (fun i e ->
@@ -37,9 +34,7 @@ module ActivityListOCOptimizer =
                 List.mapi (fun j f -> if j = period then rand 0 (ps.ZMax (i+1)) else f) e) oc*)
             List.mapi (fun i row -> List.map (fun col -> rand 0 (ps.ZMax (i+1))) row) oc
 
-        let mutateIndividual (indiv:Individual) =
-            {al = mutateAl indiv.al;
-             oc = mutateOc indiv.oc}
+        let mutateIndividual (indiv:Individual) = {al = mutateAl indiv.al; oc = mutateOc indiv.oc}
 
         let mutationStepGender population = population @ List.map mutateIndividual population
         let mutationStep = multiplex mutationStepGender
@@ -48,9 +43,7 @@ module ActivityListOCOptimizer =
         let crossoverOc (father: int list list) (mother: int list list) =
             let crossoverRes fatherOc motherOc =
                 let ix = rand (numPeriods/2+1) (numPeriods-1)
-                let fatherPartOc = Seq.take ix fatherOc |> Seq.toList
-                let motherPartOc = Seq.skip ix motherOc |> Seq.toList
-                fatherPartOc @ motherPartOc
+                recombine ix fatherOc motherOc
             List.mapi (fun i e -> crossoverRes (father.Item (i)) e) mother
 
         let crossoverIndividual (father:Individual) (mother:Individual) =
@@ -67,25 +60,32 @@ module ActivityListOCOptimizer =
         //==================================================================================================================
         let selectionStep population =
             let selectBest individuals =
-                let bestUtility = List.map utility individuals |> List.max
-                printf "Best utility = %.2f\n" bestUtility
-                List.filter (fun iv -> utility iv = bestUtility) individuals
-            printf "\n"
+                individuals
+                |> List.sortBy (fun iv -> -(utility iv))
+                |> Seq.take generationSize
+                |> List.ofSeq
             multiplex selectBest population
 
         //==================================================================================================================
         let iterationStep = selectionStep << crossoverStep << mutationStep
         //let maxUtil = multiplex (fun p -> List.map utility p |> List.max)
         //let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
-        let numGenerations = 2
+        let numGenerations = 8
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
         bestMales @ bestFemales
 
     let optimizeHeuristic (ps:ProjectStructure) =
+        stopwatchStart ()
+
         let scheduleForIndividual (iv:Individual) =
             let zfunc r t = iv.oc.Item(r-1).Item(t-1)
-            ps.SerialScheduleGenerationSchemeWithOC zfunc (iv.al |> List.toSeq)
+            //ps.SerialScheduleGenerationSchemeWithOC zfunc (iv.al |> List.toSeq)
+            FastSSGS.solve ps zfunc iv.al
 
         let utility = ps.Profit << scheduleForIndividual
             
-        scheduleForIndividual (optimizeIndividual ps utility |> List.head)
+        let sts = scheduleForIndividual (optimizeIndividual ps utility |> List.head)
+        let solveTime = stopwatchStop ()
+
+        (sts, solveTime)
+

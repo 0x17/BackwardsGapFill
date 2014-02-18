@@ -14,6 +14,8 @@ module Program =
 
         solveAndVisualize ()
 
+        //testFastSSGS ()
+
         //GAtoExhaustiveEnumGap ()
 
         //buildTableForVaryingKappas ()

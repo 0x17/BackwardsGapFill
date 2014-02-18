@@ -7,47 +7,55 @@ open Operators
 module ActivityListOptimizer =
     let optimizeActivityList (ps:ProjectStructure) (additionalCandidate:Option<int list>) utility =
         let initpop =
-            let baseCandidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
+            let baseCandidates = (*(topSort ps.Jobs ps.Preds) ::*) (PriorityRules.allRules |> List.map (fun pr -> pr ps))
             let candidates =
                 match additionalCandidate with
                     | Some addc -> addc :: baseCandidates
                     | None -> baseCandidates
-
-            let maxUtility = List.map utility candidates |> List.max
-            let elite = List.filter (fun i -> utility i = maxUtility) candidates
-            match elite with
+            match candidates with
                 | [a] -> ([a], [a])
                 | [a;b] -> ([a], [b])
-                | _ -> splitAt (elite.Length/2) elite
+                | _ -> splitAt (candidates.Length/2) candidates
+
+        let generationSize = min (fst initpop).Length (snd initpop).Length
 
         let mutationStepGender population =
             let mutations = population |> List.map (fun individual -> foldItselfTimes (swapNeighborhood ps.Jobs ps.Preds) individual (rand 1 10))
-            let allConsidered = (population @ mutations)
-            let curMax = List.maxBy utility allConsidered
-            let maxUtility = utility curMax
-            let bestIndividuals = List.filter (fun m -> utility m = maxUtility) allConsidered
-            bestIndividuals
+            population @ mutations
 
-        let mutationStep population =
-            let males = mutationStepGender (fst population)
-            let females = mutationStepGender (snd population)
-            (males, females)
+        let mutationStep = multiplex mutationStepGender
 
-        let crossoverStep population =
-            let pairs = fst population >< snd population |> Seq.toList
+        let crossoverStep (population: int list list * int list list) =
+            //let pairs = fst population >< snd population |> Seq.toList
+            let pairs = List.map2 (fun m f -> (m,f)) (fst population) (snd population)
             let daughters = pairs |> List.map (fun (f,m) -> onePointCrossoverDaughter f m)
             let sons = pairs |> List.map (fun (f,m) -> onePointCrossoverSon f m)
             (sons, daughters)
 
-        let iterationStep = crossoverStep << mutationStep
+        (*let repairStep population =
+            let repair individuals =
+                List.filter (feasibleTopSort ps.Jobs ps.Preds) individuals
+            multiplex repair population*)
 
-        let maxUtil population =
-            (List.map utility (fst population) |> List.max,
-             List.map utility (snd population) |> List.max)
+        let selectionStep population =
+            let selectBest individuals =
+                individuals
+                |> List.sortBy (fun iv -> -(utility iv))
+                |> Seq.take generationSize
+                |> List.ofSeq
+            multiplex selectBest population
 
-        let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
+        let iterationStep = selectionStep << crossoverStep << mutationStep
+
+        let numGenerations = 1
+        //let maxUtil = multiplex (fun p -> List.map utility p |> List.max)
+        //let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
+        let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
         bestMales @ bestFemales
 
     let optimizeHeuristic (ps:ProjectStructure) additionalCandidate =
-        let utility = (ps.Profit << ps.CleverSSGSHeuristic)
-        ps.CleverSSGSHeuristic (optimizeActivityList ps additionalCandidate utility |> List.head |> List.toSeq)
+        stopwatchStart ()
+        let utility = (ps.Profit << ModifiedSSGS.cleverSsgsHeuristic ps)
+        let sts = ModifiedSSGS.cleverSsgsHeuristic ps (optimizeActivityList ps additionalCandidate utility |> List.head |> List.toSeq)
+        let solveTime = stopwatchStop ()
+        (sts, solveTime)
