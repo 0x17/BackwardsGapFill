@@ -90,7 +90,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     let makespan sts = ft sts lastJob
 
-    let neededOvercapacityInPeriod sts r t = List.max [0; -residualCapacity sts r t]
+    let neededOvercapacityInPeriod sts r t = max 0 (-residualCapacity sts r t)
     let totalOvercapacityCosts sts =
         resources >< [0..makespan sts]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriod sts r t))
@@ -109,11 +109,12 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
         let c = (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox + boolToInt (minMakespanApprox = maxMakespanApprox))
         fun t -> -c * float t + c * float maxMakespanApprox
 
-    let profit sts =
-        let revenue = (u << makespan) sts
-        float revenue - totalOvercapacityCosts sts
+    let revenue = u << makespan
 
-    member ps.Profit = profit
+    let profit sts = (revenue sts) - totalOvercapacityCosts sts
+
+    member ps.Revenue = revenue
+    member ps.Profit = profit    
 
     member ps.ScheduleToGrid sts r =
         let nrows = capacities r + zmax r

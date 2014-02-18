@@ -31,7 +31,7 @@ module ActivityListOCOptimizer =
         let mutateOc (oc: int list list) =
             (*List.mapi (fun i e ->
                 let period = rand 0 (numPeriods-1)
-                List.mapi (fun j f -> if j = period then rand 0 (ps.ZMax (i+1)) else f) e) oc*)
+                List.mapi (fun j f -> if j = period then min (ps.ZMax (i+1)) (f + rand 0 4) else f) e) oc*)
             List.mapi (fun i row -> List.map (fun col -> rand 0 (ps.ZMax (i+1))) row) oc
 
         let mutateIndividual (indiv:Individual) = {al = mutateAl indiv.al; oc = mutateOc indiv.oc}
@@ -68,9 +68,11 @@ module ActivityListOCOptimizer =
 
         //==================================================================================================================
         let iterationStep = selectionStep << crossoverStep << mutationStep
+
         //let maxUtil = multiplex (fun p -> List.map utility p |> List.max)
         //let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
-        let numGenerations = 8
+
+        let numGenerations = 16
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
         bestMales @ bestFemales
 

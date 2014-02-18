@@ -7,7 +7,7 @@ open Operators
 module ActivityListOptimizer =
     let optimizeActivityList (ps:ProjectStructure) (additionalCandidate:Option<int list>) utility =
         let initpop =
-            let baseCandidates = (*(topSort ps.Jobs ps.Preds) ::*) (PriorityRules.allRules |> List.map (fun pr -> pr ps))
+            let baseCandidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
             let candidates =
                 match additionalCandidate with
                     | Some addc -> addc :: baseCandidates
@@ -26,16 +26,11 @@ module ActivityListOptimizer =
         let mutationStep = multiplex mutationStepGender
 
         let crossoverStep (population: int list list * int list list) =
-            //let pairs = fst population >< snd population |> Seq.toList
-            let pairs = List.map2 (fun m f -> (m,f)) (fst population) (snd population)
+            let pairs = fst population >< snd population |> Seq.toList
+            //let pairs = List.map2 (fun m f -> (m,f)) (fst population) (snd population)
             let daughters = pairs |> List.map (fun (f,m) -> onePointCrossoverDaughter f m)
             let sons = pairs |> List.map (fun (f,m) -> onePointCrossoverSon f m)
             (sons, daughters)
-
-        (*let repairStep population =
-            let repair individuals =
-                List.filter (feasibleTopSort ps.Jobs ps.Preds) individuals
-            multiplex repair population*)
 
         let selectionStep population =
             let selectBest individuals =
@@ -45,12 +40,14 @@ module ActivityListOptimizer =
                 |> List.ofSeq
             multiplex selectBest population
 
-        let iterationStep = selectionStep << crossoverStep << mutationStep
+        let iterationStep = selectionStep << crossoverStep << mutationStep       
 
-        let numGenerations = 1
         //let maxUtil = multiplex (fun p -> List.map utility p |> List.max)
         //let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
+
+        let numGenerations = 16
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
+
         bestMales @ bestFemales
 
     let optimizeHeuristic (ps:ProjectStructure) additionalCandidate =

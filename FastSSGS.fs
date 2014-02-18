@@ -18,12 +18,15 @@ module FastSSGS =
         let sts = Array.create numJobs 0
         let fts = Array.create numJobs 0
 
+        let resRemaining = Array2D.init numRes ps.TimeHorizon.Length (fun r t -> ps.Capacities (r+1) + z (r+1) (t+1))
+
         for j in keys partialSts do
             let stj = partialSts.Item(j)
             sts.[j-1] <- stj
             fts.[j-1] <- stj + ps.Durations j
-
-        let resRemaining = Array2D.init numRes ps.TimeHorizon.Length (fun r t -> ps.Capacities (r+1) + z (r+1) (t+1) - ps.DemandInPeriod partialSts (r+1) (t+1))
+            for tau in stj..fts.[j-1]-1 do
+                for r in ps.Resources do
+                    resRemaining.[r-1,tau] <- resRemaining.[r-1,tau] - ps.Demands j r
 
         for j in order do
             // Periode, wenn spätester Vorgänger fertig
@@ -54,11 +57,12 @@ module FastSSGS =
             // Plane zu t ein
             sts.[j-1] <- t
             fts.[j-1] <- t + ps.Durations j
-            for t in t..fts.[j-1]-1 do
+            for tau in t..fts.[j-1]-1 do
                 for r in ps.Resources do
-                    resRemaining.[r-1,t] <- resRemaining.[r-1,t] - ps.Demands j r
+                    resRemaining.[r-1,tau] <- resRemaining.[r-1,tau] - ps.Demands j r
 
-        [0..numJobs-1] |> List.map (fun i -> (i+1, sts.[i])) |> Map.ofList
+        let schedule = [0..numJobs-1] |> List.map (fun i -> (i+1, sts.[i])) |> Map.ofList
+        (schedule, resRemaining)
 
     let solve (ps:ProjectStructure) (z: int -> int -> int) order =
         let mutable infeasible = true
