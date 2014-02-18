@@ -25,7 +25,10 @@ module VisRunners =
         //let sts4 = ps.ParallelScheduleGenerationScheme ()
 
         //let sts5 = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs sts1 |> Seq.ofList)
-        //let sts5 = ps.CleverSSGSHeuristicAllOrderings ()        
+
+        //stopwatchStart ()
+        //let sts5 = ModifiedSSGS.cleverSSGSHeuristicAllOrderings ps
+        //let solveTime5 = stopwatchStop ()
 
         let (sts5, solveTime5) = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs sts1))
 

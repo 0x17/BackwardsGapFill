@@ -175,6 +175,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
 
     member ps.DemandInPeriod = demandInPeriod
 
+    member ps.ArePredsFinished = arePredsFinished
+
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq
         ProjectStructure(jobs, arrayToBaseOneMap durations |> mapToFunc,

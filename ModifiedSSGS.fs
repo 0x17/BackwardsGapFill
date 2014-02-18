@@ -13,12 +13,12 @@ module ModifiedSSGS =
 
         let profit (sts: Map<int,int>, remainingRes: int[,]) =
             let rev = ps.Revenue sts
-            let mutable tcosts = 0
+            let mutable tcosts = 0.0
             for res in 0..(Array2D.length1 remainingRes)-1 do
                 for period in 0..(Array2D.length2 remainingRes)-1 do
                     if remainingRes.[res,period] < 0 then
-                        tcosts <- tcosts - remainingRes.[res,period]
-            rev - (float tcosts)
+                        tcosts <- tcosts + (-(float remainingRes.[res,period]) * (ps.Kappa (res+1)))
+            rev - tcosts
 
         let chooseBestPeriod sts j tlower tupper =
             [tlower..tupper]
