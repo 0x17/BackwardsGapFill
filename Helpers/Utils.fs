@@ -45,6 +45,17 @@ module Utils =
         ((fun lb ub -> rgen.Next (lb, inc ub)),
          (fun nums -> Seq.nth (rgen.Next (0, Seq.length nums)) nums))
 
+    let pickRandomNums n lb ub =
+        let rec helper acc n =
+            if n = 0 then acc
+            else
+                let mutable c = rand lb ub
+                while contains c acc do
+                    c <- rand lb ub
+                helper (c :: acc) (n-1)
+        helper List.empty n
+                
+
     let rec foldItselfTimes f seed n =
         if n = 1 then f seed
         else f (foldItselfTimes f seed (dec n))
@@ -103,3 +114,9 @@ module Utils =
     let bypassAndPrint x =
         printf "%O\n" x
         x
+
+    let arrayMapInPlace transform array =
+        let mutable i = 0
+        while i < Array.length array do
+            array.[i] <- transform array.[i]
+            i <- i + 1

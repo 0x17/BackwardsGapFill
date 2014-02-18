@@ -94,7 +94,7 @@ module FastSSGS =
                     t <- fts.[i-1]
 
             // Inkrementiere, solange Ressourcenunzulässig
-            infeasible <- true            
+            infeasible <- true
             while infeasible do
                 tau <- t
                 enoughCapacity <- true

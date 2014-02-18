@@ -1,5 +1,7 @@
 ﻿namespace RCPSP
 
+open Microsoft.FSharp.Collections
+
 open Utils
 open TopologicalSorting
 open Operators
@@ -10,6 +12,7 @@ module ActivityListOCOptimizer =
     let optimizeIndividual (ps:ProjectStructure) (utility:Individual->float) =
         let numRes = Seq.length ps.Resources
         let numPeriods = ps.TimeHorizon.Length
+        let numPeriodsMutate = int ((float numPeriods) * 0.05)
 
         let initOc = List.init numRes (fun r -> List.init numPeriods (fun t -> 0))
 
@@ -26,17 +29,23 @@ module ActivityListOCOptimizer =
         let generationSize = min (fst initpop).Length (snd initpop).Length
 
         //==================================================================================================================
-        let mutateAl al = foldItselfTimes (swapNeighborhood ps.Jobs ps.Preds) al (rand 1 10)
+        let mutateAl = swapNeighborhood ps.Jobs ps.Preds
 
         let mutateOc (oc: int list list) =
-            (*List.mapi (fun i e ->
-                let period = rand 0 (numPeriods-1)
-                List.mapi (fun j f -> if j = period then min (ps.ZMax (i+1)) (f + rand 0 4) else f) e) oc*)
-            List.mapi (fun i row -> List.map (fun col -> rand 0 (ps.ZMax (i+1))) row) oc
+            let mutateRow i row =
+                let zmaxHalf = (ps.ZMax (i+1))/2
+                let mutateIndices = pickRandomNums numPeriodsMutate 0 (numPeriods-1)
+                row
+                |> List.mapi (fun j ocVal ->
+                    if contains j mutateIndices then
+                        max 0 (min (ps.ZMax (i+1)) (ocVal + (rand -zmaxHalf zmaxHalf)))
+                    else
+                        ocVal)
+            List.mapi mutateRow oc
 
         let mutateIndividual (indiv:Individual) = {al = mutateAl indiv.al; oc = mutateOc indiv.oc}
 
-        let mutationStepGender population = population @ List.map mutateIndividual population
+        let mutationStepGender population = population @ (List.map mutateIndividual population)
         let mutationStep = multiplex mutationStepGender
 
         //==================================================================================================================
@@ -61,7 +70,7 @@ module ActivityListOCOptimizer =
         let selectionStep population =
             let selectBest individuals =
                 individuals
-                |> List.sortBy (fun iv -> -(utility iv))
+                |> PSeq.sortBy (fun iv -> -(utility iv))
                 |> Seq.take generationSize
                 |> List.ofSeq
             multiplex selectBest population
@@ -69,10 +78,7 @@ module ActivityListOCOptimizer =
         //==================================================================================================================
         let iterationStep = selectionStep << crossoverStep << mutationStep
 
-        //let maxUtil = multiplex (fun p -> List.map utility p |> List.max)
-        //let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
-
-        let numGenerations = 16
+        let numGenerations = 32
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
         bestMales @ bestFemales
 
@@ -81,7 +87,6 @@ module ActivityListOCOptimizer =
 
         let scheduleForIndividual (iv:Individual) =
             let zfunc r t = iv.oc.Item(r-1).Item(t-1)
-            //ps.SerialScheduleGenerationSchemeWithOC zfunc (iv.al |> List.toSeq)
             FastSSGS.solve ps zfunc iv.al
 
         let utility = ps.Profit << scheduleForIndividual

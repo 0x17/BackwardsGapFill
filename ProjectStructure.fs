@@ -1,15 +1,14 @@
 ﻿namespace RCPSP
 
-open System.Collections.Generic
 open Microsoft.FSharp.Collections
+open System.Collections.Generic
 
 open Utils
 open TopologicalSorting
 
 type IntMap = Map<int,int>
 
-type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>,
-                      resources, capacities, kappa, zmax) =
+type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resources, capacities, kappa, zmax) =
     let firstJob = Set.minElement jobs
     let lastJob = Set.maxElement jobs
     let actualJobs = Set.difference jobs (set [firstJob; lastJob])

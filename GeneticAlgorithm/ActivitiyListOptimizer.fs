@@ -1,5 +1,7 @@
 ﻿namespace RCPSP
 
+open Microsoft.FSharp.Collections
+
 open Utils
 open TopologicalSorting
 open Operators
@@ -13,21 +15,19 @@ module ActivityListOptimizer =
                     | Some addc -> addc :: baseCandidates
                     | None -> baseCandidates
             match candidates with
-                | [a] -> ([a], [a])
-                | [a;b] -> ([a], [b])
-                | _ -> splitAt (candidates.Length/2) candidates
+            | [a] -> ([a], [a])
+            | [a;b] -> ([a], [b])
+            | _ -> splitAt (candidates.Length/2) candidates
 
         let generationSize = min (fst initpop).Length (snd initpop).Length
 
         let mutationStepGender population =
-            let mutations = population |> List.map (fun individual -> foldItselfTimes (swapNeighborhood ps.Jobs ps.Preds) individual (rand 1 10))
-            population @ mutations
+            List.map (swapNeighborhood ps.Jobs ps.Preds) population
 
         let mutationStep = multiplex mutationStepGender
 
-        let crossoverStep (population: int list list * int list list) =
-            let pairs = fst population >< snd population |> Seq.toList
-            //let pairs = List.map2 (fun m f -> (m,f)) (fst population) (snd population)
+        let crossoverStep population =
+            let pairs = fst population >< snd population |> List.ofSeq
             let daughters = pairs |> List.map (fun (f,m) -> onePointCrossoverDaughter f m)
             let sons = pairs |> List.map (fun (f,m) -> onePointCrossoverSon f m)
             (sons, daughters)
@@ -35,17 +35,14 @@ module ActivityListOptimizer =
         let selectionStep population =
             let selectBest individuals =
                 individuals
-                |> List.sortBy (fun iv -> -(utility iv))
+                |> PSeq.sortBy (fun iv -> -(utility iv))
                 |> Seq.take generationSize
                 |> List.ofSeq
             multiplex selectBest population
 
         let iterationStep = selectionStep << crossoverStep << mutationStep       
 
-        //let maxUtil = multiplex (fun p -> List.map utility p |> List.max)
-        //let (bestMales, bestFemales) = foldItselfConvergeHash iterationStep maxUtil initpop
-
-        let numGenerations = 16
+        let numGenerations = 4
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
 
         bestMales @ bestFemales

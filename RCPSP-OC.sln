@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "BackwardsGapFillFSharp", "BackwardsGapFillFSharp.fsproj", "{4A60C403-43D7-4040-A73A-5E5CE68D41D2}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "RCPSP-OC", "RCPSP-OC.fsproj", "{4A60C403-43D7-4040-A73A-5E5CE68D41D2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,8 +18,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
