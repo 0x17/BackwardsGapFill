@@ -35,5 +35,5 @@ module Program =
 
         //countingTopOrderings ()
 
-        System.Console.ReadKey () |> ignore
+        //System.Console.ReadKey () |> ignore
         0

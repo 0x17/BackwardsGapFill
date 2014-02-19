@@ -28,18 +28,22 @@ module VisRunners =
 
         //stopwatchStart ()
         //let sts5 = ModifiedSSGS.cleverSSGSHeuristicAllOrderings ps
-        //let solveTime5 = stopwatchStop ()
+        //let solveTime5 = stopwatchStop ()   
 
-        let (sts5, solveTime5) = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs sts1))
+        //let (sts5, solveTime5)  = ActivityListOptimizer.optimizeHeuristic ps None               
 
-        //let (sts5, solveTime5)  = ActivityListOptimizer.optimizeHeuristic ps None        
+        let calcAndShowGaps () =
+            let (sts5, solveTime5) = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs sts1))
+            let (sts6, solveTime6) = ActivityListOCOptimizer.optimizeHeuristic ps
+            printf "Gap SSGS2/GA-AL = %.2f SolveTime=%.2f seconds\n" (ps.CalculateGap sts1 sts5) solveTime5.TotalSeconds
+            printf "Gap SSGS/GA-AL-OC = %.2f SolveTime=%.2f seconds\n" (ps.CalculateGap sts1 sts6) solveTime6.TotalSeconds
+            ()
 
-        let (sts6, solveTime6) = ActivityListOCOptimizer.optimizeHeuristic ps
+        for i in 1..10 do
+            calcAndShowGaps ()
+        //calcAndShowGaps ()
 
-        printf "Gap SSGS2/GA-AL = %.2f SolveTime=%.2f seconds\n" (ps.CalculateGap sts1 sts5) solveTime5.TotalSeconds
-        printf "Gap SSGS/GA-AL-OC = %.2f SolveTime=%.2f seconds\n" (ps.CalculateGap sts1 sts6) solveTime6.TotalSeconds
-
-        ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1);
+        (*ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1);
                                              ("SSGS2/GA", ps, sts5);
-                                             ("SSGS/GA", ps, sts6)]
+                                             ("SSGS/GA", ps, sts6)]*)
         ()

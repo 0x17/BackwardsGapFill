@@ -13,9 +13,9 @@ module TempRunners =
         //GraphVisualisation.visualizePrecedenceGraph ps @"Modellendogen001"
         let sts2 = ps.SerialScheduleGenerationScheme ()
         //printf "%s\n" (Serialization.mapToStr sts2)
-        let sts = FastSSGS.solve ps (fun r t -> 0) (TopologicalSorting.topSort ps.Jobs ps.Preds)
+        let (sts, remainingRes) = FastSSGS.solve ps (fun r t -> 0) (TopologicalSorting.topSort ps.Jobs ps.Preds)
         let partialSts = sts2 |> Map.filter (fun k v -> k < 10)
-        let (sts3, remainingRes) = FastSSGS.solvePartial ps (fun r t -> 0) partialSts (seq [10..ps.LastJob])
+        let (sts3, remainingRes3) = FastSSGS.solvePartial ps (fun r t -> 0) partialSts (seq [10..ps.LastJob])
         System.Diagnostics.Debug.Assert((sts = sts2 && sts2 = sts3))
         //printf "%s\n" (Serialization.mapToStr sts)
 

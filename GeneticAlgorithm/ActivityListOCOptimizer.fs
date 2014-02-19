@@ -10,23 +10,14 @@ module ActivityListOCOptimizer =
     type Individual = { al: int list; oc: int list list }    
 
     let optimizeIndividual (ps:ProjectStructure) (utility:Individual->float) =
+        let generationSize = 80
+
         let numRes = Seq.length ps.Resources
         let numPeriods = ps.TimeHorizon.Length
         let numPeriodsMutate = int ((float numPeriods) * 0.05)
 
         let initOc = List.init numRes (fun r -> List.init numPeriods (fun t -> 0))
-
-        let initpop =
-            let alCandidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
-            let candidates = alCandidates |> List.map (fun al -> {al=al; oc=initOc})
-            let maxUtility = List.map utility candidates |> List.max
-            let elite = List.filter (fun i -> utility i = maxUtility) candidates
-            match elite with
-                | [a] -> ([a], [a])
-                | [a;b] -> ([a], [b])
-                | _ -> splitAt (elite.Length/2) elite
-
-        let generationSize = min (fst initpop).Length (snd initpop).Length
+        let initpop = multiplex (List.map (fun al -> {al=al; oc=initOc})) (ActivityListOptimizer.initialActivityListPopulation ps None generationSize)        
 
         //==================================================================================================================
         let mutateAl = swapNeighborhood ps.Jobs ps.Preds
@@ -78,7 +69,7 @@ module ActivityListOCOptimizer =
         //==================================================================================================================
         let iterationStep = selectionStep << crossoverStep << mutationStep
 
-        let numGenerations = 32
+        let numGenerations = 25
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
         bestMales @ bestFemales
 
@@ -89,9 +80,9 @@ module ActivityListOCOptimizer =
             let zfunc r t = iv.oc.Item(r-1).Item(t-1)
             FastSSGS.solve ps zfunc iv.al
 
-        let utility = ps.Profit << scheduleForIndividual
+        let utility = ps.ProfitForRemainingCapacity << scheduleForIndividual
             
-        let sts = scheduleForIndividual (optimizeIndividual ps utility |> List.head)
+        let (sts, remainingRes) = scheduleForIndividual (optimizeIndividual ps utility |> List.head)
         let solveTime = stopwatchStop ()
 
         (sts, solveTime)

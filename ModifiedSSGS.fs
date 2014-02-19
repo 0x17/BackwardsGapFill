@@ -11,20 +11,11 @@ module ModifiedSSGS =
             let subλ = Seq.skip (inc jix) λ
             FastSSGS.solvePartial ps (fun r t -> 0) candidate subλ
 
-        let profit (sts: Map<int,int>, remainingRes: int[,]) =
-            let rev = ps.Revenue sts
-            let mutable tcosts = 0.0
-            for res in 0..(Array2D.length1 remainingRes)-1 do
-                for period in 0..(Array2D.length2 remainingRes)-1 do
-                    if remainingRes.[res,period] < 0 then
-                        tcosts <- tcosts + (-(float remainingRes.[res,period]) * (ps.Kappa (res+1)))
-            rev - tcosts
-
         let chooseBestPeriod sts j tlower tupper =
             [tlower..tupper]
             |> Seq.filter (fun t -> ps.EnoughCapacityForJob (fun r t -> ps.ZMax r) sts j t)
-            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> profit)
-
+            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> ps.ProfitForRemainingCapacity)
+            
         let scheduleJob acc job =
             let tlower = ps.LastPredFinishingTime acc job
             let tupper = numsGeq tlower |> Seq.find (ps.EnoughCapacityForJob (fun r t -> 0) acc job)

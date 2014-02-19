@@ -7,27 +7,34 @@ open TopologicalSorting
 open Operators
 
 module ActivityListOptimizer =
+    let initialActivityListPopulation (ps:ProjectStructure) (additionalCandidate:Option<int list>) targetSize =
+        let baseCandidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
+        let candidates =
+            match additionalCandidate with
+                | Some addc -> addc :: baseCandidates
+                | None -> baseCandidates
+
+        let filledUpCandidates = 
+            if targetSize > candidates.Length then
+                candidates @ (List.init (80-candidates.Length) (fun i -> swapNeighborhood ps.Jobs ps.Preds baseCandidates.Head))
+            else
+                List.ofSeq (Seq.take targetSize candidates)
+
+        match filledUpCandidates with
+        | [a] -> ([a], [a])
+        | [a;b] -> ([a], [b])
+        | _ -> splitAt (candidates.Length/2) candidates
+
     let optimizeActivityList (ps:ProjectStructure) (additionalCandidate:Option<int list>) utility =
-        let initpop =
-            let baseCandidates = (topSort ps.Jobs ps.Preds) :: (PriorityRules.allRules |> List.map (fun pr -> pr ps))
-            let candidates =
-                match additionalCandidate with
-                    | Some addc -> addc :: baseCandidates
-                    | None -> baseCandidates
-            match candidates with
-            | [a] -> ([a], [a])
-            | [a;b] -> ([a], [b])
-            | _ -> splitAt (candidates.Length/2) candidates
+        let generationSize = 80
+        let initpop = initialActivityListPopulation ps additionalCandidate generationSize
 
-        let generationSize = min (fst initpop).Length (snd initpop).Length
-
-        let mutationStepGender population =
-            List.map (swapNeighborhood ps.Jobs ps.Preds) population
-
+        let mutationStepGender population = List.map (swapNeighborhood ps.Jobs ps.Preds) population
         let mutationStep = multiplex mutationStepGender
 
         let crossoverStep population =
             let pairs = fst population >< snd population |> List.ofSeq
+            //let pairs = randomPairs (fst population) (snd population)
             let daughters = pairs |> List.map (fun (f,m) -> onePointCrossoverDaughter f m)
             let sons = pairs |> List.map (fun (f,m) -> onePointCrossoverSon f m)
             (sons, daughters)
@@ -40,9 +47,9 @@ module ActivityListOptimizer =
                 |> List.ofSeq
             multiplex selectBest population
 
-        let iterationStep = selectionStep << crossoverStep << mutationStep       
+        let iterationStep = selectionStep << mutationStep << crossoverStep
 
-        let numGenerations = 4
+        let numGenerations = 25
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
 
         bestMales @ bestFemales

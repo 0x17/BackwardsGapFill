@@ -112,6 +112,15 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let profit sts = (revenue sts) - totalOvercapacityCosts sts
 
+    member ps.ProfitForRemainingCapacity (sts: Map<int,int>, remainingRes: int[,]) =
+        let rev = revenue sts
+        let mutable tcosts = 0.0
+        for res in 0..(Array2D.length1 remainingRes)-1 do
+            for period in 0..(Array2D.length2 remainingRes)-1 do
+                if remainingRes.[res,period] < 0 then
+                    tcosts <- tcosts + (-(float remainingRes.[res,period]) * (kappa (res+1)))
+        rev - tcosts
+
     member ps.Revenue = revenue
     member ps.Profit = profit    
 

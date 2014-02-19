@@ -41,7 +41,7 @@ module Utils =
     let parts (str:string) = Array.filter (fun (s:string) -> s.Length > 0) (str.Split [|' '|])
         
     let (rand, randomlyChoose: seq<obj> -> obj) =
-        let rgen = System.Random ( 23 )
+        let rgen = System.Random 23
         ((fun lb ub -> rgen.Next (lb, inc ub)),
          (fun nums -> Seq.nth (rgen.Next (0, Seq.length nums)) nums))
 
@@ -54,7 +54,18 @@ module Utils =
                     c <- rand lb ub
                 helper (c :: acc) (n-1)
         helper List.empty n
-                
+
+    let rec foldItselfUntil f seed pred =
+        let v = f seed
+        if pred v then v
+        else foldItselfUntil f v pred
+
+    let rec foldItselfUntilMaxSteps f seed pred n =
+        if n = 0 then seed
+        else
+            let v = f seed
+            if pred v then v
+            else foldItselfUntilMaxSteps f v pred (n-1)
 
     let rec foldItselfTimes f seed n =
         if n = 1 then f seed
@@ -107,7 +118,7 @@ module Utils =
         partA @ partB
 
     let (stopwatchStart, stopwatchStop) =
-        let sw = new Stopwatch ()
+        let sw = Stopwatch ()
         ((fun () -> sw.Reset (); sw.Start ()),
          (fun () -> sw.Stop(); sw.Elapsed))
 
