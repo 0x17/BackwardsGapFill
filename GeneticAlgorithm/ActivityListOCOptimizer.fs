@@ -62,15 +62,16 @@ module ActivityListOCOptimizer =
             let selectBest individuals =
                 individuals
                 |> PSeq.sortBy (fun iv -> -(utility iv))
-                |> Seq.take generationSize
+                |> Seq.take (generationSize/2)
                 |> List.ofSeq
             multiplex selectBest population
 
         //==================================================================================================================
         let iterationStep = selectionStep << crossoverStep << mutationStep
 
-        let numGenerations = 25
+        let numGenerations = 1
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
+        
         bestMales @ bestFemales
 
     let optimizeHeuristic (ps:ProjectStructure) =

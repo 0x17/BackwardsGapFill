@@ -23,17 +23,17 @@ module ActivityListOptimizer =
         match filledUpCandidates with
         | [a] -> ([a], [a])
         | [a;b] -> ([a], [b])
-        | _ -> splitAt (candidates.Length/2) candidates
+        | _ -> splitAt (filledUpCandidates.Length/2) filledUpCandidates
 
     let optimizeActivityList (ps:ProjectStructure) (additionalCandidate:Option<int list>) utility =
-        let generationSize = 80
+        let generationSize = 14
         let initpop = initialActivityListPopulation ps additionalCandidate generationSize
 
         let mutationStepGender population = List.map (swapNeighborhood ps.Jobs ps.Preds) population
         let mutationStep = multiplex mutationStepGender
 
         let crossoverStep population =
-            let pairs = fst population >< snd population |> List.ofSeq
+            let pairs = (fst population) >< (snd population) |> List.ofSeq
             //let pairs = randomPairs (fst population) (snd population)
             let daughters = pairs |> List.map (fun (f,m) -> onePointCrossoverDaughter f m)
             let sons = pairs |> List.map (fun (f,m) -> onePointCrossoverSon f m)
@@ -43,13 +43,13 @@ module ActivityListOptimizer =
             let selectBest individuals =
                 individuals
                 |> PSeq.sortBy (fun iv -> -(utility iv))
-                |> Seq.take generationSize
+                |> Seq.take (generationSize/2)
                 |> List.ofSeq
             multiplex selectBest population
 
         let iterationStep = selectionStep << mutationStep << crossoverStep
 
-        let numGenerations = 25
+        let numGenerations = 10
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
 
         bestMales @ bestFemales

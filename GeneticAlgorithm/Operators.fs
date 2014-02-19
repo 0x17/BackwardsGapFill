@@ -46,7 +46,7 @@ module Operators =
     let twoPointCrossoverSon mother father = twoPointCrossoverDaughter father mother
 
     let rec randomPairs (males: int list list) (females: int list list) =
-        if males.IsEmpty then []
+        if males.IsEmpty || females.IsEmpty then []
         else
             let female = females.Item (rand 0 (females.Length-1))
-            (males.Head, female) :: randomPairs males.Tail (without female females)
+            (males.Head, female) :: randomPairs males.Tail (withoutOnce female females)

@@ -25,6 +25,9 @@ module Utils =
     let indexOf seq elem = Seq.findIndex ((=) elem) seq
     let remove pred = List.filter (not << pred)
     let without o = remove ((=) o)
+    let withoutOnce o lst =
+        let ix = List.findIndex ((=) o) lst
+        (Seq.toList (Seq.take ix lst)) @ (Seq.toList (Seq.skip (ix+1) lst))
 
     let boolToInt v = if v then 1 else 0
     let boolToFloat = float << boolToInt
