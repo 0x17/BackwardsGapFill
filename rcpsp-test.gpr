@@ -203,20 +203,32 @@ Order=1
 Decim=7
 PlaneRownr=-1
 
+[GDXDISP: slvstat Par 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+Order=
+Decim=7
+PlaneRownr=-1
+
 [RP:MODEL]
 1=
 
 [MRUFILES]
-1=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\model.lst
-2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\data.inc
-3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\exampleResults.gdx
-4=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\exampleResults.gdx
-5=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\ProjectStructureData.gdx
-6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\GAMS-Modell\ProjectStructureData.gdx
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\results.gdx
+3=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\model.lst
+4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\data.inc
+5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\exampleResults.gdx
+6=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\exampleResults.gdx
+7=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\ProjectStructureData.gdx
+8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\GAMS-Modell\ProjectStructureData.gdx
 
 [OPENWINDOW_1]
-FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\ProjectStructureData.gdx
-FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\ProjectStructureData.gdx
+FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Isermann\App_Isermann\AGGRPLAN.gms
+FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Kühne\VRP_Kathrin_Kuehne\VRP_Kathrin_Kuehne\VRP_Tour_KK.gms
+FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+FILE3=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Kühne\VRP_Kathrin_Kuehne\VRP_Kathrin_Kuehne\VRP_Tour_KK.gms
 MAXIM=1
 TOP=0
 LEFT=0

@@ -79,8 +79,8 @@ module PSPLibParser =
                 let mapping = mapFromStr relevantLinesStr t
                 mapToFunc mapping
 
-        let kappaFunc = linesToFuncCommon "oc-costs" "max-oc" float
-        let zmaxFunc = linesToFuncCommon "max-oc" "EOF" int
+        let kappaFunc = (fun r -> 0.5)// linesToFuncCommon "oc-costs" "max-oc" float
+        let zmaxFunc = (fun r -> int(0.5 * (float capacities.[r-1])))// linesToFuncCommon "max-oc" "EOF" int
 
         let ordering = topSort jobs predsFunc
         ProjectStructure.Create(jobs, durations, demands,

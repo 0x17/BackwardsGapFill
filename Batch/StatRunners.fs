@@ -8,6 +8,44 @@ open Utils
 open TopologicalSorting
 
 module StatRunners =
+    let writeCostsAndRevenues () =
+        let ps = PSPLibParser.parse @"Projekte/QBWLBeispiel.DAT"
+
+        //GraphVisualisation.visualizePrecedenceGraph ps "mytest"
+
+        let longestMs = ps.Makespan (fst (FastSSGS.solve ps (fun r t -> 0) (TopologicalSorting.topSort ps.Jobs ps.Preds)))
+        let shortestMs = ps.Makespan (fst (FastSSGS.solve ps (fun r t -> ps.ZMax r) (TopologicalSorting.topSort ps.Jobs ps.Preds)))
+
+        spit "ErloesKosten.txt" "Dauer;Erloes;Kosten;Deckungsbeitrag\n"
+
+        for tau in shortestMs..longestMs do
+            ps.TimeHorizon <- [1..tau]
+            let (sts, solveTime) = GamsSolver.solve ps
+            ScheduleVisualisation.showSchedules [("Schedule", ps, sts)]
+            spitAppend "ErloesKosten.txt" ((string tau)+";"+(string (ps.Revenue sts))+";"+(string (ps.TotalOvercapacityCosts sts))+";"+(string (ps.Revenue sts - ps.TotalOvercapacityCosts sts))+"\n")
+
+    let writeOptsAndTime () =
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/j30", "*.sm", System.IO.SearchOption.AllDirectories)
+        spit "optimalStats.txt" "File;Opt;SlvTime\n"
+        for f in projFiles do
+            let ps = PSPLibParser.parse f
+            try
+                let (sts, solveTime) = GamsSolver.solve ps    
+                //let solveTime = 0
+                //let sts = slurpMap (f+".OPTSCHED")
+                spitAppend "optimalStats.txt" (f+";"+string(ps.Profit sts)+";"+string(solveTime)+"\n")
+                spitMap (f+".OPTSCHED") sts
+                let orders = List.map (fun pr -> pr ps) PriorityRules.allRules
+                spit (f+".PRULES") ""
+                for order in orders do
+                    spitAppend (f+".PRULES") (System.String.Join(" ", order)+"\n")
+                printf "Wrote stats for %s\n" f
+            with
+                | :? RCPSP.GamsSolver.SolveError ->
+                    spitAppend "optimalStats.txt" (f+";"+string(0)+";Timeout\n")
+                    printf "Solve error... ignore"
+            
+
     let GAtoExhaustiveEnumGap () =
         let ps = testProjectStructure ()
         let utility = ps.Profit << (ModifiedSSGS.cleverSsgsHeuristic ps)
@@ -49,12 +87,18 @@ module StatRunners =
                 let optSched = slurpMap schedFn
                 //let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
                 //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
-                //let heurSched = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))
+                //let heurSched = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))                
+                //let (heurSched2, solveTime2) = ActivityListOCOptimizer.optimizeHeuristic ps
+                //printf "GA/SSGS done...\n"
+                //let (heurSched3, solveTime3) = HelberIdee.optimizeHeuristic ps
+                //printf "GA/SSGS-Helber done...\n"
                 let (heurSched1, solveTime1) = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))
-                let (heurSched2, solveTime2) = ActivityListOCOptimizer.optimizeHeuristic ps
-                spitAppend outFilename (sprintf "%s;%.2f;%.2f;%.2f;%.2f\n" f (ps.CalculateGap optSched heurSched1) solveTime1.TotalSeconds (ps.CalculateGap optSched heurSched2) solveTime2.TotalSeconds)
+                printf "GA/SSGS-OC done...\n"
+                spitAppend outFilename (sprintf "%s;%.2f;%.2f\n" f (ps.CalculateGap optSched heurSched1) solveTime1.TotalSeconds)
+                                                                                       //(ps.CalculateGap optSched heurSched2) solveTime2.TotalSeconds
+                                                                                       //(ps.CalculateGap optSched heurSched3) solveTime3.TotalSeconds)
 
-        spit outFilename "Filename;GapSSGS1;SlvTimeSSGS1;GapSSGS2;SlvTimeSSGS2\n"
+        spit outFilename "Filename;GapSSGS1;SlvTimeSSGS1\n" //";GapSSGS2;SlvTimeSSGS2;GapHelberIdee;SlvTimeHelberIdee\n"
         PSPLibParser.foreachProjInPath @"Projekte/32Jobs" writeGapForProj
 
         

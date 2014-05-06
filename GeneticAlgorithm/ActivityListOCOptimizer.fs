@@ -69,7 +69,7 @@ module ActivityListOCOptimizer =
         //==================================================================================================================
         let iterationStep = selectionStep << crossoverStep << mutationStep
 
-        let numGenerations = 1
+        let numGenerations = 10
         let (bestMales, bestFemales) = foldItselfTimes iterationStep initpop numGenerations
         
         bestMales @ bestFemales

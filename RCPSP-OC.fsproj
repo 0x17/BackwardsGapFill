@@ -83,6 +83,7 @@
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
     <Compile Include="GeneticAlgorithm\ActivitiyListOptimizer.fs" />
     <Compile Include="GeneticAlgorithm\ActivityListOCOptimizer.fs" />
+    <Compile Include="GeneticAlgorithm\HelberIdee.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
     <Compile Include="AdditionalData.fs" />

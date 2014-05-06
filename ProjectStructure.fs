@@ -14,7 +14,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let actualJobs = Set.difference jobs (set [firstJob; lastJob])
 
     let T = Seq.sumBy durations jobs
-    let horizon = [1..T]
+    let mutable horizon = [1..T]
 
     let transPreds = transitiveHull preds
     let succs = memoize (fun i -> jobs |> Seq.filter (fun j -> (preds j).Contains i) |> Set.ofSeq)
@@ -160,7 +160,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.Kappa = kappa
     member ps.U = u
     member ps.ZMax = zmax
-    member ps.TimeHorizon = horizon
+    member ps.TimeHorizon with get () = horizon
+    member ps.TimeHorizon with set (value) = horizon <- value
 
     member ps.EarliestStartingTimes = mapToFunc ests
     member ps.LatestStartingTimes = lsts
@@ -176,6 +177,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     member ps.SerialScheduleGenerationScheme () = ssgs zeroOc topOrdering
     member ps.SerialScheduleGenerationSchemeWithOC = ssgs     
+
+    member ps.SerialScheduleGenerationSchemeCore = ssgsCore
 
     member ps.ParallelScheduleGenerationScheme () = psgs zeroOc topOrdering
 

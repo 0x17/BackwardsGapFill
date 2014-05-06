@@ -76,7 +76,7 @@ module GamsSolver =
         let solveTime = outdb.GetParameter "solveTime" |> parval
         let solveStat = outdb.GetParameter "slvStat" |> parval
 
-        (fts, solveTime, solveStat)       
+        (fts, solveTime, solveStat)
 
     let optTopSort jobs (optSchedule:IntMap) =
         jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
@@ -86,10 +86,10 @@ module GamsSolver =
     let solve ps =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
-        opt.License <- @"C:\GAMS\gamslice_Kurs_Nov13.txt"
+        opt.License <- @"C:\GAMS\gamslice.txt"
         opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0
-        opt.ResLim <- System.Double.MaxValue
+        opt.ResLim <- 3600.0//System.Double.MaxValue 
         opt.Threads <- 8
         let job = ws.AddJobFromFile "model.gms"
         let db = createDatabase ws ps

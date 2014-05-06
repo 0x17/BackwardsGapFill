@@ -8,6 +8,24 @@ open TopologicalSorting
 open Runners
 
 module TempRunners =
+    let writePriorityRulesToFile () =
+        let ps = testProjectStructure ()
+        let orders = List.map (fun pr -> pr ps) PriorityRules.allRules
+        spit "prules.txt" ""
+        for order in orders do
+            spitAppend "prules.txt" (System.String.Join(" ", order)+"\n")
+
+    let fastSSGSBench () =
+        let ps = testProjectStructure ()
+        stopwatchStart ()
+        for i in 0..1024*1024-1 do
+            let (sts, rem) = FastSSGS.solve ps (fun r t -> 0) (TopologicalSorting.topSort ps.Jobs ps.Preds)
+            ()
+
+        //let sts = ps.SerialScheduleGenerationScheme ()
+        let time = stopwatchStop ()
+        printf "%O\n" time.TotalMilliseconds
+
     let testFastSSGS () =
         let ps = testProjectStructure ()
         //GraphVisualisation.visualizePrecedenceGraph ps @"Modellendogen001"
@@ -64,15 +82,49 @@ module TempRunners =
         printf "Time elapsed = %d\n" sw.ElapsedMilliseconds
         System.Console.ReadKey () |> ignore
 
-    let convertPrecedenceRelationToCArray () =
+    let convertProjectStructureToCCode () =
         let ps = testProjectStructure ()
-        let sb = StringBuilder ("static int adjMx[NUM_JOBS*NUM_JOBS] = {\n")
+
+        let sb = StringBuilder ()
+
+        sb.Append("const int NUM_JOBS = " + (string ps.Jobs.Count) + ";\n") |> ignore
+        sb.Append("const int NUM_RES = " + (string (Seq.length ps.Resources)) + ";\n") |> ignore
+        sb.Append("const int NUM_PERIODS = " + (string (ps.TimeHorizon.Length) + ";\n")) |> ignore
+
+        sb.Append("static int capacities[NUM_RES] = {") |> ignore
+        for r in ps.Resources do
+            sb.Append((string (ps.Capacities r)) + ", ") |> ignore
+        sb.Append("};\n") |> ignore
+
+        sb.Append("static int adjMx[NUM_JOBS][NUM_JOBS] = {\n") |> ignore
+
         for i in ps.Jobs do
             let succs = ps.Succs i
             let rowEntries = Seq.map (fun j -> if succs.Contains j then "1" else "0") ps.Jobs
-            sb.Append(System.String.Join(",", rowEntries)+",\n") |> ignore
-        sb.Append("};") |> ignore
-        spit "test.c" (sb.ToString())
+            sb.Append("{"+System.String.Join(",", rowEntries)+"},\n") |> ignore
+
+        sb.Append("};\n") |> ignore
+
+        sb.Append("static int durations[NUM_JOBS] = {") |> ignore
+        for i in ps.Jobs do
+            sb.Append(string (ps.Durations i) + ", ") |> ignore
+        sb.Append("};\n") |> ignore
+
+        sb.Append("static int demands[NUM_RES][NUM_JOBS] = {") |> ignore
+        for r in ps.Resources do
+            sb.Append("{") |> ignore
+            for j in ps.Jobs do
+                sb.Append((string (ps.Demands j r)) + ", ") |> ignore
+            sb.Append("}\n") |> ignore
+        sb.Append("};\n") |> ignore
+
+        sb.Append("static int order[NUM_JOBS] = {") |> ignore
+        let topOrder = topSort ps.Jobs ps.Preds
+        for j in topOrder do
+            sb.Append((string (j-1)) + ", ") |> ignore
+        sb.Append("};\n") |> ignore
+        
+        spit "testAdjMx.c" (sb.ToString())
 
     let precomputeOptimalSchedules path =
         PSPLibParser.foreachProjInPath path (fun f ps ->

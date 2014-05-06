@@ -12,7 +12,13 @@ module Program =
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
 
-        solveAndVisualize ()
+        //solveAndVisualize ()
+        //writePriorityRulesToFile ()
+        
+        //fastSSGSBench ()
+        writeOptsAndTime ()
+
+        //writeCostsAndRevenues ()
 
         //testFastSSGS ()
 
@@ -25,9 +31,10 @@ module Program =
         //showRevenuePlot ()                
         //genTopSorts  ()
         //countingTopOrderings ()
-        //convertPrecedenceRelationToCArray ()
+        
+        //convertProjectStructureToCCode ()
 
-        //writeGaps @"gaps.txt"
+        //writeGaps @"gaps99999.txt"
 
         //precomputeOptimalSchedules @"Projekte/32Jobs"
 
