@@ -211,11 +211,14 @@ Order=
 Decim=7
 PlaneRownr=-1
 
+[RP:AGGRPLAN]
+1=
+
 [RP:MODEL]
 1=
 
 [MRUFILES]
-1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
+1=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Isermann\App_Isermann\AGGRPLAN.gms
 2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\results.gdx
 3=C:\Users\Andre\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\model.lst
 4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\BackwardsGapFillFsharp\BackwardsGapFillFSharp\data.inc
@@ -225,10 +228,9 @@ PlaneRownr=-1
 8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\GAMS-Modell\ProjectStructureData.gdx
 
 [OPENWINDOW_1]
-FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Isermann\App_Isermann\AGGRPLAN.gms
-FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Kühne\VRP_Kathrin_Kuehne\VRP_Kathrin_Kuehne\VRP_Tour_KK.gms
+FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
 FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
-FILE3=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Kühne\VRP_Kathrin_Kuehne\VRP_Kathrin_Kuehne\VRP_Tour_KK.gms
 MAXIM=1
 TOP=0
 LEFT=0
