@@ -15,15 +15,15 @@ module VisRunners =
 
         let optSchedFn = testFilename + ".OPTSCHED"
 
-        //let (sts1,solveTime) = GamsSolver.solve ps        
-        //spitMap optSchedFn sts1
+        let (sts1,solveTime) = GamsSolver.solve ps        
+        spitMap optSchedFn sts1
 
-        let (sts1, solveTime1) = (slurpMap optSchedFn, 0)
+        //let (sts1, solveTime1) = (slurpMap optSchedFn, 0)
 
         //let sts2 = ps.BackwardsGapFillHeuristicDefault ()
 
         //let sts3 = ps.SerialScheduleGenerationScheme ()
-        let sts5 = ModifiedSSGS.cleverSSGSHeuristicDefault ps
+        //let sts5 = ModifiedSSGS.cleverSSGSHeuristicDefault ps
         //ScheduleVisualisation.showSchedules [("SSGS", ps, sts3); ("SSGS-OC", ps, sts5)]
 
         //let sts4 = ps.ParallelScheduleGenerationScheme ()
@@ -50,8 +50,8 @@ module VisRunners =
 
        // let sts7 = slurpMap "testsched.txt"
 
-        ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1);
-                                             ("SSGS2/GA", ps, sts5)]
+        ScheduleVisualisation.showSchedules [("MIP Modell", ps, sts1)]
+                                             //("SSGS2/GA", ps, sts5)]
                                             // ("Delphi", ps, sts7)]
                                              //("SSGS/GA", ps, sts6)]
         ()

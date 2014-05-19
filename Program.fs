@@ -11,12 +11,12 @@ module Program =
         //let projectFolder = @"Projekte/16Jobs"
         //BatchRunner.stripAdditionalData projectFolder
         //BatchRunner.addAdditionalDataToProjs projectFolder
-
         //solveAndVisualize ()
         //writePriorityRulesToFile ()
         
         //fastSSGSBench ()
-        writeOptsAndTime ()
+        //writeOptsAndTime ()
+        finishOptsAndTime ()
 
         //writeCostsAndRevenues ()
 
@@ -43,4 +43,7 @@ module Program =
         //countingTopOrderings ()
 
         //System.Console.ReadKey () |> ignore
+
+        //writeVariantMakespans ()
+
         0

@@ -40,6 +40,8 @@ module GamsSolver =
             addParamEntriesToF durationsParam "j" ps.Jobs ps.Durations
             let uParam = db.AddParameter ("u", 1, "Erlös bei Makespan t")
             addParamEntries uParam "t" ps.TimeHorizon ps.U
+            let u2Param = db.AddParameter ("u2", 1, "ErlösCaro bei Makespan t")
+            addParamEntries u2Param "t" ps.TimeHorizon ps.U2
 
             let demandsParam = db.AddParameter ("demands", 2, "Bedarf")
             ps.Jobs >< ps.Resources
@@ -94,9 +96,38 @@ module GamsSolver =
         let job = ws.AddJobFromFile "model.gms"
         let db = createDatabase ws ps
         let writer = System.Console.Out
-        job.Run (opt, writer, db)
+        try
+            job.Run (opt, writer, db)
+        with
+            | :? GAMS.GAMSExceptionExecution ->
+                raise (SolveError(-1.0))
         opt.Dispose ()
         let (fts, solveTime, solveStat) = processOutput job.OutDB
         if solveStat <> 1.0 then
             raise (SolveError(solveStat))
         (ps.FinishingTimesToStartingTimes fts, solveTime)
+
+    let solveVariants (ps:ProjectStructure) =
+        let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
+        let opt = ws.AddOptions ()
+        opt.License <- @"C:\GAMS\gamslice.txt"
+        opt.MIP <- "GUROBI"
+        opt.OptCR <- 0.0
+        opt.ResLim <- 3600.0//System.Double.MaxValue 
+        opt.Threads <- 8
+        let job = ws.AddJobFromFile "model.gms"
+        let db = createDatabase ws ps
+        let writer = System.Console.Out
+        try
+            job.Run (opt, writer, db)
+        with
+            | :? GAMS.GAMSExceptionExecution ->
+                raise (SolveError(-1.0))
+        opt.Dispose ()
+        ["results.gdx"; "results2.gdx"; "resultsmincost.gdx"; "resultsminms.gdx"]
+        |> List.map (fun fn -> ws.AddDatabaseFromGDX(fn))
+        |> List.map (fun db ->
+                        let (fts, solveTime, solveStat) = processOutput db
+                        if solveStat <> 1.0 then
+                            raise (SolveError(solveStat))
+                        ps.Makespan (ps.FinishingTimesToStartingTimes fts))

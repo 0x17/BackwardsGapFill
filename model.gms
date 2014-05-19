@@ -20,6 +20,7 @@ parameters
          capacities(r)   Kapazitäten
          durations(j)    Dauern
          u(t)            Erlös bei Makespan t
+         u2(t)        Erlös2 bei Makespan t
          efts(j)         Früheste Startzeitpunkte
          lfts(j)         Späteste Endzeitpunkte
          demands(j,r)    Bedarf;
@@ -30,7 +31,7 @@ set pred(i,j) yes gdw. i Vorgänger von j ist;
 
 *$ontext
 $GDXIN ProjectStructureData.gdx
-$load j t r zmax kappa capacities durations u efts lfts demands pred
+$load j t r zmax kappa capacities durations u u2 efts lfts demands pred
 $GDXIN
 *$offtext
 
@@ -54,13 +55,20 @@ fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1) = yes;
 
 binary variable  x(j,t) 1 gdw. AG j in Periode t endet d.h. FTj=t;
 integer variable z(r,t) Einheiten ZK von r in Periode t gebucht;
-variable         profit Gewinn;
+variable        profit  Gewinn
+                profit2 Mehr Gwinn
+                csts    Kosten
+                ms      Makespan;
 
-equations        objective   Zielfunktion
-                 precedence  Vorrangbeziehung durchsetzen
-                 resusage    Ressourcenverbrauchsrestriktion
-                 once        Jeden AG genau 1x einplanen
-                 oclimits    Beschränke buchbare ZK;
+equations
+                objective   Zielfunktion
+                objective2  Andere ZF
+                mseq        Makespan in ms setzen
+                precedence  Vorrangbeziehung durchsetzen
+                resusage    Ressourcenverbrauchsrestriktion
+                once        Jeden AG genau 1x einplanen
+                oclimits    Beschränke buchbare ZK
+                zerozmax    Erzwinge zmax auf Null;
 
 objective                 .. profit =e= sum(j$lastJob(j), sum(t$tw(j,t), x(j,t)*u(t)))-sum(r, sum(t, z(r,t)*kappa(r)));
 precedence(i,j)$pred(i,j) .. sum(t$tw(i,t), ord(t)*x(i,t)) =l= sum(t$tw(j,t), ord(t)*x(j,t)) - durations(j);
@@ -68,12 +76,37 @@ resusage(r,t)             .. sum(j$actual(j), demands(j,r)*sum(tau$fw(j,t,tau), 
 once(j)                   .. sum(t$tw(j,t), x(j,t)) =e= 1;
 oclimits(r,t)             .. z(r,t) =l= zmax(r);
 
-model rcpsp /all/;
-solve rcpsp using mip maximizing profit;
+objective2                .. profit2 =e= sum(j$lastJob(j), sum(t$tw(j,t), x(j,t)*u2(t)))-sum(r, sum(t, z(r,t)*kappa(r)));
+mseq                      .. ms =e= sum(j$lastJob(j), sum(t$tw(j,t), ord(t)*x(j,t)));
 
+zerozmax(r,t)             .. z(r,t) =e= 0;
+
+$ontext
+model rcpsp /objective, precedence, resusage, once, oclimits/;
+solve rcpsp using mip maximizing profit;
 solvetime = rcpsp.resusd;
 slvstat = rcpsp.solvestat;
-
 execute_unload "results.gdx" x.l x.m z.l z.m solvetime slvstat;
+$offtext
+
+model rcpsp2 /objective2, precedence, resusage, once, oclimits/;
+solve rcpsp2 using mip maximizing profit2;
+solvetime = rcpsp2.resusd;
+slvstat = rcpsp2.solvestat;
+execute_unload "results.gdx" x.l x.m z.l z.m solvetime slvstat;
+
+$ontext
+model rcpspmc /mseq, precedence, resusage, once, zerozmax/;
+solve rcpspmc using mip minimizing ms;
+solvetime = rcpspmc.resusd;
+slvstat = rcpspmc.solvestat;
+execute_unload "resultsmincost.gdx" x.l x.m z.l z.m solvetime slvstat;
+
+model rcpspmms /mseq, precedence, resusage, once, oclimits/;
+solve rcpspmms using mip minimizing ms;
+solvetime = rcpspmms.resusd;
+slvstat = rcpspmms.solvestat;
+execute_unload "resultsminms.gdx" x.l x.m z.l z.m solvetime slvstat;
+$offtext
 
 display z.l;

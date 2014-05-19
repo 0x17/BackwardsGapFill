@@ -41,9 +41,50 @@ module StatRunners =
                     spitAppend (f+".PRULES") (System.String.Join(" ", order)+"\n")
                 printf "Wrote stats for %s\n" f
             with
-                | :? RCPSP.GamsSolver.SolveError ->
+                | :? RCPSP.GamsSolver.SolveError ->  // use actual value instead of string(0)!
                     spitAppend "optimalStats.txt" (f+";"+string(0)+";Timeout\n")
                     printf "Solve error... ignore"
+
+    let writeVariantMakespans () =
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/j30", "*.sm", System.IO.SearchOption.AllDirectories)
+        spit "variantMakespans.txt" "File;AndreUMS;CaroUMS;MinCostMS;MinMakespanMS\n"
+        for f in projFiles do
+            let ps = PSPLibParser.parse f
+            try
+                let makespans = GamsSolver.solveVariants ps
+                spitAppend "variantMakespans.txt" (f+";"+string(makespans.Item(0))+
+                                                 ";"+string(makespans.Item(1))+
+                                                 ";"+string(makespans.Item(2))+
+                                                 ";"+string(makespans.Item(3))+"\n")
+                printf "Wrote makespan stats for %s\n" f
+            with
+                | :? RCPSP.GamsSolver.SolveError ->
+                    spitAppend "optimalStats.txt" (f+";"+string(0)+";Timeout\n")
+                    printf "Solve error... ignore"        
+
+    let finishOptsAndTime () =
+        let alreadyMeasured filename =
+            slurpLines "optimalStats.txt"
+            |> Seq.exists (fun line -> line.StartsWith(filename))
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/j30", "*.sm", System.IO.SearchOption.AllDirectories)
+        for f in projFiles do
+            if not(alreadyMeasured f) then
+                let ps = PSPLibParser.parse f
+                try
+                    let (sts, solveTime) = GamsSolver.solve ps    
+                    //let solveTime = 0
+                    //let sts = slurpMap (f+".OPTSCHED")
+                    spitAppend "optimalStats.txt" (f+";"+string(ps.Profit sts)+";"+string(solveTime)+"\n")
+                    spitMap (f+".OPTSCHED") sts
+                    let orders = List.map (fun pr -> pr ps) PriorityRules.allRules
+                    spit (f+".PRULES") ""
+                    for order in orders do
+                        spitAppend (f+".PRULES") (System.String.Join(" ", order)+"\n")
+                    printf "Wrote stats for %s\n" f
+                with
+                    | :? RCPSP.GamsSolver.SolveError ->
+                        spitAppend "optimalStats.txt" (f+";"+string(0)+";Timeout\n")
+                        printf "Solve error... ignore"
             
 
     let GAtoExhaustiveEnumGap () =

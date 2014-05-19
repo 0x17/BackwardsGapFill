@@ -108,7 +108,17 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         let c = (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox + boolToInt (minMakespanApprox = maxMakespanApprox))
         fun t -> -c * float t + c * float maxMakespanApprox
 
-    let revenue = u << makespan
+    let u2 =
+        let ssgsCoreEs sts λ =
+            let scheduleJob acc j =
+                Map.add j (lastPredFinishingTime acc j) acc
+            Seq.fold scheduleJob sts λ
+        let ssgsEs λ =
+            ssgsCoreEs (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+        let umax = totalOvercapacityCosts (ssgsEs topOrdering)
+        fun t -> umax * (float(T)-float(t))/float(T)
+
+    let revenue = u2 << makespan
 
     let profit sts = (revenue sts) - totalOvercapacityCosts sts
 
@@ -159,6 +169,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.Resources = resources    
     member ps.Kappa = kappa
     member ps.U = u
+    member ps.U2 = u2
     member ps.ZMax = zmax
     member ps.TimeHorizon with get () = horizon
     member ps.TimeHorizon with set (value) = horizon <- value
