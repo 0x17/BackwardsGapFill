@@ -8,6 +8,38 @@ open Utils
 open TopologicalSorting
 
 module StatRunners =
+    let (writeProjectRanges, findProjectWithBigRange) =
+        let outFilename = "ranges.txt"
+        let rangeOfProject filename =
+            let ps = PSPLibParser.parse filename
+            let (minMakespan, maxMakespan) = GamsSolver.minMaxMakespan ps
+            maxMakespan-minMakespan
+        let projFiles = System.IO.Directory.GetFiles(@"Projekte/j30", "*.sm", System.IO.SearchOption.AllDirectories)
+        ((fun () -> spit outFilename "proj;range\n"
+                    projFiles |> Array.iter (fun pf -> spitAppend outFilename (pf+";"+string(rangeOfProject pf)+"\n"))),
+         (fun () -> projFiles |> Array.maxBy rangeOfProject |> printf "%s\n"))
+
+    let writeCostsForDeadlines ps =
+        //GraphVisualisation.visualizePrecedenceGraph ps "mytesty.pdf" 
+
+        let computeCostsForDeadlines (ps:ProjectStructure) =
+            let (minMakespan, maxMakespan) = GamsSolver.minMaxMakespan ps        
+            [minMakespan..maxMakespan]
+            |> List.map (fun ms -> (ms, GamsSolver.solveMinimalCostsWithDeadline ps ms))
+            |> Map.ofList
+
+        let spitCostsForDeadlines msToCosts =
+            spit "DeadlineCosts.txt" "Deadline;Costs\n"
+            for ms in (keys msToCosts) do
+                spitAppend "DeadlineCosts.txt" (sprintf "%d;%.2f\n" ms (msToCosts.Item(ms)))
+            
+        let msToCosts = computeCostsForDeadlines ps
+        spitCostsForDeadlines msToCosts
+
+    let writeCostsForDeadlinesExample () =
+        let ps = PSPLibParser.parse @"Projekte/32Jobs/Modellendogen0005.DAT"
+        writeCostsForDeadlines ps
+
     let writeCostsAndRevenues () =
         let ps = PSPLibParser.parse @"Projekte/QBWLBeispiel.DAT"
 
@@ -49,18 +81,19 @@ module StatRunners =
         let projFiles = System.IO.Directory.GetFiles(@"Projekte/j30", "*.sm", System.IO.SearchOption.AllDirectories)
         spit "variantMakespans.txt" "File;AndreUMS;CaroUMS;MinCostMS;MinMakespanMS\n"
         for f in projFiles do
-            let ps = PSPLibParser.parse f
-            try
-                let makespans = GamsSolver.solveVariants ps
-                spitAppend "variantMakespans.txt" (f+";"+string(makespans.Item(0))+
-                                                 ";"+string(makespans.Item(1))+
-                                                 ";"+string(makespans.Item(2))+
-                                                 ";"+string(makespans.Item(3))+"\n")
-                printf "Wrote makespan stats for %s\n" f
-            with
-                | :? RCPSP.GamsSolver.SolveError ->
-                    spitAppend "optimalStats.txt" (f+";"+string(0)+";Timeout\n")
-                    printf "Solve error... ignore"        
+            if not(f.Contains("3012")) then
+                let ps = PSPLibParser.parse f
+                try
+                    let makespans = GamsSolver.solveVariants ps
+                    spitAppend "variantMakespans.txt" (f+";"+string(makespans.Item(0))+
+                                                     ";"+string(makespans.Item(1))+
+                                                     ";"+string(makespans.Item(2))+
+                                                     ";"+string(makespans.Item(3))+"\n")
+                    printf "Wrote makespan stats for %s\n" f
+                with
+                    | :? RCPSP.GamsSolver.SolveError ->
+                        spitAppend "optimalStats.txt" (f+";"+string(0)+";Timeout\n")
+                        printf "Solve error... ignore"        
 
     let finishOptsAndTime () =
         let alreadyMeasured filename =

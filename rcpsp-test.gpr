@@ -1,8 +1,5 @@
 [PROJECT]
 
-[RP:UNTITLED_1]
-1=
-
 [RP:DATA]
 1=
 
@@ -276,23 +273,67 @@ Order=1,2,3
 Decim=7
 PlaneRownr=-1
 
+[RP:BACHELORARBEIT FLEXIBLE PROJEKTE]
+1=
+
+[GDXDISP: deadline Par 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: deadline Par 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+Order=
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: i Alias 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[RP:BACHELORARBEIT FLEXIBLE PROJEKTE NEU MIT GDX]
+1=
+
+[RP:MODELDEADLINE]
+1=
+
+[RP:RCPSP]
+1=
+
+[RP:RCPSPOC]
+1=
+
+[RP:UNTITLED_1]
+1=
+
 [RP:MODEL]
 1=
 
 [MRUFILES]
-1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\_gams_net_gdb0.gdx
-2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\results.gdx
-3=C:\Users\a.schnabel\Downloads\GAMS-Modelle-OM-Tutorial (3)\05_Auftragsannahme\Auftragsannahme_II.gms
-4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\resultsminms.gdx
-5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
-6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\resultsmincost.gdx
-7=C:\Users\a.schnabel\Downloads\GAMS-Modelle-OM-Tutorial (3)\04_Programmplanung\ProgrammAggregiertePlanung.lst
-8=C:\Users\a.schnabel\Dropbox\Arbeit\RubyHausarbeiten\Isermann\App_Isermann\AGGRPLAN.gms
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\Untitled_1.gms
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspvariants.inc
+3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc2.inc
+4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspmms.inc
+5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspmc.inc
+6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc.gms
+7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpsp.gms
 
 [OPENWINDOW_1]
 FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
 FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.lst
-FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
+FILE3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspdl.inc
+FILE4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc.inc
+FILE5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
 MAXIM=0
 TOP=0
 LEFT=0

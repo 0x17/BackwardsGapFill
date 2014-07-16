@@ -8,6 +8,18 @@ open TopologicalSorting
 open Runners
 
 module TempRunners =
+    let testRCPSP () =
+        let ps = testProjectStructure ()
+        let (sts, solveTime) = GamsSolver.solveRCPSP ps
+        ScheduleVisualisation.showSchedules [("RCPSP optimal ms schedule", ps, sts)]
+
+    let testSolveWithDeadline () =
+        let ps = PSPLibParser.parse @"Projekte/32Jobs/Modellendogen0005.DAT"
+        let ms = 60
+        let costs = GamsSolver.solveMinimalCostsWithDeadline ps ms
+        printf "costs = %.2f" costs
+        System.Console.ReadKey () |> ignore
+
     let writePriorityRulesToFile () =
         let ps = testProjectStructure ()
         let orders = List.map (fun pr -> pr ps) PriorityRules.allRules

@@ -138,4 +138,7 @@ module ScheduleVisualisation =
         Seq.iter (fun (caption,ps,sts) -> show caption ps sts |> ignore) data
         System.Windows.Forms.Application.Run ()
 
+    let showPipe ps sts =
+        showSchedules [("Schedule", ps, sts)]
+        sts
     

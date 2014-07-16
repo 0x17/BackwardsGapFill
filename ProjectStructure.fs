@@ -58,7 +58,16 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         |> Seq.forall (fun (r,t) -> residualCapacity sts r t + z r t >= demands j r)
 
     let predsAndCapacityFeasible z sts job t = arePredsFinished sts job t && enoughCapacityForJob z sts job t
-    
+
+    let earliestStartSchdule =
+        let ssgsCoreEs sts λ =
+            let scheduleJob acc j =
+                Map.add j (lastPredFinishingTime acc j) acc
+            Seq.fold scheduleJob sts λ
+        let ssgsEs λ =
+            ssgsCoreEs (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+        ssgsEs topOrdering
+        
     let ssgsCore z sts λ =
         let scheduleJob acc j =
             Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc
@@ -104,19 +113,16 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
         let minOcCosts = 0.0
         let maxOcCosts = totalOvercapacityCosts maxOcSchedule 
+                
+        let c =
+            if maxOcCosts - minOcCosts = 0.0 then 1.0
+            else (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox + boolToInt (minMakespanApprox = maxMakespanApprox))
 
-        let c = (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox + boolToInt (minMakespanApprox = maxMakespanApprox))
-        fun t -> -c * float t + c * float maxMakespanApprox
+        fun t -> -c * float t + c * float maxMakespanApprox        
 
     let u2 =
-        let ssgsCoreEs sts λ =
-            let scheduleJob acc j =
-                Map.add j (lastPredFinishingTime acc j) acc
-            Seq.fold scheduleJob sts λ
-        let ssgsEs λ =
-            ssgsCoreEs (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-        let umax = totalOvercapacityCosts (ssgsEs topOrdering)
-        fun t -> umax * (float(T)-float(t))/float(T)
+        let umax = totalOvercapacityCosts earliestStartSchdule
+        fun t -> (if umax <> 0.0 then umax else 1.0) * (float(T)-float(t))/float(T)
 
     let revenue = u2 << makespan
 

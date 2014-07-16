@@ -52,6 +52,9 @@ module GamsSolver =
             let lftsParam = db.AddParameter ("lfts", 1, "Späteste Endzeitpunkte")
             addParamEntriesToF lftsParam "j" ps.Jobs ps.LatestFinishingTimes
 
+            let dparam = db.AddParameter("deadline", 0)
+            dparam.AddRecord().Value <- -1.0
+
         addSets ()
         addParams ()
         db
@@ -85,16 +88,18 @@ module GamsSolver =
 
     exception SolveError of float
 
-    let solve ps =
+    let solveCommon ps incfile (timeout:Option<float>) (additionalData:Option<GAMSDatabase->unit>) =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let opt = ws.AddOptions ()
         opt.License <- @"C:\GAMS\gamslice.txt"
         opt.MIP <- "GUROBI"
         opt.OptCR <- 0.0
-        opt.ResLim <- 3600.0//System.Double.MaxValue 
+        opt.ResLim <- if timeout.IsNone then System.Double.MaxValue else timeout.Value
         opt.Threads <- 8
+        opt.Defines.Add("IncFile", incfile+".inc")
         let job = ws.AddJobFromFile "model.gms"
         let db = createDatabase ws ps
+        if additionalData.IsSome then additionalData.Value db
         let writer = System.Console.Out
         try
             job.Run (opt, writer, db)
@@ -102,32 +107,50 @@ module GamsSolver =
             | :? GAMS.GAMSExceptionExecution ->
                 raise (SolveError(-1.0))
         opt.Dispose ()
-        let (fts, solveTime, solveStat) = processOutput job.OutDB
+        (ws, job)
+
+    let startingTimesForOutDB (ps:ProjectStructure) db =
+        let (fts, solveTime, solveStat) = processOutput db
         if solveStat <> 1.0 then
             raise (SolveError(solveStat))
         (ps.FinishingTimesToStartingTimes fts, solveTime)
 
-    let solveVariants (ps:ProjectStructure) =
-        let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
-        let opt = ws.AddOptions ()
-        opt.License <- @"C:\GAMS\gamslice.txt"
-        opt.MIP <- "GUROBI"
-        opt.OptCR <- 0.0
-        opt.ResLim <- 3600.0//System.Double.MaxValue 
-        opt.Threads <- 8
-        let job = ws.AddJobFromFile "model.gms"
-        let db = createDatabase ws ps
-        let writer = System.Console.Out
-        try
-            job.Run (opt, writer, db)
-        with
-            | :? GAMS.GAMSExceptionExecution ->
-                raise (SolveError(-1.0))
-        opt.Dispose ()
+    let startingTimesForFinishedJob ps (job:GAMSJob) =
+        startingTimesForOutDB ps job.OutDB
+
+    let solve ps =
+        let job = snd (solveCommon ps "rcpspoc" (Some 3600.0) None)
+        startingTimesForFinishedJob ps job
+
+    let solveVariants ps =
+        let (ws, job) = solveCommon ps "rcpspvariants" (Some 3600.0) None
         ["results.gdx"; "results2.gdx"; "resultsmincost.gdx"; "resultsminms.gdx"]
         |> List.map (fun fn -> ws.AddDatabaseFromGDX(fn))
-        |> List.map (fun db ->
-                        let (fts, solveTime, solveStat) = processOutput db
-                        if solveStat <> 1.0 then
-                            raise (SolveError(solveStat))
-                        ps.Makespan (ps.FinishingTimesToStartingTimes fts))
+        |> List.map (fun db -> startingTimesForOutDB ps db |> fst |> ps.Makespan)
+
+    let solveMinimalCostsWithDeadline ps deadline =
+        let setDeadlineParam (db:GAMSDatabase) =
+            let dparam = db.GetParameter("deadline")
+            dparam.FirstRecord().Value <- float deadline
+            db
+
+        let zeroOutRevenue (db:GAMSDatabase) =
+            let uparam = db.GetParameter("u")
+            for t in 1..uparam.NumberRecords do
+                uparam.FindRecord("t"+string(t)).Value <- 0.0
+            db       
+
+        let job = snd (solveCommon ps "rcpspdl" None (Some (ignore << zeroOutRevenue << setDeadlineParam)))
+        ps.TotalOvercapacityCosts (startingTimesForFinishedJob ps job |> fst)
+
+    let solveRCPSP (ps:ProjectStructure) =
+        let ps2 = new ProjectStructure(ps.Jobs, ps.Durations, ps.Demands, ps.Preds, ps.Resources, ps.Capacities, (fun r -> 0.0), (fun r -> 0))
+        let job = snd (solveCommon ps2 "rcpspoc" None None)        
+        startingTimesForFinishedJob ps job
+
+    let minMaxMakespan (ps:ProjectStructure) =
+        let newcapsf r = ps.Capacities r + ps.ZMax r
+        let ps2 = new ProjectStructure(ps.Jobs, ps.Durations, ps.Demands, ps.Preds, ps.Resources, newcapsf, ps.Kappa, ps.ZMax)
+        let minMakespan = solveRCPSP ps2 |> fst |> ps.Makespan
+        let maxMakespan = solveRCPSP ps |> fst |> ps.Makespan
+        (minMakespan, maxMakespan)
