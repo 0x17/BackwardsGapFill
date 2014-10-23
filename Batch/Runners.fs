@@ -1,25 +1,11 @@
 ﻿namespace RCPSP
 
 open System.IO
+open Serialization
 
 module Runners =
-    let testFilename =
-        //  @"Projekte/32Jobs/Modellendogen0001.DAT"
-       //   @"Projekte/12Jobs/EXPL2.DAT"
-        //  @"Projekte/32JobsB/EXPL1.DAT"
-        //  @"Projekte/32Jobs/Modellendogen0027.DAT"
-        //  @"Projekte/32Jobs/Modellendogen0007.DAT"
-        //  @"Projekte/16Jobs/EXPL41.DAT"
-        //  @"Projekte/24Jobs/EXPL62.DAT"
-        //  @"Projekte/28Jobs/EXPL71.DAT"
-        //  @"Projekte/26Jobs/EXPL81.DAT"
-        //  @"Projekte/32Jobs/Modellendogen0049.DAT"
-        //    @"Projekte/32Jobs/Modellendogen0004.DAT"
-        //    @"Projekte/j30/j3010_1.sm"
-            @"Projekte/j30/j3021_9.sm"
-
-    let testProjectStructure () =
-        PSPLibParser.parse testFilename
+    let testFilename = @"Projekte/j30/j3021_9.sm"
+    let testProjectStructure () =  PSPLibParser.parse testFilename
 
     let convertBatchSmToGdx force path =
         let pspLibExt = ".sm"
@@ -32,3 +18,31 @@ module Runners =
                 GamsSolver.writeGdxFile ps prefix
 
     let forceConvertBatchSmToGdx = convertBatchSmToGdx true
+
+    let precomputeOptimalSchedules path =
+        let fst3 (a,_,_) = a
+        PSPLibParser.foreachProjInPath path (fun f ps ->
+            let outfn = f+".OPTSCHED"
+            if not (System.IO.File.Exists(outfn)) then
+                spitMap outfn (fst3 (GamsSolver.solve ps)))
+
+    let projFilenames dirPath = Directory.GetFiles(dirPath, "*.sm", SearchOption.AllDirectories)
+
+    let addAdditionalDataToProjs dirPath =
+        for fn in projFilenames dirPath do
+            let nres = PSPLibParser.parseNumResources fn
+            let res = [1..nres]
+
+            let kappaVal = 0.5
+            let kappa = res |> Seq.map (fun r -> (r, kappaVal)) |> Map.ofSeq
+            PSPLibParser.serializeKappa kappa fn
+
+            let zmaxFactor = 0.5 // 0.25
+            let caps = PSPLibParser.parseCapsOnly fn
+            let zmax = res |> Seq.map (fun r -> (r,int(float caps.[r-1] * zmaxFactor))) |> Map.ofSeq
+            PSPLibParser.serializeZMax zmax fn
+
+    let stripAdditionalData dirPath =
+        for fn in projFilenames dirPath do
+            let origLines = File.ReadAllLines(fn) |> Seq.takeWhile (fun line -> not(line.StartsWith("OVERCAPACITY")))
+            File.WriteAllLines(fn, origLines)

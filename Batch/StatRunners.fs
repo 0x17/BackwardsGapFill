@@ -49,8 +49,8 @@ module StatRunners =
 
         //GraphVisualisation.visualizePrecedenceGraph ps "mytest"
 
-        let longestMs = ps.Makespan (fst (FastSSGS.solve ps (fun r t -> 0) (TopologicalSorting.topSort ps.Jobs ps.Preds)))
-        let shortestMs = ps.Makespan (fst (FastSSGS.solve ps (fun r t -> ps.ZMax r) (TopologicalSorting.topSort ps.Jobs ps.Preds)))
+        let longestMs = ps.Makespan (ps.SerialScheduleGenerationSchemeWithOC (fun r t -> 0) (TopologicalSorting.topSort ps.Jobs ps.Preds |> Seq.ofList))
+        let shortestMs = ps.Makespan (ps.SerialScheduleGenerationSchemeWithOC (fun r t -> ps.ZMax r) (TopologicalSorting.topSort ps.Jobs ps.Preds |> Seq.ofList))
 
         spit "ErloesKosten.txt" "Dauer;Erloes;Kosten;Deckungsbeitrag\n"
 
@@ -139,19 +139,12 @@ module StatRunners =
                     spitAppend (f+".PRULES") (System.String.Join(" ", order)+"\n")
                 printf "Wrote stats for %s\n" f
 
-    let GAtoExhaustiveEnumGap () =
-        let ps = testProjectStructure ()
-        let utility = ps.Profit << (ModifiedSSGS.cleverSsgsHeuristic ps)
-        let enumOrdering = Seq.maxBy utility (allTopSorts ps.Jobs ps.Preds)
-        let gaOrdering = Seq.maxBy utility (ActivityListOptimizer.optimizeActivityList ps None utility)
-        printf "%.2f" (gap (utility enumOrdering) (utility gaOrdering))
-
     let buildTableForOrderingStats () =        
         let outFilename = "orderingStats.csv"
         spit outFilename "ordering;gap\n"
         let ps = testProjectStructure ()
         let (sts1,solveTime) = (slurpMap "optsched.txt", 0)
-        let stats = ModifiedSSGS.cleverSSGSHeuristicOrderingStats ps sts1
+        let stats = SSGSOC.cleverSSGSHeuristicOrderingStats ps sts1
         let lstStr (lst:seq<int>) = System.String.Join(",", lst)
         Map.iter (fun k v -> spitAppend outFilename (lstStr(k)+";"+(string(v) |> replace '.' ',')+"\n")) stats
 
@@ -171,27 +164,3 @@ module StatRunners =
             let parts = Array.map (fun n -> n.ToString() |> replace '.' ',') [| kappa; profit; makespan; totalOc; solveTime |]
             spitAppend outFilename (System.String.Join(";", parts) + "\n")
         ()
-
-    let writeGaps outFilename =
-        let writeGapForProj f (ps:ProjectStructure) =
-            //let (optSched, solveTime) = GamsSolver.solve ps
-            let schedFn = f+".OPTSCHED"
-            if System.IO.File.Exists (schedFn) then
-                let optSched = slurpMap schedFn
-                //let heurSched = ps.CleverSSGSHeuristicAllOrderings ()
-                //let heurSched = ps.CleverSSGSHeuristic (GamsSolver.optTopSort ps.Jobs optSched |> Seq.ofList)
-                //let heurSched = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))                
-                //let (heurSched2, solveTime2) = ActivityListOCOptimizer.optimizeHeuristic ps
-                //printf "GA/SSGS done...\n"
-                //let (heurSched3, solveTime3) = HelberIdee.optimizeHeuristic ps
-                //printf "GA/SSGS-Helber done...\n"
-                let (heurSched1, solveTime1) = ActivityListOptimizer.optimizeHeuristic ps (Some(GamsSolver.optTopSort ps.Jobs optSched))
-                printf "GA/SSGS-OC done...\n"
-                spitAppend outFilename (sprintf "%s;%.2f;%.2f\n" f (ps.CalculateGap optSched heurSched1) solveTime1.TotalSeconds)
-                                                                                       //(ps.CalculateGap optSched heurSched2) solveTime2.TotalSeconds
-                                                                                       //(ps.CalculateGap optSched heurSched3) solveTime3.TotalSeconds)
-
-        spit outFilename "Filename;GapSSGS1;SlvTimeSSGS1\n" //";GapSSGS2;SlvTimeSSGS2;GapHelberIdee;SlvTimeHelberIdee\n"
-        PSPLibParser.foreachProjInPath @"Projekte/32Jobs" writeGapForProj
-
-        

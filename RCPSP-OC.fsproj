@@ -71,29 +71,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\Utils.fs" />
-    <Compile Include="Helpers\UtilsTest.fs" />
     <Compile Include="Helpers\Serialization.fs" />
     <Compile Include="Helpers\TopologicalSorting.fs" />
     <Compile Include="ProjectStructure.fs" />
-    <Compile Include="FastSSGS.fs" />
-    <Compile Include="BackwardsGapFill.fs" />
-    <Compile Include="ModifiedSSGS.fs" />
-    <Compile Include="GeneticAlgorithm\Operators.fs" />
-    <Compile Include="GeneticAlgorithm\OperatorsTest.fs" />
+    <Compile Include="SSGSOC.fs" />
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
-    <Compile Include="GeneticAlgorithm\ActivitiyListOptimizer.fs" />
-    <Compile Include="GeneticAlgorithm\ActivityListOCOptimizer.fs" />
-    <Compile Include="GeneticAlgorithm\HelberIdee.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
-    <Compile Include="AdditionalData.fs" />
     <Compile Include="Visualisation\ScheduleVisualisation.fs" />
     <Compile Include="Visualisation\GraphVisualisation.fs" />
     <Compile Include="Visualisation\PlotVisualisation.fs" />
     <Compile Include="Batch\Runners.fs" />
     <Compile Include="Batch\VisRunners.fs" />
     <Compile Include="Batch\StatRunners.fs" />
-    <Compile Include="Batch\TempRunners.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
     <None Include="packages.config" />

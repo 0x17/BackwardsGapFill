@@ -1,8 +1,6 @@
 ﻿namespace RCPSP
 
 open System.Text
-open System.Collections.Generic
-open System.Diagnostics
 
 open Utils
 open Serialization

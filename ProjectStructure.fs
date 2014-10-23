@@ -1,7 +1,6 @@
 ﻿namespace RCPSP
 
 open Microsoft.FSharp.Collections
-open System.Collections.Generic
 
 open Utils
 open TopologicalSorting
