@@ -73,6 +73,12 @@ module Program =
 
         //findProjectWithBigRange ()
 
-        writeProjectRanges ()
+        //writeProjectRanges ()
+
+        //calcLowerUpperBoundsExample ()
+
+        //writeVariantMakespans ()
+
+        convertBatchSmToGdx false @"Projekte/j30"
 
         0

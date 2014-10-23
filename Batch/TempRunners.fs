@@ -8,9 +8,31 @@ open TopologicalSorting
 open Runners
 
 module TempRunners =
+    let calcLowerUpperBoundsExample () =
+        let tkap (ps:ProjectStructure) =
+            ps.Resources
+            |> Seq.map (fun r -> System.Math.Ceiling (float(Seq.sumBy (fun j -> (ps.Durations j * ps.Demands j r)) ps.Jobs) / float(ps.Capacities r + ps.ZMax r)))
+            |> Seq.max
+            |> int
+
+        let ps = testProjectStructure ()
+        let ess = ps.EarliestStartSchedule
+
+        let tkapval = tkap ps
+        let tmin = max (ps.Makespan ess) tkapval
+
+        let cmax3 = ps.TotalOvercapacityCosts ess
+        let cmax2 = Seq.sumBy (fun r -> float(tmin) * float(ps.ZMax r) * (ps.Kappa r)) ps.Resources
+        let cmax = Seq.sumBy (fun r -> float(Seq.sumBy (fun j -> (ps.Durations j * ps.Demands j r)) ps.Jobs) / float(ps.Capacities r + ps.ZMax r) * float(ps.ZMax r) * (ps.Kappa r)) ps.Resources
+
+        let tmax = ps.Makespan (ps.SerialScheduleGenerationScheme ())
+
+        printf "tmin=%d\ncmax=%.2f\ntmax=%d\n" tmin cmax tmax
+        System.Console.ReadKey () |> ignore
+
     let testRCPSP () =
         let ps = testProjectStructure ()
-        let (sts, solveTime) = GamsSolver.solveRCPSP ps
+        let (sts, solveTime, solveStat) = GamsSolver.solveRCPSP ps
         ScheduleVisualisation.showSchedules [("RCPSP optimal ms schedule", ps, sts)]
 
     let testSolveWithDeadline () =
@@ -139,8 +161,9 @@ module TempRunners =
         spit "testAdjMx.c" (sb.ToString())
 
     let precomputeOptimalSchedules path =
+        let fst3 (a,_,_) = a
         PSPLibParser.foreachProjInPath path (fun f ps ->
             let outfn = f+".OPTSCHED"
             if not (System.IO.File.Exists(outfn)) then
-                spitMap outfn (fst (GamsSolver.solve ps)))
+                spitMap outfn (fst3 (GamsSolver.solve ps)))
             

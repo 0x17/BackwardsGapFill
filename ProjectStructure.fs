@@ -58,15 +58,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         |> Seq.forall (fun (r,t) -> residualCapacity sts r t + z r t >= demands j r)
 
     let predsAndCapacityFeasible z sts job t = arePredsFinished sts job t && enoughCapacityForJob z sts job t
-
-    let earliestStartSchdule =
-        let ssgsCoreEs sts λ =
-            let scheduleJob acc j =
-                Map.add j (lastPredFinishingTime acc j) acc
-            Seq.fold scheduleJob sts λ
-        let ssgsEs λ =
-            ssgsCoreEs (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-        ssgsEs topOrdering
         
     let ssgsCore z sts λ =
         let scheduleJob acc j =
@@ -118,13 +109,30 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
             if maxOcCosts - minOcCosts = 0.0 then 1.0
             else (maxOcCosts - minOcCosts) / float (maxMakespanApprox - minMakespanApprox + boolToInt (minMakespanApprox = maxMakespanApprox))
 
-        fun t -> -c * float t + c * float maxMakespanApprox        
+        fun t -> -c * float t + c * float maxMakespanApprox
 
     let u2 =
-        let umax = totalOvercapacityCosts earliestStartSchdule
+        let umax = totalOvercapacityCosts ests
         fun t -> (if umax <> 0.0 then umax else 1.0) * (float(T)-float(t))/float(T)
 
-    let revenue = u2 << makespan
+    let minMaxMakespanBounds =
+        let tkappar r = System.Math.Ceiling(float (Seq.sumBy (fun j -> durations j * demands j r) jobs) / float (capacities r + zmax r)) |> int
+        let tkappa = resources |> Seq.map tkappar |> Seq.max
+        let minMakespanApprox = max (makespan ests) tkappa
+        let maxMakespanApprox = makespan (ssgs zeroOc topOrdering)
+        (minMakespanApprox, maxMakespanApprox)
+
+    let u3 =
+        let (minMakespanApprox, maxMakespanApprox) = minMaxMakespanBounds
+        let maxOcCosts = totalOvercapacityCosts ests
+
+        if minMakespanApprox = maxMakespanApprox then
+            fun t -> -float(t)
+        else
+            fun t ->
+                maxOcCosts - maxOcCosts / System.Math.Pow(float(maxMakespanApprox-minMakespanApprox), 2.0) * System.Math.Pow(float(t - minMakespanApprox), 2.0)
+
+    let revenue = u3 << makespan
 
     let profit sts = (revenue sts) - totalOvercapacityCosts sts
 
@@ -136,6 +144,10 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
                 if remainingRes.[res,period] < 0 then
                     tcosts <- tcosts + (-(float remainingRes.[res,period]) * (kappa (res+1)))
         rev - tcosts
+
+    member ps.IsMinMaxMakespanBoundsSame =
+        let (minMakespanApprox, maxMakespanApprox) = minMaxMakespanBounds
+        minMakespanApprox = maxMakespanApprox
 
     member ps.Revenue = revenue
     member ps.Profit = profit    
@@ -176,6 +188,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.Kappa = kappa
     member ps.U = u
     member ps.U2 = u2
+    member ps.U3 = u3
     member ps.ZMax = zmax
     member ps.TimeHorizon with get () = horizon
     member ps.TimeHorizon with set (value) = horizon <- value
@@ -185,6 +198,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.EarliestFinishingTimes = efts
     member ps.LatestFinishingTimes = mapToFunc lfts
     member ps.Deadline = deadline
+
+    member ps.EarliestStartSchedule = ests
 
     member ps.EnoughCapacityForJob = enoughCapacityForJob
     member ps.LastPredFinishingTime = lastPredFinishingTime

@@ -8,6 +8,11 @@ solvetime = rcpspoc2.resusd;
 slvstat = rcpspoc2.solvestat;
 execute_unload "results2.gdx" x.l x.m z.l z.m solvetime slvstat;
 
+solve rcpspoc3 using mip maximizing profit3;
+solvetime = rcpspoc3.resusd;
+slvstat = rcpspoc3.solvestat;
+execute_unload "results3.gdx" x.l x.m z.l z.m solvetime slvstat;
+
 solve rcpspmms using mip minimizing ms;
 solvetime = rcpspmms.resusd;
 slvstat = rcpspmms.solvestat;

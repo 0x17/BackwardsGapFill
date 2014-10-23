@@ -21,7 +21,7 @@ module VisRunners =
 
         let optSchedFn = testFilename + ".OPTSCHED"
 
-        let (sts1,solveTime) = GamsSolver.solve ps        
+        let (sts1, solveTime, solveStat) = GamsSolver.solve ps        
         spitMap optSchedFn sts1
 
         //let (sts1, solveTime1) = (slurpMap optSchedFn, 0)

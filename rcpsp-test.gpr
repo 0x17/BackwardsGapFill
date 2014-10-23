@@ -82,7 +82,7 @@ PlaneRownr=-1
 
 [GDXDISP: x Var 2]
 PlaneDim=0
-RowDim=2
+RowDim=1
 Squeeze=1
 Order=1,2,3
 Decim=7
@@ -153,10 +153,10 @@ Decim=7
 PlaneRownr=-1
 
 [GDXDISP: demands Par 2]
-PlaneDim=0
-RowDim=2
+PlaneDim=1
+RowDim=1
 Squeeze=1
-Order=1,2
+Order=2,1
 Decim=7
 PlaneRownr=-1
 
@@ -165,14 +165,6 @@ PlaneDim=0
 RowDim=1
 Squeeze=1
 Order=1
-Decim=7
-PlaneRownr=-1
-
-[GDXDISP: pred Set 2]
-PlaneDim=0
-RowDim=2
-Squeeze=1
-Order=1,2
 Decim=7
 PlaneRownr=-1
 
@@ -312,30 +304,105 @@ PlaneRownr=-1
 [RP:RCPSPOC]
 1=
 
+[GDXDISP: demands Set 2]
+PlaneDim=0
+RowDim=2
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: demands Set 3]
+PlaneDim=0
+RowDim=3
+Squeeze=1
+Order=1,2,3
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: u3 Par 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[RP:PERMUTATIONEN]
+1=
+
+[GDXDISP: pred Set 2]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=2,1
+Decim=7
+PlaneRownr=-1
+
 [RP:UNTITLED_1]
+1=
+
+[GDXDISP: a Par 2]
+PlaneDim=0
+RowDim=2
+Squeeze=1
+Order=1,2
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: i Set 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[GDXDISP: n Par 1]
+PlaneDim=0
+RowDim=1
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[RP:OPTIMIERUNGSMODELL_CLUSTERING_QFS]
+1=
+
+[RP:_GAMS_NET_GJO0]
 1=
 
 [RP:MODEL]
 1=
 
+[GDXDISP: profit3 Var 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[RP:MODELCLI]
+1=
+
 [MRUFILES]
-1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\Untitled_1.gms
-2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspvariants.inc
-3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc2.inc
-4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspmms.inc
-5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspmc.inc
-6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc.gms
-7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpsp.gms
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3026_6_results.gdx
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.lst
+3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc.inc
+4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\_gams_net_gjo0.gms
+6=C:\Users\a.schnabel\Dropbox\Arbeit\Clusterbildung operative Prozeduren\Clusterbildung operative Prozeduren\Lösungsalgorithmus\Verbesserung\Abteilung_UCH.gdx
+7=C:\Users\a.schnabel\Dropbox\Arbeit\Clusterbildung operative Prozeduren\Clusterbildung operative Prozeduren\Lösungsalgorithmus\Verbesserung\Optimierungsmodell_Clustering_QFS.gms
+8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
+9=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\data.inc
 
 [OPENWINDOW_1]
-FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
-FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.lst
-FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
-FILE3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspdl.inc
-FILE4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc.inc
-FILE5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\j3010_1_results.gdx
+FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
+FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
 MAXIM=0
-TOP=0
-LEFT=0
-HEIGHT=928
-WIDTH=1450
+TOP=11
+LEFT=57
+HEIGHT=793
+WIDTH=826
