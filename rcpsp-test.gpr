@@ -372,9 +372,6 @@ PlaneRownr=-1
 [RP:_GAMS_NET_GJO0]
 1=
 
-[RP:MODEL]
-1=
-
 [GDXDISP: profit3 Var 0]
 PlaneDim=0
 RowDim=0
@@ -383,26 +380,43 @@ Order=1
 Decim=7
 PlaneRownr=-1
 
+[RP:PROGRAMMAGGREGIERTEPLANUNG]
+1=
+
+[GDXDISP: ms Var 0]
+PlaneDim=0
+RowDim=0
+Squeeze=1
+Order=1
+Decim=7
+PlaneRownr=-1
+
+[RP:MODEL]
+1=
+
+[RP:MODELCLI_TMIN_TMAX]
+1=
+
 [RP:MODELCLI]
 1=
 
 [MRUFILES]
-1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3026_6_results.gdx
-2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.lst
-3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\rcpspoc.inc
-4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
-5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\_gams_net_gjo0.gms
-6=C:\Users\a.schnabel\Dropbox\Arbeit\Clusterbildung operative Prozeduren\Clusterbildung operative Prozeduren\Lösungsalgorithmus\Verbesserung\Abteilung_UCH.gdx
-7=C:\Users\a.schnabel\Dropbox\Arbeit\Clusterbildung operative Prozeduren\Clusterbildung operative Prozeduren\Lösungsalgorithmus\Verbesserung\Optimierungsmodell_Clustering_QFS.gms
-8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
-9=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\data.inc
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli_tmin_tmax.gms
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli_tmin_tmax.lst
+3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\j309_1_tmax_results.gdx
+4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData_tmin_results.gdx
+5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData_tmax_results.gdx
+6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.lst
+7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\j309_1_tmin_results.gdx
 
 [OPENWINDOW_1]
-FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\j3010_1_results.gdx
-FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
+FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3010_10_results.gdx
+FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3048_10_results.gdx
 FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
+FILE3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
 MAXIM=0
-TOP=11
-LEFT=57
-HEIGHT=793
-WIDTH=826
+TOP=5
+LEFT=8
+HEIGHT=920
+WIDTH=1107

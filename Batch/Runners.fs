@@ -6,9 +6,17 @@ open Serialization
 module Runners =
     let testFilename = @"Projekte/j30/j3021_9.sm"
     let testProjectStructure () =  PSPLibParser.parse testFilename
+    let pspLibExt = ".sm"
 
-    let convertBatchSmToGdx force path =
-        let pspLibExt = ".sm"
+    let batchComputePriorityRules path =
+        let files = Directory.GetFiles(path, "*"+pspLibExt, SearchOption.AllDirectories)
+        for f in files do
+            let ps = PSPLibParser.parse f
+            let orders = List.map (fun pr -> pr ps) PriorityRules.allRules
+            for order in orders do
+                spitAppend (f+".PRULES") (System.String.Join(" ", order)+"\n")
+
+    let convertBatchSmToGdx force path =        
         let files = Directory.GetFiles(path, "*"+pspLibExt, SearchOption.AllDirectories)
         for f in files do
             let prefix = f.Replace(pspLibExt, "")
@@ -18,6 +26,18 @@ module Runners =
                 GamsSolver.writeGdxFile ps prefix
 
     let forceConvertBatchSmToGdx = convertBatchSmToGdx true
+
+    let batchExtractFromGdxInPath (col1f,col2f,col3f) path outFilename =
+        let files = Directory.GetFiles(path, "*_tmin_results.gdx", SearchOption.AllDirectories)
+        spit outFilename "filename;tmin;tmax;profit\n"
+        for f in files do
+            let col1 = col1f (f.Replace("_tmin_", "_"))
+            let col2 = col2f f
+            let col3 = col3f (f.Replace("_tmin_", "_tmax_"))
+            spitAppend outFilename (f+";"+string(col1)+";"+string(col2)+";"+string(col3)+"\n")
+
+    let convertResultsGdxToCsv = batchExtractFromGdxInPath (GamsSolver.extractProfitFromResult, GamsSolver.extractMakespanFromResult, GamsSolver.extractMakespanFromResult)
+    let extractSolveStatsFromGdx = batchExtractFromGdxInPath (GamsSolver.extractSolveStatFromResult, GamsSolver.extractSolveStatFromResult, GamsSolver.extractSolveStatFromResult)
 
     let precomputeOptimalSchedules path =
         let fst3 (a,_,_) = a

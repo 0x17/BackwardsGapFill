@@ -85,6 +85,22 @@ module GamsSolver =
 
         (fts, solveTime, solveStat)
 
+    let dbForGdxFile gdxFilename =
+        let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
+        ws.AddDatabaseFromGDX gdxFilename
+
+    let extractVarFromResult varName gdxFilename =
+        let variable = (dbForGdxFile gdxFilename).GetVariable varName
+        variable.FirstRecord().Level
+
+    let extractParamFromResult paramName gdxFilename =
+        let parm = (dbForGdxFile gdxFilename).GetParameter paramName
+        parm.FirstRecord().Value
+
+    let extractProfitFromResult = extractVarFromResult "profit3"
+    let extractMakespanFromResult = extractVarFromResult "ms"
+    let extractSolveStatFromResult = extractParamFromResult "slvstat"
+
     let optTopSort jobs (optSchedule:IntMap) =
         jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
 
