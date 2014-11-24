@@ -29,12 +29,15 @@ module Runners =
 
     let batchExtractFromGdxInPath (col1f,col2f,col3f) path outFilename =
         let files = Directory.GetFiles(path, "*_tmin_results.gdx", SearchOption.AllDirectories)
-        spit outFilename "filename;tmin;tmax;profit\n"
+        spit outFilename "filename;profit;tmin;tmax\n"
         for f in files do
             let col1 = col1f (f.Replace("_tmin_", "_"))
             let col2 = col2f f
             let col3 = col3f (f.Replace("_tmin_", "_tmax_"))
-            spitAppend outFilename (f+";"+string(col1)+";"+string(col2)+";"+string(col3)+"\n")
+            spitAppend outFilename (f.Replace("_tmin_results.gdx", "").Replace(path+"\\", "") +
+                ";"+string(col1).Replace(".",",")+
+                ";"+string(col2).Replace(".",",")+
+                ";"+string(col3).Replace(".",",")+"\n")
 
     let convertResultsGdxToCsv = batchExtractFromGdxInPath (GamsSolver.extractProfitFromResult, GamsSolver.extractMakespanFromResult, GamsSolver.extractMakespanFromResult)
     let extractSolveStatsFromGdx = batchExtractFromGdxInPath (GamsSolver.extractSolveStatFromResult, GamsSolver.extractSolveStatFromResult, GamsSolver.extractSolveStatFromResult)
@@ -66,3 +69,28 @@ module Runners =
         for fn in projFilenames dirPath do
             let origLines = File.ReadAllLines(fn) |> Seq.takeWhile (fun line -> not(line.StartsWith("OVERCAPACITY")))
             File.WriteAllLines(fn, origLines)
+
+    let copyRelevantInstances smPath srcPath destPath =
+        if not(System.IO.Directory.Exists(destPath)) then
+            Directory.CreateDirectory(destPath) |> ignore
+            let files = Directory.GetFiles(srcPath, "*_tmax_results.gdx", SearchOption.AllDirectories)
+            for fn in files do
+                let tminFn = fn.Replace("tmax", "tmin")
+                let resultFn = fn.Replace("_tmax", "")
+                let smFn = fn.Replace("_tmax_results", "")
+
+                let solved =
+                    [ fn; tminFn; resultFn ]
+                    |> List.map GamsSolver.extractSolveStatFromResult
+                    |> List.forall ((=) 1.0)
+
+                if solved then
+                    let tminValue = GamsSolver.extractMakespanFromResult tminFn
+                    let tmaxValue = GamsSolver.extractMakespanFromResult fn
+                    if tminValue <> tmaxValue then 
+                        [smFn; resultFn; tminFn; fn]
+                        |> List.iter (fun gfn -> File.Copy(gfn, gfn.Replace(srcPath, destPath)))
+                        let instPath = fn.Replace("_tmax_results.gdx", "")
+                        let srcSmFn = instPath.Replace(srcPath, smPath) + ".sm"
+                        File.Copy(srcSmFn, srcSmFn.Replace(smPath, destPath))
+

@@ -6,7 +6,8 @@ module Program =
     [<EntryPoint>]
     let main argv =
         //convertBatchSmToGdx false @"Projekte/j30"
-        //convertResultsGdxToCsv @"ClusterResults" @"optimalResultsCluster.csv"
+        convertResultsGdxToCsv @"ClusterResultsFiltered" @"optimalResultsClusterFiltered.csv"
         //extractSolveStatsFromGdx @"ClusterResults" @"solveStatValues.csv"
-        batchComputePriorityRules @"Projekte/j30"
+        //copyRelevantInstances @"Projekte/j30" @"ClusterResults" @"ClusterResults2"
+        //batchComputePriorityRules @"ClusterResults2"
         0

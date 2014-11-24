@@ -15,6 +15,7 @@ module Utils =
     let inc = (+) 1
     let dec = (+) -1
     let neg = (*) -1
+
     let numsGeq x = Seq.initInfinite ((+) x)
     let repeat x = Seq.initInfinite (fun _ -> x)
     let allBut lb ub j = [lb..j-1]@[j+1..ub]
