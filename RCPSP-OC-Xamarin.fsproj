@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{F780A912-DC48-4F4F-90DE-5A8EBF8F88BA}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>RCPSP</RootNamespace>
+    <AssemblyName>RCPSP-OC-Xamarin</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <Tailcalls>false</Tailcalls>
+    <PlatformTarget>x86</PlatformTarget>
+    <Externalconsole>true</Externalconsole>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="Execute" command="${TargetFile}" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <Tailcalls>true</Tailcalls>
+    <Externalconsole>true</Externalconsole>
+    <PlatformTarget>x86</PlatformTarget>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="Execute" command="${TargetFile}" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="FSharp.Core" />
+    <Reference Include="GAMS.net4">
+      <HintPath>libs\GAMS.net4.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="Helpers\Utils.fs" />
+    <Compile Include="Helpers\Serialization.fs" />
+    <Compile Include="Helpers\TopologicalSorting.fs" />
+    <Compile Include="ProjectStructure.fs" />
+    <Compile Include="SSGSOC.fs" />
+    <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
+    <Compile Include="PSPLibParser.fs" />
+    <Compile Include="GamsSolver.fs" />
+    <Compile Include="Visualisation\ScheduleVisualisation.fs" />
+    <Compile Include="Visualisation\GraphVisualisation.fs" />
+    <Compile Include="Visualisation\PlotVisualisation.fs" />
+    <Compile Include="Batch\Runners.fs" />
+    <Compile Include="Batch\VisRunners.fs" />
+    <Compile Include="Batch\StatRunners.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
+</Project>
