@@ -11,16 +11,13 @@ module VisRunners =
     let scheduleVisTool (argv: string[]) =
         let ps = PSPLibParser.parse argv.[0]
         let sts = slurpMap argv.[1]
-        //GraphVisualisation.visualizePrecedenceGraph ps argv.[0]
+        GraphVisualisation.visualizePrecedenceGraph ps argv.[0]
         ScheduleVisualisation.showSchedules [("Schedule", ps, sts)]
-
-    let visualizeGraph () =
-        GraphVisualisation.visualizePrecedenceGraph (testProjectStructure ()) @"Modellendogen001"
 
     let solveAndVisualize () =
         let ps = testProjectStructure ()
 
-        //visualizeGraph ()
+        GraphVisualisation.visualizePrecedenceGraph (testProjectStructure ()) @"Modellendogen001"
 
         let optSchedFn = testFilename + ".OPTSCHED"
 
