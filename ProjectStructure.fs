@@ -57,34 +57,10 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         |> Seq.forall (fun (r,t) -> residualCapacity sts r t + z r t >= demands j r)
 
     let predsAndCapacityFeasible z sts job t = arePredsFinished sts job t && enoughCapacityForJob z sts job t
-        
-    let ssgsCore z sts λ =
-        let scheduleJob acc j =
-            Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc
-        Seq.fold scheduleJob sts λ
 
-    let ssgs z λ =
-        ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-    
-    let psgs z λ =
-        let nextDecisionPoint sts running = running |> Seq.map (ft sts) |> Seq.min
-        let running sts t = keys sts |> Seq.filter (fun j -> t <= ft sts j)
-        
-        let rec scheduleEligible sts rest t =
-            let eligible = Seq.filter (fun j -> predsAndCapacityFeasible z sts j t) rest
-            if Seq.isEmpty eligible then (sts,rest)
-            else
-                let j = eligible |> Seq.minBy (indexOf rest)
-                scheduleEligible (Map.add j t sts) (without j rest) t
-
-        let rec traverseDecisionPoints sts rest t =
-            if List.isEmpty rest then sts
-            else
-                let nt = nextDecisionPoint sts (running sts t)
-                let pair = scheduleEligible sts rest nt
-                traverseDecisionPoints (fst pair) (snd pair) (inc nt)
-
-        traverseDecisionPoints (Map.ofSeq [(Seq.head λ, 0)]) (List.ofSeq (Seq.skip 1 λ)) 0
+    let scheduleJob z acc j = Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc            
+    let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
+    let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
 
     let makespan sts = ft sts lastJob
 
@@ -203,8 +179,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.SerialScheduleGenerationSchemeWithOC = ssgs     
 
     member ps.SerialScheduleGenerationSchemeCore = ssgsCore
-
-    member ps.ParallelScheduleGenerationScheme () = psgs zeroOc topOrdering
 
     member ps.NeededOCForSchedule sts = neededOvercapacityInPeriod sts
 
