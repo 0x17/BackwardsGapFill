@@ -45,7 +45,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="GAMS.net4">
-      <HintPath>..\..\..\..\..\..\GAMS\win64\24.2\GAMS.net4.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\GAMS\win64\24.4\GAMS.net4.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />

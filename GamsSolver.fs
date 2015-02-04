@@ -38,12 +38,8 @@ module GamsSolver =
             addParamEntriesToF capacitiesParam "r" ps.Resources ps.Capacities
             let durationsParam = db.AddParameter ("durations", 1, "Dauern")
             addParamEntriesToF durationsParam "j" ps.Jobs ps.Durations
-            let uParam = db.AddParameter ("u", 1, "Erlös bei Makespan t")
+            let uParam = db.AddParameter ("u", 1, "Erlös bei Makespan t (Parabel)")
             addParamEntries uParam "t" ps.TimeHorizon ps.U
-            let u2Param = db.AddParameter ("u2", 1, "ErlösCaro bei Makespan t")
-            addParamEntries u2Param "t" ps.TimeHorizon ps.U2
-            let u3Param = db.AddParameter ("u3", 1, "Erlös bei Makespan t (Parabel)")
-            addParamEntries u3Param "t" ps.TimeHorizon ps.U3
 
             let demandsParam = db.AddParameter ("demands", 2, "Bedarf")
             ps.Jobs >< ps.Resources
@@ -97,7 +93,7 @@ module GamsSolver =
         let parm = (dbForGdxFile gdxFilename).GetParameter paramName
         parm.FirstRecord().Value
 
-    let extractProfitFromResult = extractVarFromResult "profit3"
+    let extractProfitFromResult = extractVarFromResult "profit"
     let extractMakespanFromResult = extractVarFromResult "ms"
     let extractSolveStatFromResult = extractParamFromResult "slvstat"
 
@@ -185,5 +181,5 @@ module GamsSolver =
         let ps2 = new ProjectStructure(ps.Jobs, ps.Durations, ps.Demands, ps.Preds, ps.Resources, newcapsf, ps.Kappa, (fun r -> 0))
         let minMakespan = solveRCPSP ps2 |> checkForErr |> fst3 |> ps.Makespan
         let maxMakespan = solveRCPSP ps |> checkForErr |> fst3 |> ps.Makespan
-        //assert (minMakespan<maxMakespan)
+        assert (minMakespan<maxMakespan)
         (minMakespan, maxMakespan)
