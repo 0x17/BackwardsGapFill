@@ -58,7 +58,6 @@
     <Compile Include="Helpers\Serialization.fs" />
     <Compile Include="Helpers\TopologicalSorting.fs" />
     <Compile Include="ProjectStructure.fs" />
-    <Compile Include="SSGSOC.fs" />
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
@@ -67,7 +66,6 @@
     <Compile Include="Visualisation\PlotVisualisation.fs" />
     <Compile Include="Batch\Runners.fs" />
     <Compile Include="Batch\VisRunners.fs" />
-    <Compile Include="Batch\StatRunners.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />

@@ -70,11 +70,23 @@ module ScheduleVisualisation =
                 let cell = dgv.[t-1, rcount-1]
                 cell.Value <- z r t
 
+        let scheduleToGrid r =
+            let nrows = ps.Capacities r + ps.ZMax r
+            let grid = Array2D.zeroCreate nrows ps.TimeHorizon.Length
+            for t in ps.TimeHorizon do
+                let actJobs = ps.ActiveInPeriodSet sts t
+                let mutable colCtr = dec nrows
+                for j in actJobs do
+                    for k in 1..ps.Demands j r do
+                        Array2D.set grid colCtr (dec t) j
+                        colCtr <- dec colCtr
+            grid
+
         let updateGridForRes r =
             dgv.Columns.Clear ()
             dgv.Rows.Clear ()
 
-            let grid = ps.ScheduleToGrid sts r
+            let grid = scheduleToGrid r
 
             let nrows = Array2D.length1 grid
             let ncols = Array2D.length2 grid

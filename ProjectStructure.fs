@@ -126,18 +126,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.Revenue = revenue
     member ps.Profit = profit    
 
-    member ps.ScheduleToGrid sts r =
-        let nrows = capacities r + zmax r
-        let grid = Array2D.zeroCreate nrows T
-        for t in horizon do
-            let actJobs = activeInPeriodSet sts t
-            let mutable colCtr = dec nrows
-            for j in actJobs do
-                for k in 1..demands j r do
-                    Array2D.set grid colCtr (dec t) j
-                    colCtr <- dec colCtr
-        grid
-
     member ps.FinishingTimesToStartingTimes fts =
         Map.map (fun j ftj -> ftj - durations j) fts
 
@@ -146,45 +134,28 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         |> Seq.forall (fun (r,t) -> neededOvercapacityInPeriod sts r t <= zmax r)
             
     member ps.Jobs = jobs
-    member ps.LastJob = lastJob
-    member ps.ActualJobs = actualJobs
     member ps.Durations = durations
     member ps.Demands = demands
     member ps.Capacities = capacities
     member ps.Preds = preds
     member ps.Succs = succs
-    member ps.TransPreds = transPreds
     member ps.TransSuccs = transSuccs
     member ps.Resources = resources    
     member ps.Kappa = kappa
     member ps.U = u
     member ps.ZMax = zmax
     member ps.TimeHorizon = horizon   
-
     member ps.EarliestStartingTimes = mapToFunc ests
     member ps.LatestStartingTimes = lsts
     member ps.EarliestFinishingTimes = efts
     member ps.LatestFinishingTimes = mapToFunc lfts
     member ps.Deadline = deadline
-
-    member ps.EarliestStartSchedule = ests
-
     member ps.EnoughCapacityForJob = enoughCapacityForJob
     member ps.LastPredFinishingTime = lastPredFinishingTime
-
     member ps.Makespan = makespan
     member ps.TotalOvercapacityCosts = totalOvercapacityCosts
-
-    member ps.SerialScheduleGenerationScheme () = ssgs zeroOc topOrdering
-    member ps.SerialScheduleGenerationSchemeWithOC = ssgs     
-
-    member ps.SerialScheduleGenerationSchemeCore = ssgsCore
-
-    member ps.NeededOCForSchedule sts = neededOvercapacityInPeriod sts
-
-    member ps.DemandInPeriod = demandInPeriod
-
-    member ps.ArePredsFinished = arePredsFinished
+    member ps.NeededOCForSchedule = neededOvercapacityInPeriod
+    member ps.ActiveInPeriodSet = activeInPeriodSet
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq

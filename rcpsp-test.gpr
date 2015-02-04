@@ -222,9 +222,6 @@ PlaneRownr=-1
 [RP:AUFTRAGSANNAHME_II]
 1=
 
-[SOLVERS]
-MIP=GUROBI
-
 [GDXDISP: actual Set 1]
 PlaneDim=0
 RowDim=1
@@ -391,9 +388,6 @@ Order=1
 Decim=7
 PlaneRownr=-1
 
-[RP:MODEL]
-1=
-
 [RP:INCTOGDX]
 1=
 
@@ -403,21 +397,24 @@ PlaneRownr=-1
 [RP:MODELCLI]
 1=
 
+[RP:MODEL]
+1=
+
 [MRUFILES]
-1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli_tmin_tmax.gms
-2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\Projekte\j30gdx\j301_8.gdx
-3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3010_1.gdx
-4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3013_10_tmax_results.gdx
-5=C:\Users\a.schnabel\AppData\Local\Temp\fz3temp-1\modelcli_tmin_tmax.gms
-6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3010_10_results.gdx
-7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3048_10_results.gdx
-8=S:\Kellenbrink\Helber Qualität\Implementierungen\Verbesserte Referenzwerte ohne Qualität\I - DatToInc incl. Modellexogen (Instanzen mit PrePro)\INCtoGDX.gms
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
+3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli_tmin_tmax.gms
+4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\Projekte\j30gdx\j301_8.gdx
+5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3010_1.gdx
+6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3013_10_tmax_results.gdx
+7=C:\Users\a.schnabel\AppData\Local\Temp\fz3temp-1\modelcli_tmin_tmax.gms
+8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3010_10_results.gdx
 
 [OPENWINDOW_1]
-FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
-FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
-FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
-MAXIM=1
+FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.lst
+FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+MAXIM=0
 TOP=5
 LEFT=8
 HEIGHT=920
