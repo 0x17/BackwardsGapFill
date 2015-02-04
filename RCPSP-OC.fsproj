@@ -60,7 +60,6 @@
     <Compile Include="Helpers\Serialization.fs" />
     <Compile Include="Helpers\TopologicalSorting.fs" />
     <Compile Include="ProjectStructure.fs" />
-    <Compile Include="SSGSOC.fs" />
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />

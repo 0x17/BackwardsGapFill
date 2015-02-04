@@ -171,15 +171,3 @@ module GamsSolver =
         let ps2 = new ProjectStructure(ps.Jobs, ps.Durations, ps.Demands, ps.Preds, ps.Resources, ps.Capacities, ps.Kappa, (fun r -> 0))
         let job = snd (solveCommon ps2 "rcpspoc" None None)        
         startingTimesForFinishedJob ps job
-
-    let minMaxMakespan (ps:ProjectStructure) =
-        let checkForErr tpl =
-            if (trd3 tpl) <> 1.0 then
-                raise (GAMS.GAMSException("Fail: " + string(trd3 tpl)))
-            tpl
-        let newcapsf r = ps.Capacities r + ps.ZMax r
-        let ps2 = new ProjectStructure(ps.Jobs, ps.Durations, ps.Demands, ps.Preds, ps.Resources, newcapsf, ps.Kappa, (fun r -> 0))
-        let minMakespan = solveRCPSP ps2 |> checkForErr |> fst3 |> ps.Makespan
-        let maxMakespan = solveRCPSP ps |> checkForErr |> fst3 |> ps.Makespan
-        assert (minMakespan<maxMakespan)
-        (minMakespan, maxMakespan)

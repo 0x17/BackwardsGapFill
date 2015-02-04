@@ -114,6 +114,25 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let revenue = u << makespan
 
     let profit sts = (revenue sts) - totalOvercapacityCosts sts
+    
+    let ssgsoc (ps:ProjectStructure) λ =
+        let computeCandidateSchedule sts j t =
+            let candidate = Map.add j t sts
+            let jix = indexOf λ j
+            let subλ = Seq.skip (inc jix) λ
+            ssgsCore (fun r t -> 0) candidate subλ
+
+        let chooseBestPeriod sts j tlower tupper =
+            [tlower..tupper]
+            |> Seq.filter (fun t -> enoughCapacityForJob (fun r t -> zmax r) sts j t)
+            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> profit)
+            
+        let scheduleJob acc job =
+            let tlower = lastPredFinishingTime acc job
+            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob (fun r t -> 0) acc job)
+            Map.add job (chooseBestPeriod acc job tlower tupper) acc
+
+        Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
 
     member ps.ProfitForRemainingCapacity (sts: Map<int,int>, remainingRes: int[,]) =
         let rev = revenue sts
