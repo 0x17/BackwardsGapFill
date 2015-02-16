@@ -21,6 +21,7 @@ module Utils =
     let allBut lb ub j = [lb..j-1]@[j+1..ub]
 
     let identity x = x
+    let same (a,b) = a = b
 
     let contains o = Seq.exists ((=) o)
     let indexOf seq elem = Seq.findIndex ((=) elem) seq

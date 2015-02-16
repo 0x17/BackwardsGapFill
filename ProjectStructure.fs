@@ -12,6 +12,9 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let lastJob = Set.maxElement jobs
     let actualJobs = Set.difference jobs (set [firstJob; lastJob])
 
+    let zeroOc r t = 0
+    let maxOc r t = zmax r
+
     let T = Seq.sumBy durations jobs
     let horizon = [1..T]
 
@@ -58,9 +61,29 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let predsAndCapacityFeasible z sts job t = arePredsFinished sts job t && enoughCapacityForJob z sts job t
 
-    let scheduleJob z acc j = Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc            
+    let scheduleJob z acc j = Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc
+
     let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
+
     let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+
+    let ssgsWindow chooser λ =
+        let scheduleJob acc job =
+            let tlower = lastPredFinishingTime acc job
+            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob zeroOc acc job)
+            Map.add job (chooser acc job tlower tupper) acc
+
+        Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+
+    let ssgsTau λ τ =
+        let chooseWithTau sts j tlower tupper =
+            let lb = tlower + int(floor((float(tupper) - float(tlower)) / 100.0 * float(Seq.nth j τ)))
+            numsGeq lb |> Seq.find (enoughCapacityForJob maxOc sts j)
+        ssgsWindow chooseWithTau λ
+
+    let ssgsBeta λ β =
+        let betaToTau b = if b = 1 then 0 else 100
+        ssgsTau λ (Seq.map betaToTau β)
 
     let makespan sts = ft sts lastJob
 
@@ -68,9 +91,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let totalOvercapacityCosts sts =
         resources >< [0..makespan sts]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriod sts r t))
-
-    let zeroOc r t = 0
-    let maxOc r t = zmax r
 
     let minMaxMakespanBounds =
         let tkappar r = System.Math.Ceiling(float (Seq.sumBy (fun j -> durations j * demands j r) jobs) / float (capacities r + zmax r)) |> int
@@ -83,55 +103,32 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         let (minMakespanApprox, maxMakespanApprox) = minMaxMakespanBounds
         let maxOcCosts = totalOvercapacityCosts ests
         let ufunc t = maxOcCosts - maxOcCosts / System.Math.Pow(float(maxMakespanApprox-minMakespanApprox), 2.0) * System.Math.Pow(float(t - minMakespanApprox), 2.0) 
-
-        if minMakespanApprox = maxMakespanApprox then fun t -> -float(t)
+        if same minMaxMakespanBounds then fun t -> -float(t)
         else ufunc
 
     let revenue = u << makespan
 
     let profit sts = (revenue sts) - totalOvercapacityCosts sts
-    
-    let ssgsoc (ps:ProjectStructure) λ =
-        let computeCandidateSchedule sts j t =
+
+    let ssgsoc λ =
+        let completeWithoutOC sts j t =
             let candidate = Map.add j t sts
             let jix = indexOf λ j
             let subλ = Seq.skip (inc jix) λ
-            ssgsCore (fun r t -> 0) candidate subλ
+            ssgsCore zeroOc candidate subλ
 
         let chooseBestPeriod sts j tlower tupper =
             [tlower..tupper]
-            |> Seq.filter (fun t -> enoughCapacityForJob (fun r t -> zmax r) sts j t)
-            |> Seq.maxBy (fun t -> computeCandidateSchedule sts j t |> profit)
-            
-        let scheduleJob acc job =
-            let tlower = lastPredFinishingTime acc job
-            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob (fun r t -> 0) acc job)
-            Map.add job (chooseBestPeriod acc job tlower tupper) acc
+            |> Seq.filter (fun t -> enoughCapacityForJob maxOc sts j t)
+            |> Seq.maxBy (fun t -> completeWithoutOC sts j t |> profit)
 
-        Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-
-    member ps.ProfitForRemainingCapacity (sts: Map<int,int>, remainingRes: int[,]) =
-        let rev = revenue sts
-        let mutable tcosts = 0.0
-        for res in 0..(Array2D.length1 remainingRes)-1 do
-            for period in 0..(Array2D.length2 remainingRes)-1 do
-                if remainingRes.[res,period] < 0 then
-                    tcosts <- tcosts + (-(float remainingRes.[res,period]) * (kappa (res+1)))
-        rev - tcosts
-
-    member ps.IsMinMaxMakespanBoundsSame =
-        let (minMakespanApprox, maxMakespanApprox) = minMaxMakespanBounds
-        minMakespanApprox = maxMakespanApprox
+        ssgsWindow chooseBestPeriod λ
 
     member ps.Revenue = revenue
     member ps.Profit = profit    
 
     member ps.FinishingTimesToStartingTimes fts =
         Map.map (fun j ftj -> ftj - durations j) fts
-
-    member ps.ScheduleFeasibleWithMaxOC sts =
-        resources >< [0..makespan sts]
-        |> Seq.forall (fun (r,t) -> neededOvercapacityInPeriod sts r t <= zmax r)
             
     member ps.Jobs = jobs
     member ps.Durations = durations
@@ -156,6 +153,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.TotalOvercapacityCosts = totalOvercapacityCosts
     member ps.NeededOCForSchedule = neededOvercapacityInPeriod
     member ps.ActiveInPeriodSet = activeInPeriodSet
+    member ps.SerialSGS = ssgs
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq
