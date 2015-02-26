@@ -31,6 +31,7 @@ Squeeze=1
 Order=1
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [GDXDISP: j Set 1]
 PlaneDim=0
@@ -39,6 +40,7 @@ Squeeze=1
 Order=1
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [GDXDISP: efts Par 1]
 PlaneDim=0
@@ -87,6 +89,7 @@ Squeeze=1
 Order=1,2,3
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [GDXDISP: zmax Par 1]
 PlaneDim=0
@@ -103,6 +106,7 @@ Squeeze=1
 Order=1,2,3
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [GDXDISP: objective Equ 0]
 PlaneDim=0
@@ -183,6 +187,7 @@ Squeeze=1
 Order=
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [GDXDISP: u Par 1]
 PlaneDim=0
@@ -199,6 +204,7 @@ Squeeze=1
 Order=
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [RP:AGGRPLAN]
 1=
@@ -324,6 +330,7 @@ Squeeze=1
 Order=1
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [RP:PERMUTATIONEN]
 1=
@@ -376,6 +383,7 @@ Squeeze=1
 Order=1
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [RP:PROGRAMMAGGREGIERTEPLANUNG]
 1=
@@ -394,28 +402,29 @@ PlaneRownr=-1
 [RP:MODELCLI_TMIN_TMAX]
 1=
 
-[RP:MODELCLI]
-1=
-
 [RP:MODEL]
 1=
 
+[RP:MODELCLI]
+1=
+
 [MRUFILES]
-1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.lst
-2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.lst
 3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
 4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli_tmin_tmax.gms
 5=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\Projekte\j30gdx\j301_8.gdx
 6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3010_1.gdx
 7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3013_10_tmax_results.gdx
 8=C:\Users\a.schnabel\AppData\Local\Temp\fz3temp-1\modelcli_tmin_tmax.gms
-9=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ClusterResults\j3010_10_results.gdx
 
 [OPENWINDOW_1]
-FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
-FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
-MAXIM=0
+FILE0=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7.gdx
+FILE1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7_results.gdx
+FILE2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
+FILE3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7_results.gdx
+MAXIM=1
 TOP=5
-LEFT=8
+LEFT=-8
 HEIGHT=920
-WIDTH=1107
+WIDTH=1454

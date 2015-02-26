@@ -68,6 +68,7 @@
     <Compile Include="Visualisation\PlotVisualisation.fs" />
     <Compile Include="Batch\Runners.fs" />
     <Compile Include="Batch\VisRunners.fs" />
+    <Compile Include="Evaluation.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>
