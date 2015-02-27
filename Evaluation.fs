@@ -11,6 +11,7 @@ module Evaluation =
             |> Seq.fold (fun acc s -> acc + s + ch) "" 
             |> drop (String.length ch)
         let csvSplitters = [|';'|]
+        let colonSplitter = [|':'|]
         let toCsv = intersperse ";"
 
     open Helpers
@@ -21,7 +22,7 @@ module Evaluation =
         
         let profitsLineToRanks (line:string) =
             let columns = line.Split(csvSplitters)
-            let profits = columns |> Seq.skip 1 |> Seq.map (fun col -> col.Split([|':'|]) |> Seq.nth limitIx |> double)
+            let profits = columns |> Seq.skip 1 |> Seq.map (fun col -> col.Split(colonSplitter) |> Seq.nth limitIx |> double)
             let descProfits = profits |> Seq.distinct |> Seq.sortBy (fun p -> -p)
             let ranks = profits |> Seq.map (fun p -> (indexOf p descProfits) + 1) |> Seq.map string
             Seq.append [columns.[0]] ranks
@@ -33,18 +34,20 @@ module Evaluation =
         File.WriteAllText(resultsFn.Replace(".txt", "") + "rankings.txt", outStr)
 
     let evaluateResultsToTex resultsFn limitIx (optsFn:Option<string>) =
+        let deleteAuxFiles outFn =
+            let outBase = Path.GetFileNameWithoutExtension(outFn)
+            [|".log"; ".aux"|] |> Seq.iter (fun ext -> File.Delete(outBase + ext))
+
         let lines = File.ReadAllLines(resultsFn)
+        let contentLines = Seq.skip 1 lines
 
         let headCols = (Seq.head lines).Split(csvSplitters)
         let heurNames = Seq.skip 1 headCols |> Seq.map (fun hname -> "$"+hname+"$")
         let numHeurs = Seq.length heurNames
 
-        let selectProfit (s:string) = s.Split([|':'|]) |> Seq.nth limitIx |> Double.Parse
+        let selectProfit (s:string) = s.Split(colonSplitter) |> Seq.nth limitIx |> Double.Parse
 
-        let profits heurIx =            
-            lines
-            |> Seq.skip 1
-            |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.nth (heurIx + 1) |> selectProfit)
+        let profits heurIx = contentLines |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.nth (heurIx + 1) |> selectProfit)
 
         let bestProfits =
             if optsFn.IsSome then
@@ -52,13 +55,9 @@ module Evaluation =
                                    |> Seq.skip 1
                                    |> Seq.map (fun line -> (line.Split(csvSplitters).[0], line.Split(csvSplitters).[1]))
                                    |> Map.ofSeq
-                lines
-                |> Seq.skip 1
-                |> Seq.map (fun line -> projToProfit |> Map.find (line.Split(csvSplitters).[0]) |> Double.Parse)
+                contentLines |> Seq.map (fun line -> projToProfit |> Map.find (line.Split(csvSplitters).[0]) |> Double.Parse)
             else
-                lines
-                |> Seq.skip 1
-                |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.skip 1 |> Seq.map selectProfit |> Seq.max)
+                contentLines |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.skip 1 |> Seq.map selectProfit |> Seq.max)
 
         let gap profit optProfit =
             if optProfit = 0.0 then 0.0
@@ -80,17 +79,20 @@ module Evaluation =
 
         let rounding (n:float) = Math.Round(n, 2)
         let inPercent n = string(rounding (n * 100.0)) + "\\%"
-        let characteristics = Map.ofList [("$\\varnothing$ deviation", inPercent << avgDev);
-                                          ("max. deviation", inPercent << maxDev);
-                                          ("varcoeff(deviation)", string << rounding << varCoeffDev); 
-                                          ("perc. best known solution", inPercent << percBest); 
-                                          ("\\# best", string << int << numBest)]
+        let characteristics = [("$\\varnothing$ deviation", inPercent << avgDev);
+                               ("max. deviation", inPercent << maxDev);
+                               ("varcoeff(deviation)", string << rounding << varCoeffDev); 
+                               ("\\% " + (if optsFn.IsSome then "optimal" else "best known solution"), inPercent << percBest); 
+                               ("\\# best", string << int << numBest)]
 
         let colFormat = String.replicate headCols.Length "c"                
         let headRow = "representation & " + intersperse " & " heurNames + "\\\\[3pt]"
                 
         let applyToAllHeurs fn = [0..numHeurs-1] |> Seq.map fn
-        let body = Map.fold (fun acc ch fn -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (applyToAllHeurs fn) + "\\\\") "" characteristics
+        let body = List.fold (fun acc (ch, fn) -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (applyToAllHeurs fn) + "\\\\") "" characteristics
 
         let contents = "\\begin{tabular}{" + colFormat + "}\n\\hline\n" + headRow + body + "\\hline\n\\end{tabular}"
-        File.WriteAllText("results.tex", File.ReadAllText("skeleton.tex").Replace("%%CONTENTS%%", contents));
+        let outFn = Path.GetFileNameWithoutExtension(resultsFn) + "Aggregated.tex"
+        File.WriteAllText(outFn, File.ReadAllText("skeleton.tex").Replace("%%CONTENTS%%", contents));
+        Diagnostics.Process.Start("pdflatex", outFn).WaitForExit ()
+        deleteAuxFiles outFn     
