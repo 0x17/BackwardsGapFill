@@ -1,15 +1,19 @@
 ﻿namespace RCPSP
 
+open System
 open System.IO
 
 module Evaluation =
-    let private removeLast (s:string) = s.Remove(s.Length-1)
-    let private intersperse ch strs =        
-        strs
-        |> Seq.fold (fun acc s -> acc + s + ch) "" 
-        |> removeLast
-    let csvSplitters = [|';'|]
-    let toCsv = intersperse ";"
+    module Helpers =
+        let drop n (s:string) = s.Remove(s.Length-n)
+        let intersperse ch strs =        
+            strs
+            |> Seq.fold (fun acc s -> acc + s + ch) "" 
+            |> drop (String.length ch)
+        let csvSplitters = [|';'|]
+        let toCsv = intersperse ";"
+
+    open Helpers
 
     let profitsToRanking resultsFn limitIx =
         let lines = File.ReadAllLines(resultsFn)
@@ -28,14 +32,14 @@ module Evaluation =
 
         File.WriteAllText(resultsFn.Replace(".txt", "") + "rankings.txt", outStr)
 
-    let evaluateResultsToTex resultsFn limitIx =
+    let evaluateResultsToTex resultsFn limitIx (optsFn:Option<string>) =
         let lines = File.ReadAllLines(resultsFn)
 
         let headCols = (Seq.head lines).Split(csvSplitters)
-        let heurNames = Seq.skip 1 headCols
+        let heurNames = Seq.skip 1 headCols |> Seq.map (fun hname -> "$"+hname+"$")
         let numHeurs = Seq.length heurNames
 
-        let selectProfit (s:string) = s.Split([|':'|]) |> Seq.nth limitIx |> double
+        let selectProfit (s:string) = s.Split([|':'|]) |> Seq.nth limitIx |> Double.Parse
 
         let profits heurIx =            
             lines
@@ -43,9 +47,18 @@ module Evaluation =
             |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.nth (heurIx + 1) |> selectProfit)
 
         let bestProfits =
-            lines
-            |> Seq.skip 1
-            |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.skip 1 |> Seq.map selectProfit |> Seq.max)
+            if optsFn.IsSome then
+                let projToProfit = File.ReadAllLines(optsFn.Value)
+                                   |> Seq.skip 1
+                                   |> Seq.map (fun line -> (line.Split(csvSplitters).[0], line.Split(csvSplitters).[1]))
+                                   |> Map.ofSeq
+                lines
+                |> Seq.skip 1
+                |> Seq.map (fun line -> projToProfit |> Map.find (line.Split(csvSplitters).[0]) |> Double.Parse)
+            else
+                lines
+                |> Seq.skip 1
+                |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.skip 1 |> Seq.map selectProfit |> Seq.max)
 
         let gap profit optProfit =
             if optProfit = 0.0 then 0.0
@@ -65,15 +78,19 @@ module Evaluation =
 
         let percBest heurIx = numBest heurIx / (float(lines.Length)-1.0)
 
-        let characteristics = Map.ofList [("$\\varnothing$ deviation", avgDev);
-                                          ("max. deviation", maxDev);
-                                          ("varcoeff(deviation)", varCoeffDev); 
-                                          ("perc. best known solution", percBest); 
-                                          ("\\# best", numBest)]
+        let rounding (n:float) = Math.Round(n, 2)
+        let inPercent n = string(rounding (n * 100.0)) + "\\%"
+        let characteristics = Map.ofList [("$\\varnothing$ deviation", inPercent << avgDev);
+                                          ("max. deviation", inPercent << maxDev);
+                                          ("varcoeff(deviation)", string << rounding << varCoeffDev); 
+                                          ("perc. best known solution", inPercent << percBest); 
+                                          ("\\# best", string << int << numBest)]
 
-        let colFormat = String.replicate numHeurs "c"                
-        let headRow = "representation & " + intersperse "&" heurNames
-        let applyToAllHeurs fn = [0..numHeurs-1] |> Seq.map (string << fn)
-        let body = Map.fold (fun acc ch fn -> acc + "\n\\hline" + ch + "&" + intersperse "&" (applyToAllHeurs fn)) "" characteristics
+        let colFormat = String.replicate headCols.Length "c"                
+        let headRow = "representation & " + intersperse " & " heurNames + "\\\\[3pt]"
+                
+        let applyToAllHeurs fn = [0..numHeurs-1] |> Seq.map fn
+        let body = Map.fold (fun acc ch fn -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (applyToAllHeurs fn) + "\\\\") "" characteristics
+
         let contents = "\\begin{tabular}{" + colFormat + "}\n\\hline\n" + headRow + body + "\\hline\n\\end{tabular}"
-        File.WriteAllText("result.tex", File.ReadAllText("skeleton.tex").Replace("%%CONTENTS%%", contents));
+        File.WriteAllText("results.tex", File.ReadAllText("skeleton.tex").Replace("%%CONTENTS%%", contents));
