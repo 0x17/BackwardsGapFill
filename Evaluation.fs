@@ -13,6 +13,9 @@ module Evaluation =
         let csvSplitters = [|';'|]
         let colonSplitter = [|':'|]
         let toCsv = intersperse ";"
+        let deleteAuxFiles outFn =
+            let outBase = Path.GetFileNameWithoutExtension(outFn)
+            [|".log"; ".aux"|] |> Seq.iter (fun ext -> File.Delete(outBase + ext))
 
     open Helpers
 
@@ -33,11 +36,7 @@ module Evaluation =
 
         File.WriteAllText(resultsFn.Replace(".txt", "") + "rankings.txt", outStr)
 
-    let evaluateResultsToTex resultsFn limitIx (optsFn:Option<string>) =
-        let deleteAuxFiles outFn =
-            let outBase = Path.GetFileNameWithoutExtension(outFn)
-            [|".log"; ".aux"|] |> Seq.iter (fun ext -> File.Delete(outBase + ext))
-
+    let evaluateResultsToTexTable resultsFn limitIx (optsFn:Option<string>) =
         let lines = File.ReadAllLines(resultsFn)
         let contentLines = Seq.skip 1 lines
 
@@ -91,8 +90,18 @@ module Evaluation =
         let applyToAllHeurs fn = [0..numHeurs-1] |> Seq.map fn
         let body = List.fold (fun acc (ch, fn) -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (applyToAllHeurs fn) + "\\\\") "" characteristics
 
-        let contents = "\\begin{tabular}{" + colFormat + "}\n\\hline\n" + headRow + body + "\\hline\n\\end{tabular}"
-        let outFn = Path.GetFileNameWithoutExtension(resultsFn) + "Aggregated.tex"
+        "\\begin{tabular}{" + colFormat + "}\n\\hline\n" + headRow + body + "\\hline\n\\end{tabular}\n"
+
+    let private insertIntoSkeletonBuildAndCleanup contents outFn =
         File.WriteAllText(outFn, File.ReadAllText("skeleton.tex").Replace("%%CONTENTS%%", contents));
         Diagnostics.Process.Start("pdflatex", outFn).WaitForExit ()
-        deleteAuxFiles outFn     
+        deleteAuxFiles outFn
+
+    let evaluateResultsToTexFile resultsFn limitIx (optsFn:Option<string>) =
+        let tableTex = evaluateResultsToTexTable resultsFn limitIx optsFn
+        let outFn = Path.GetFileNameWithoutExtension(resultsFn) + "Aggregated.tex"
+        insertIntoSkeletonBuildAndCleanup tableTex outFn
+
+    let evaluateMultipleResultsToTexFile resultsCaptionsOpts limitIx =
+        let tablesTex = Seq.fold (fun acc (fn, caption, optsfn) -> acc + caption + "\\\\" + (evaluateResultsToTexTable fn limitIx optsfn) + "\\\\[15pt]") "" resultsCaptionsOpts
+        insertIntoSkeletonBuildAndCleanup tablesTex "combinedResults.tex"
