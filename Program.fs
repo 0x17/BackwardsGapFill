@@ -12,13 +12,13 @@ module Program =
         //copyRelevantInstances @"Projekte/j30" @"ClusterResults" @"ClusterResults2"
         //batchComputePriorityRules @"../Projekte/j120"
         
-        evaluateMultipleResultsToTexFile [(@"../heursOptsAndTime30.txt", "j30", (Some @"../OptProfits.csv"));
-                                          (@"../heursOptsAndTime60.txt", "j60", None);
-                                          (@"../heursOptsAndTime90.txt", "j90", None);
-                                          (@"../heursOptsAndTime120.txt", "j120", None)]
+        evaluateMultipleResultsToTexFile [(@"../HeursRawj30.csv", "j30", (Some @"../OptProfitsj30.csv"));
+                                          (@"../HeursRawj60.csv", "j60", None);
+                                          (@"../HeursRawj90.csv", "j90", None);
+                                          (@"../HeursRawj120.csv", "j120", None)]
 
-        multipleProfitsToRankings [@"../heursOptsAndTime30.txt";
-                                   @"../heursOptsAndTime60.txt";
-                                   @"../heursOptsAndTime90.txt";
-                                   @"../heursOptsAndTime120.txt"]
+        multipleProfitsToRankings [@"../HeursRawj30.csv";
+                                   @"../HeursRawj60.csv";
+                                   @"../HeursRawj90.csv";
+                                   @"../HeursRawj120.csv"]
         0
