@@ -94,9 +94,10 @@ module Evaluation =
             |> Seq.nth limitIx
             |> Double.Parse
 
-        let profits heurIx =
+        let profitsComp heurIx =
             contentLines
             |> Array.map (fun line -> line.Split(csvSplitter) |> Seq.nth (heurIx + 1) |> selectProfit)
+        let profits = Utils.memoize profitsComp
              
         let bestKnownProfits =
             contentLines
@@ -117,13 +118,14 @@ module Evaluation =
             if optProfit = 0.0 then 0.0
             else (optProfit - profit) / optProfit
 
-        let gaps heurIx = Seq.map2 gap (profits heurIx) bestProfits
+        let gapsComp heurIx = Seq.map2 gap (profits heurIx) bestProfits
+        let gaps = Utils.memoize gapsComp
 
         let avgDev = Seq.average << gaps
         let maxDev = Seq.max << gaps
         let varCoeffDev heurIx =
             let expVal = avgDev heurIx
-            let stddev = gaps heurIx |> Seq.averageBy (fun g -> (g - expVal) ** 2.0)
+            let stddev = gaps heurIx |> Seq.averageBy (fun g -> (g - expVal) ** 2.0) |> Math.Sqrt
             stddev / expVal
 
         let numBest refprofits heurIx =
