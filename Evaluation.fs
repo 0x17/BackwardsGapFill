@@ -3,6 +3,7 @@
 open System
 open System.IO
 open System.Text.RegularExpressions
+open FSharp.Collections.ParallelSeq
 
 module Evaluation =
     module Helpers =
@@ -53,6 +54,9 @@ module Evaluation =
 
     open Helpers
 
+    let private limits = ["0.01"; "0.1"; "0.5"; "1"; "2"; "5"; "10"; "30"]
+    let private countLimits (line: String) = line.Split(csvSplitter).[1].Split(colonSplitter).Length
+
     let profitsToRanking resultsFn =
         let lines = File.ReadAllLines(resultsFn)
         let indexOf p = Seq.findIndex ((=) p)            
@@ -68,8 +72,7 @@ module Evaluation =
 
         let csvRankings limitIx = rankings limitIx |> Seq.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines |> texSymToUtf8)
 
-        let numLimits = lines.[1].Split(csvSplitter).[1].Split(colonSplitter).Length-1
-        let limits = ["0.01"; "0.1"; "0.5"; "1"; "2"; "5"; "10"; "30"]
+        let numLimits = countLimits lines.[1]
         let captions = limits |> Seq.take numLimits |> Seq.map (fun l -> l + "s")
         let csvDatas = Seq.init numLimits csvRankings
         csvToExcelSheets captions csvDatas (resultsFn.Replace(".txt", "") + "rankings.xlsx")
@@ -128,7 +131,7 @@ module Evaluation =
         let colFormat = String.replicate headCols.Length "c"                
         let headRow = "representation & " + intersperse " & " heurNames + "\\\\[3pt]"
                 
-        let applyToAllHeurs fn = [0..numHeurs-1] |> Seq.map fn
+        let applyToAllHeurs fn = [0..numHeurs-1] |> PSeq.map fn
         let body = List.fold (fun acc (ch, fn) -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (applyToAllHeurs fn) + "\\\\") "" characteristics
 
         "\\begin{tabular}{" + colFormat + "}\n\\hline\n" + headRow + body + "\\hline\n\\end{tabular}\n"
@@ -143,6 +146,12 @@ module Evaluation =
         let outFn = Path.GetFileNameWithoutExtension(resultsFn) + "Aggregated.tex"
         insertIntoSkeletonBuildAndCleanup tableTex outFn
 
-    let evaluateMultipleResultsToTexFile resultsCaptionsOpts limitIx =
-        let tablesTex = Seq.fold (fun acc (fn, caption, optsfn) -> acc + caption + "\\\\" + (evaluateResultsToTexTable fn limitIx optsfn) + "\\\\[15pt]") "" resultsCaptionsOpts
+    let evaluateMultipleResultsToTexFile resultsCaptionsOpts =
+        let pbreak ctr = if ctr > 0 && (ctr + 1) % 3 = 0 then "\n\\newpage\n" else ""
+        let tablesForEachLimit acc (fn, caption, optsfn) =
+            let nlimits = countLimits (File.ReadLines(fn) |> Seq.skip 1 |> Seq.head)
+            let tableFrame (s,ctr) limitIx =
+                (s + caption + " (limit=" + (Seq.nth limitIx limits) + "s)\\\\" + (evaluateResultsToTexTable fn limitIx optsfn) + "\\\\[15pt]" + pbreak ctr, ctr+1)
+            [|0..nlimits-1 |] |> Array.fold tableFrame acc
+        let tablesTex = resultsCaptionsOpts |> Seq.fold tablesForEachLimit ("", 0) |> fst
         insertIntoSkeletonBuildAndCleanup tablesTex "combinedResults.tex"

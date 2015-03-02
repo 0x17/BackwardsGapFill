@@ -1,0 +1,28 @@
+\documentclass{scrartcl}
+\KOMAoptions{pagesize,paper=landscape,DIV=20}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{ngerman}
+\usepackage[utf8]{inputenc}
+\title{RCPSP-OC}
+\date{}
+\begin{document}
+\setlength\extrarowheight{5pt}
+\section{Ergebnisse}
+%%CONTENTS%%
+\section{Legende}
+\begin{itemize}
+\item $(\lambda|z_r)$ ($(\lambda|z_{rt})$): Möglichst nutzbare Zusatzkapazität je Ressource (und Periode) in GA bestimmen
+\item $(\lambda|\beta)$: je AG über erlaubte ZK-Nutzung entscheiden mit $|\{l,L\} \times \{s, S\} \times \{u, U\}|=8$ Varianten
+	\begin{itemize}
+	\item $l$: Eintrag in $\beta$-Vektor bezieht sich auf Arbeitsgang
+	\item $L$: Eintrag in $\beta$-Vektor bezieht sich auf Listenposition
+	\item $s$: Gemeinsamer One Point Crossover mit einer ``Zerhackstelle'' $q$
+	\item $S$: Zwei getrennte One Point Crossovers mit unabhängigen ``Zerhackstellen'' $q_1, q_2$
+	\item $u$: Serielles SGS ``von unten'' ($\beta=1$ AG nutzt zuerst Normalkapazität dann ZK)
+	\item $U$: Serielles SGS ``von oben'' ($\beta=1$ AG nutzt zuerst ZK dann Normalkapazität)
+	\end{itemize}
+\item $(\lambda|\tau)$ mit $\tau \in [0,1]$: In Zeitfenster zwischen Reihenfolge- und Ressourcenzulässigkeit Wahl per GA treffen
+\item $(\lambda)$: Einplanung in Zeitfenster durch heuristisches ``Ausprobieren'' (Vervollständigung per seriellem SGS ohne ZK)
+\end{itemize}
+\end{document}
