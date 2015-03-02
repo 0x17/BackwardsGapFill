@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Text.RegularExpressions
 
 module Evaluation =
     module Helpers =
@@ -24,8 +25,9 @@ module Evaluation =
             [|".log"; ".aux"|] |> Seq.iter (fun ext -> File.Delete(outBase + ext)) 
 
         let private fillWorkSheetWithCsv (workSheet: ExcelWorksheet) (csvData:string) =
+            let toActualType s = if Regex.IsMatch(s, "^\d+$") then (Int32.Parse s) :> obj else s :> obj
             csvData.Split(newlineSplitter)
-            |> Seq.iteri (fun rowIx line -> line.Split(csvSplitter) |> Seq.iteri (fun colIx cell-> workSheet.Cells.[rowIx+1, colIx+1].Value <- cell))
+            |> Seq.iteri (fun rowIx line -> line.Split(csvSplitter) |> Seq.iteri (fun colIx cell-> workSheet.Cells.[rowIx+1, colIx+1].Value <- toActualType cell))
 
         let csvToExcel csvData outFn =
             if File.Exists(outFn) then File.Delete(outFn)
@@ -45,6 +47,10 @@ module Evaluation =
             Seq.iter2 sheetFromCsv captions csvDatas
             pkg.Save()
 
+        let texSymToUtf8 (s:string) =
+            let mapping = [|("\\tau", "τ"); ("\\lambda", "λ"); ("\\beta", "β")|]
+            Array.fold (fun (acc:string) ((src, dest):string*string) -> acc.Replace(src, dest)) s mapping
+
     open Helpers
 
     let profitsToRanking resultsFn =
@@ -56,11 +62,11 @@ module Evaluation =
                 let columns = line.Split(csvSplitter)
                 let profits = columns |> Seq.skip 1 |> Seq.map (fun col -> col.Split(colonSplitter) |> Seq.nth limitIx |> Double.Parse)
                 let descProfits = profits |> Seq.distinct |> Seq.sortBy (fun p -> -p)
-                let ranks = profits |> Seq.map (fun p -> (indexOf p descProfits) + 1) |> Seq.map string
+                let ranks = profits |> Seq.map (fun p -> (indexOf p descProfits) + 1 |> string)
                 Seq.append [columns.[0]] ranks
             Seq.map profitsLineToRanks (Seq.skip 1 lines)
 
-        let csvRankings limitIx = rankings limitIx |> Seq.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines)
+        let csvRankings limitIx = rankings limitIx |> Seq.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines |> texSymToUtf8)
 
         let numLimits = lines.[1].Split(csvSplitter).[1].Split(colonSplitter).Length-1
         let limits = ["0.01"; "0.1"; "0.5"; "1"; "2"; "5"; "10"; "30"]
