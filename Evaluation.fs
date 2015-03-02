@@ -5,58 +5,93 @@ open System.IO
 
 module Evaluation =
     module Helpers =
+        open OfficeOpenXml
+
         let drop n (s:string) = s.Remove(s.Length-n)
         let intersperse ch strs =        
             strs
             |> Seq.fold (fun acc s -> acc + s + ch) "" 
             |> drop (String.length ch)
-        let csvSplitters = [|';'|]
+
+        let csvSplitter = [|';'|]
         let colonSplitter = [|':'|]
+        let newlineSplitter = [|'\n'|]
+
         let toCsv = intersperse ";"
+
         let deleteAuxFiles outFn =
             let outBase = Path.GetFileNameWithoutExtension(outFn)
-            [|".log"; ".aux"|] |> Seq.iter (fun ext -> File.Delete(outBase + ext))
+            [|".log"; ".aux"|] |> Seq.iter (fun ext -> File.Delete(outBase + ext)) 
+
+        let private fillWorkSheetWithCsv (workSheet: ExcelWorksheet) (csvData:string) =
+            csvData.Split(newlineSplitter)
+            |> Seq.iteri (fun rowIx line -> line.Split(csvSplitter) |> Seq.iteri (fun colIx cell-> workSheet.Cells.[rowIx+1, colIx+1].Value <- cell))
+
+        let csvToExcel csvData outFn =
+            if File.Exists(outFn) then File.Delete(outFn)
+            use pkg = new ExcelPackage(FileInfo(outFn))
+            let workSheet = pkg.Workbook.Worksheets.Add("Results")
+            fillWorkSheetWithCsv workSheet csvData            
+            pkg.Save()
+
+        let csvToExcelSheets (captions: string seq) (csvDatas: string seq) outFn =
+            if File.Exists(outFn) then File.Delete(outFn)
+            use pkg = new ExcelPackage(FileInfo(outFn))
+
+            let sheetFromCsv caption csvData =
+                let ws = pkg.Workbook.Worksheets.Add(caption)
+                fillWorkSheetWithCsv ws csvData
+
+            Seq.iter2 sheetFromCsv captions csvDatas
+            pkg.Save()
 
     open Helpers
 
-    let profitsToRanking resultsFn limitIx =
+    let profitsToRanking resultsFn =
         let lines = File.ReadAllLines(resultsFn)
-        let indexOf p = Seq.findIndex ((=) p)
-        
-        let profitsLineToRanks (line:string) =
-            let columns = line.Split(csvSplitters)
-            let profits = columns |> Seq.skip 1 |> Seq.map (fun col -> col.Split(colonSplitter) |> Seq.nth limitIx |> double)
-            let descProfits = profits |> Seq.distinct |> Seq.sortBy (fun p -> -p)
-            let ranks = profits |> Seq.map (fun p -> (indexOf p descProfits) + 1) |> Seq.map string
-            Seq.append [columns.[0]] ranks
+        let indexOf p = Seq.findIndex ((=) p)            
 
-        let rankings = Seq.map profitsLineToRanks (Seq.skip 1 lines)
+        let rankings limitIx =
+            let profitsLineToRanks (line:string) =
+                let columns = line.Split(csvSplitter)
+                let profits = columns |> Seq.skip 1 |> Seq.map (fun col -> col.Split(colonSplitter) |> Seq.nth limitIx |> Double.Parse)
+                let descProfits = profits |> Seq.distinct |> Seq.sortBy (fun p -> -p)
+                let ranks = profits |> Seq.map (fun p -> (indexOf p descProfits) + 1) |> Seq.map string
+                Seq.append [columns.[0]] ranks
+            Seq.map profitsLineToRanks (Seq.skip 1 lines)
 
-        let outStr = rankings |> Seq.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines)
+        let csvRankings limitIx = rankings limitIx |> Seq.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines)
 
-        File.WriteAllText(resultsFn.Replace(".txt", "") + "rankings.txt", outStr)
+        let numLimits = lines.[1].Split(csvSplitter).[1].Split(colonSplitter).Length-1
+        let limits = ["0.01"; "0.1"; "0.5"; "1"; "2"; "5"; "10"; "30"]
+        let captions = limits |> Seq.take numLimits |> Seq.map (fun l -> l + "s")
+        let csvDatas = Seq.init numLimits csvRankings
+        csvToExcelSheets captions csvDatas (resultsFn.Replace(".txt", "") + "rankings.xlsx")
+
+    let multipleProfitsToRankings: (string seq) -> unit = Seq.iter profitsToRanking
 
     let evaluateResultsToTexTable resultsFn limitIx (optsFn:Option<string>) =
         let lines = File.ReadAllLines(resultsFn)
         let contentLines = Seq.skip 1 lines
 
-        let headCols = (Seq.head lines).Split(csvSplitters)
+        let headCols = (Seq.head lines).Split(csvSplitter)
         let heurNames = Seq.skip 1 headCols |> Seq.map (fun hname -> "$"+hname+"$")
         let numHeurs = Seq.length heurNames
 
         let selectProfit (s:string) = s.Split(colonSplitter) |> Seq.nth limitIx |> Double.Parse
 
-        let profits heurIx = contentLines |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.nth (heurIx + 1) |> selectProfit)
+        let profits heurIx = contentLines |> Seq.map (fun line -> line.Split(csvSplitter) |> Seq.nth (heurIx + 1) |> selectProfit)
+
+        let projToProfit optsFilename =
+            File.ReadAllLines(optsFilename)
+            |> Seq.skip 1
+            |> Seq.map (fun line -> (line.Split(csvSplitter).[0], line.Split(csvSplitter).[1]))
+            |> Map.ofSeq
 
         let bestProfits =
-            if optsFn.IsSome then
-                let projToProfit = File.ReadAllLines(optsFn.Value)
-                                   |> Seq.skip 1
-                                   |> Seq.map (fun line -> (line.Split(csvSplitters).[0], line.Split(csvSplitters).[1]))
-                                   |> Map.ofSeq
-                contentLines |> Seq.map (fun line -> projToProfit |> Map.find (line.Split(csvSplitters).[0]) |> Double.Parse)
-            else
-                contentLines |> Seq.map (fun line -> line.Split(csvSplitters) |> Seq.skip 1 |> Seq.map selectProfit |> Seq.max)
+            match optsFn with
+            | Some(optsFn) -> contentLines |> Seq.map (fun line -> projToProfit optsFn |> Map.find (line.Split(csvSplitter).[0]) |> Double.Parse)
+            | None -> contentLines |> Seq.map (fun line -> line.Split(csvSplitter) |> Seq.skip 1 |> Seq.map selectProfit |> Seq.max)
 
         let gap profit optProfit =
             if optProfit = 0.0 then 0.0

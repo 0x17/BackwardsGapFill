@@ -40,38 +40,6 @@
     <Prefer32Bit>false</Prefer32Bit>
     <StartWorkingDirectory>..\..\</StartWorkingDirectory>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="GAMS.net4">
-      <HintPath>..\..\..\..\..\..\GAMS\win64\24.4\GAMS.net4.dll</HintPath>
-    </Reference>
-    <Reference Include="mscorlib" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
-    <Reference Include="System.Windows.Forms" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Helpers\Utils.fs" />
-    <Compile Include="Helpers\Serialization.fs" />
-    <Compile Include="Helpers\TopologicalSorting.fs" />
-    <Compile Include="ProjectStructure.fs" />
-    <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
-    <Compile Include="PSPLibParser.fs" />
-    <Compile Include="GamsSolver.fs" />
-    <Compile Include="Visualisation\ScheduleVisualisation.fs" />
-    <Compile Include="Visualisation\GraphVisualisation.fs" />
-    <Compile Include="Visualisation\PlotVisualisation.fs" />
-    <Compile Include="Batch\Runners.fs" />
-    <Compile Include="Batch\VisRunners.fs" />
-    <Compile Include="Evaluation.fs" />
-    <Compile Include="Program.fs" />
-    <None Include="App.config" />
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -88,6 +56,43 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
+  <ItemGroup>
+    <Compile Include="Helpers\Utils.fs" />
+    <Compile Include="Helpers\Serialization.fs" />
+    <Compile Include="Helpers\TopologicalSorting.fs" />
+    <Compile Include="ProjectStructure.fs" />
+    <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
+    <Compile Include="PSPLibParser.fs" />
+    <Compile Include="GamsSolver.fs" />
+    <Compile Include="Visualisation\ScheduleVisualisation.fs" />
+    <Compile Include="Visualisation\GraphVisualisation.fs" />
+    <Compile Include="Visualisation\PlotVisualisation.fs" />
+    <Compile Include="Batch\Runners.fs" />
+    <Compile Include="Batch\VisRunners.fs" />
+    <Compile Include="Evaluation.fs" />
+    <Compile Include="Program.fs" />
+    <None Include="App.config" />
+    <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="EPPlus">
+      <HintPath>packages\EPPlus.4.0.3\lib\net20\EPPlus.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="GAMS.net4">
+      <HintPath>..\..\..\..\..\..\GAMS\win64\24.4\GAMS.net4.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
