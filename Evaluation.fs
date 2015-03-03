@@ -57,7 +57,7 @@ module Evaluation =
 
     open Helpers
 
-    let private limits = ["0.01"; "0.1"; "0.5"; "1"; "2"; "5"; "10"; "30"]
+    let private limits = ["0.01"; "0.1"; "0.5"; "1"; "2"; "5"; "10"; "15"]
     let private countLimits (line: String) = line.Split(csvSplitter).[1].Split(colonSplitter).Length
 
     let profitsToRanking resultsFn =
