@@ -28,7 +28,10 @@ module Evaluation =
         let private fillWorkSheetWithCsv (workSheet: ExcelWorksheet) (csvData:string) =
             let toActualType s = if Regex.IsMatch(s, "^\d+$") then (Int32.Parse s) :> obj else s :> obj
             csvData.Split(newlineSplitter)
-            |> Seq.iteri (fun rowIx line -> line.Split(csvSplitter) |> Seq.iteri (fun colIx cell-> workSheet.Cells.[rowIx+1, colIx+1].Value <- toActualType cell))
+            |> Seq.iteri (fun rowIx line ->
+                line.Split(csvSplitter)
+                |> Seq.iteri (fun colIx cell->
+                    workSheet.Cells.[rowIx+1, colIx+1].Value <- toActualType cell))
 
         let csvToExcel csvData outFn =
             if File.Exists(outFn) then File.Delete(outFn)
@@ -64,16 +67,27 @@ module Evaluation =
         let rankings limitIx =
             let profitsLineToRanks (line:string) =
                 let columns = line.Split(csvSplitter)
-                let profits = columns |> Seq.skip 1 |> Seq.map (fun col -> col.Split(colonSplitter) |> Seq.nth limitIx |> Double.Parse)
-                let descProfits = profits |> Seq.distinct |> Seq.sortBy (fun p -> -p)
-                let ranks = profits |> Seq.map (fun p -> (indexOf p descProfits) + 1 |> string)
+                let profits =
+                    columns
+                    |> Seq.skip 1
+                    |> Seq.map (fun col -> col.Split(colonSplitter) |> Seq.nth limitIx |> Double.Parse)
+                let descProfits =
+                    profits
+                    |> Seq.distinct
+                    |> Seq.sortBy (fun p -> -p)
+                let ranks =
+                    profits
+                    |> Seq.map (fun p -> (indexOf p descProfits) + 1 |> string)
                 Seq.append [columns.[0]] ranks
             Seq.map profitsLineToRanks (Seq.skip 1 lines)
 
         let csvRankings limitIx = rankings limitIx |> Seq.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines |> texSymToUtf8)
 
         let numLimits = countLimits lines.[1]
-        let captions = limits |> Seq.take numLimits |> Seq.map (fun l -> l + "s")
+        let captions =
+            limits
+            |> Seq.take numLimits
+            |> Seq.map (fun l -> l + "s")
         let csvDatas = Seq.init numLimits csvRankings
         csvToExcelSheets captions csvDatas (resultsFn.Replace(".csv", ".xlsx").Replace("Raw", "Rankings"))
 
@@ -83,35 +97,36 @@ module Evaluation =
         printf "Table for %s time limit %ss\n" resultsFn limits.[limitIx]
 
         let lines = File.ReadAllLines(resultsFn)
-        let contentLines = lines.[1..]
+        let lineParts = lines |> Array.map (fun (line:string) -> line.Split(csvSplitter))
+        let innerProfits =
+            lineParts.[1..]
+            |> Array.map (fun parts ->
+                parts.[1..]
+                |> Array.map (fun (part:string) ->
+                    part.Split(colonSplitter)
+                    |> Array.map Double.Parse))
 
-        let headCols = (Seq.head lines).Split(csvSplitter)
-        let heurNames = Seq.skip 1 headCols |> Seq.map (fun hname -> "$"+hname+"$")
-        let numHeurs = Seq.length heurNames
+        let headCols = lineParts.[0]
+        let heurNames = headCols.[1..] |> Array.map (fun hname -> "$"+hname+"$")
+        let numHeurs = Array.length heurNames
 
-        let selectProfit (s:string) =
-            s.Split(colonSplitter)
-            |> Seq.nth limitIx
-            |> Double.Parse
-
-        let profitsComp heurIx =
-            contentLines
-            |> Array.map (fun line -> line.Split(csvSplitter) |> Seq.nth (heurIx + 1) |> selectProfit)
+        let profitsComp heurIx = [| for projIx in 0..innerProfits.Length-1 do yield innerProfits.[projIx].[heurIx].[limitIx] |]
         let profits = Utils.memoize profitsComp
+
+        let profitsForProjComp projIx = [| for hix in 0..numHeurs-1 do yield innerProfits.[projIx].[hix].[limitIx] |]
+        let profitsForProj = Utils.memoize profitsForProjComp
              
-        let bestKnownProfits =
-            contentLines
-            |> Array.map (fun line -> line.Split(csvSplitter) |> Seq.skip 1 |> Seq.map selectProfit |> Seq.max)
+        let bestKnownProfits = [| for projIx in 0..innerProfits.Length-1 do yield Array.max (profitsForProj projIx) |]
 
         let bestProfits =
             match optsFn with
             | Some(optsFn) ->
                 let projToProfit optsFilename =
                     File.ReadAllLines(optsFilename).[1..]
-                    |> Array.map (fun line -> (line.Split(csvSplitter).[0], line.Split(csvSplitter).[1]))
+                    |> Array.map (fun line -> line.Split(csvSplitter) |> (fun parts -> (parts.[0], Double.Parse(parts.[1]))))
                     |> Map.ofArray
-                contentLines
-                |> Array.map (fun line -> projToProfit optsFn |> Map.find (line.Split(csvSplitter).[0]) |> Double.Parse)
+                let pprofitMapping = projToProfit optsFn
+                [| for projIx in 0..innerProfits.Length-1 do yield Map.find lineParts.[projIx+1].[0] pprofitMapping |]
             | None -> bestKnownProfits
 
         let gap profit optProfit =
@@ -135,30 +150,28 @@ module Evaluation =
         let percBest heurIx = numBest bestProfits heurIx / (float(lines.Length)-1.0)
 
         let ranks heurIx =
-            let rank (line:string) =
-                let ps = line.Split(csvSplitter).[1..] |> Array.map selectProfit
+            let rank projIx =
+                let ps = profitsForProj projIx
                 let dps = ps |> Seq.distinct |> Seq.sortBy (fun p -> -p)
-                (indexOf ps.[heurIx] dps) + 1
-
-            contentLines.[1..]
-            |> Seq.map (float << rank)
+                float(indexOf ps.[heurIx] dps) + 1.0
+            Array.map rank [|0..innerProfits.Length-1|]
 
         let avgRank = Seq.average << ranks
 
-        let rounding (n:float) = Math.Round(n, 2)
-        let inPercent n = string(rounding (n * 100.0)) + "\\%"
+        let inPercent n = sprintf "%.2f\\%%" (n*100.0)
+        let round = sprintf "%.2f"
         let characteristics = [("$\\varnothing$ deviation", inPercent << avgDev);
                                ("max. deviation", inPercent << maxDev);
-                               ("varcoeff(deviation)", string << rounding << varCoeffDev); 
+                               ("varcoeff(deviation)", round << varCoeffDev); 
                                ("\\% " + (if optsFn.IsSome then "optimal" else "best known solution"), inPercent << percBest); 
                                ("\\# best", string << int << (numBest bestKnownProfits));
-                               ("$\\varnothing$ rank", string << rounding << avgRank)]
+                               ("$\\varnothing$ rank", round << avgRank)]
 
         let colFormat = String.replicate headCols.Length "c"                
         let headRow = "representation & " + intersperse " & " heurNames + "\\\\[3pt]"
-                
-        let applyToAllHeurs fn = [0..numHeurs-1] |> Seq.map fn
-        let body = List.fold (fun acc (ch, fn) -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (applyToAllHeurs fn) + "\\\\") "" characteristics
+        
+        let heurIndices = [|0..numHeurs-1|]
+        let body = List.fold (fun acc (ch, fn) -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (Seq.map fn heurIndices) + "\\\\") "" characteristics
 
         "\\begin{tabular}{" + colFormat + "}\n\\hline\n" + headRow + body + "\\hline\n\\end{tabular}\n"
 
@@ -178,6 +191,6 @@ module Evaluation =
             let nlimits = countLimits (File.ReadLines(fn) |> Seq.skip 1 |> Seq.head)
             let tableFrame (s,ctr) limitIx =
                 (s + caption + " (limit=" + (Seq.nth limitIx limits) + "s)\\\\" + (evaluateResultsToTexTable fn limitIx optsfn) + "\\\\[8pt]" + pbreak ctr, ctr+1)
-            [|0..nlimits-1 |] |> Array.fold tableFrame acc
+            [|0..nlimits-1|] |> Array.fold tableFrame acc
         let tablesTex = resultsCaptionsOpts |> Seq.fold tablesForEachLimit ("", 0) |> fst
         insertIntoSkeletonBuildAndCleanup tablesTex @"AggrErgebnisse.tex"
