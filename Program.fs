@@ -17,8 +17,8 @@ module Program =
                                           (@"../HeursRawj90.csv", "j90", None);
                                           (@"../HeursRawj120.csv", "j120", None)]
 
-        multipleProfitsToRankings [@"../HeursRawj30.csv";
+        (*multipleProfitsToRankings [@"../HeursRawj30.csv";
                                    @"../HeursRawj60.csv";
                                    @"../HeursRawj90.csv";
-                                   @"../HeursRawj120.csv"]
+                                   @"../HeursRawj120.csv"]*)
         0

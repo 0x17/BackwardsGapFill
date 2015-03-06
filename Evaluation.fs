@@ -94,6 +94,7 @@ module Evaluation =
     let multipleProfitsToRankings: (string seq) -> unit = Seq.iter profitsToRanking
 
     let evaluateResultsToTexTable resultsFn limitIx (optsFn:Option<string>) =
+        let forPresentation = true
         printf "Table for %s time limit %ss\n" resultsFn limits.[limitIx]
 
         let lines = File.ReadAllLines(resultsFn)
@@ -160,18 +161,24 @@ module Evaluation =
 
         let inPercent n = sprintf "%.2f\\%%" (n*100.0)
         let round = sprintf "%.2f"
-        let characteristics = [("$\\varnothing$ deviation", inPercent << avgDev);
-                               ("max. deviation", inPercent << maxDev);
-                               ("varcoeff(deviation)", round << varCoeffDev); 
-                               ("\\% " + (if optsFn.IsSome then "optimal" else "best known solution"), inPercent << percBest); 
-                               ("\\# best", string << int << (numBest bestKnownProfits));
-                               ("$\\varnothing$ rank", round << avgRank)]
+        let characteristics = [("$\\varnothing$ Gap", inPercent << avgDev);
+                               ("Max. Gap", inPercent << maxDev);
+                               ("VarKoeff(Gap)", round << varCoeffDev); 
+                               ("\\% " + (if optsFn.IsSome then "Optimal" else "BBL"), inPercent << percBest); 
+                               ("\\# Beste", string << int << (numBest bestKnownProfits));
+                               ("$\\varnothing$ Rang", round << avgRank)]
 
-        let colFormat = String.replicate headCols.Length "c"                
-        let headRow = "representation & " + intersperse " & " heurNames + "\\\\[3pt]"
+        let relevantCharas = [0; 1; 3; 5] |> Seq.map (fun ix -> characteristics.[ix])
+        let colFormat = String.replicate (if forPresentation then 1 + Seq.length relevantCharas else headCols.Length) "c"                        
+        let headRow = "Repräsentation & " + intersperse " & " (if forPresentation then relevantCharas |> Seq.map fst else Seq.ofArray heurNames) + "\\\\[3pt]"
         
         let heurIndices = [|0..numHeurs-1|]
-        let body = List.fold (fun acc (ch, fn) -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (Seq.map fn heurIndices) + "\\\\") "" characteristics
+        
+        let body =
+            if forPresentation then
+                Array.fold (fun acc heurIx -> acc + "\n\\hline\n" + heurNames.[heurIx] + "&" + intersperse "&" (relevantCharas |> Seq.map (fun (ch, fn) -> fn heurIx)) + "\\\\") "" heurIndices
+            else
+                List.fold (fun acc (ch, fn) -> acc + "\n\\hline\n" + ch + "&" + intersperse "&" (Seq.map fn heurIndices) + "\\\\") "" characteristics
 
         "\\begin{tabular}{" + colFormat + "}\n\\hline\n" + headRow + body + "\\hline\n\\end{tabular}\n"
 
