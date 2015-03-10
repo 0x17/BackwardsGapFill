@@ -111,13 +111,13 @@ module Evaluation =
         let heurNames = headCols.[1..] |> Array.map (fun hname -> "$"+hname+"$")
         let numHeurs = Array.length heurNames
 
-        let profitsComp heurIx = [| for projIx in 0..innerProfits.Length-1 do yield innerProfits.[projIx].[heurIx].[limitIx] |]
+        let profitsComp heurIx = [| for projIx in 0..innerProfits.Length-1 -> innerProfits.[projIx].[heurIx].[limitIx] |]
         let profits = Utils.memoize profitsComp
 
-        let profitsForProjComp projIx = [| for hix in 0..numHeurs-1 do yield innerProfits.[projIx].[hix].[limitIx] |]
+        let profitsForProjComp projIx = [| for hix in 0..numHeurs-1 -> innerProfits.[projIx].[hix].[limitIx] |]
         let profitsForProj = Utils.memoize profitsForProjComp
              
-        let bestKnownProfits = [| for projIx in 0..innerProfits.Length-1 do yield Array.max (profitsForProj projIx) |]
+        let bestKnownProfits = [| for projIx in 0..innerProfits.Length-1 -> Array.max (profitsForProj projIx) |]
 
         let bestProfits =
             match optsFn with
