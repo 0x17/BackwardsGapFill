@@ -123,6 +123,21 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
             |> Seq.maxBy (fun t -> completeWithoutOC sts j t |> profit)
 
         ssgsWindow chooseBestPeriod λ
+        
+    let minimizeOvertimeCostsHeur (sts:IntMap): IntMap =
+        let (r,t) = resources >< [0..makespan sts] |> Seq.maxBy (fun (r,t) -> float(neededOvercapacityInPeriod sts r t) * kappa r)
+
+        let shiftable j = sts.[j] + durations(j) < firstSuccStartingTime sts j
+        let shiftables = activeInPeriodSet sts t |> Seq.filter shiftable
+
+        let latestFeasible j =
+            [sts.[j]..firstSuccStartingTime sts j - durations(j)]
+            |> Seq.filter (enoughCapacityForJob maxOc sts j)
+            |> Seq.max
+        let shiftRight j = Map.add j (latestFeasible j) sts
+
+        if not(Seq.isEmpty shiftables) then shiftables |> Seq.maxBy (fun j -> demands j r) |> shiftRight
+        else sts
 
     member ps.Revenue = revenue
     member ps.Profit = profit    
