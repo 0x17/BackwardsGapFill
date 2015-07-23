@@ -5,7 +5,7 @@ $eolcom §
 options OPTCR = 0
         MIP = GUROBI
         RESLIM = 604800
-        THREADS = 8;
+        THREADS = 0;
 
 sets j Arbeitsgänge
      t Perioden
