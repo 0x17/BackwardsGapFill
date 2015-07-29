@@ -97,6 +97,6 @@ model rcpspmms /mseq, precedence, resusage, once, oclimits/;
 model rcpspdl  /objective, precedence, resusage, once, oclimits, deq/;
 
 $include %IncFile%
-*$include rcpspdl.inc
+*$include rcpspoc.inc
 
 display z.l;

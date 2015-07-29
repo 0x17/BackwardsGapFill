@@ -4,7 +4,7 @@ open System.IO
 open Serialization
 
 module Runners =
-    let testFilename = @"Projekte/j30/j3021_9.sm"
+    let testFilename = @"../../Projekte/j30/j3021_9.sm"
     let testProjectStructure () =  PSPLibParser.parse testFilename
 
     let private pspLibExt = ".sm"

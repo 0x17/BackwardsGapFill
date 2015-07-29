@@ -286,6 +286,7 @@ Squeeze=1
 Order=
 Decim=7
 PlaneRownr=-1
+SqTrail0=0
 
 [GDXDISP: i Alias 1]
 PlaneDim=0
@@ -402,14 +403,11 @@ PlaneRownr=-1
 [RP:MODELCLI_TMIN_TMAX]
 1=
 
-[RP:MODEL]
-1=
-
 [RP:MODELCLI]
 1=
 
 [OPENWINDOW_1]
-MAXIM=1
+MAXIM=0
 TOP=5
 LEFT=-8
 HEIGHT=920
@@ -421,13 +419,16 @@ WIDTH=1454
 [RP:GAMS_HA_WS200809]
 1=
 
+[RP:MODEL]
+1=
+
 [MRUFILES]
-1=\\130.75.144.90\Prod.Lehre\GAMS\GAMS_2013WS\!Weitere Materialen früherer Semester\Hausarbeit\Lösungen\GAMS_HA_WS200809.gms
-2=C:\Users\a.schnabel\Dropbox\Arbeit\GAMS-Hausarbeit\GAMS_HA_SS15.gms
-3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7.gdx
-4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7_results.gdx
-5=L:\GAMS\GAMS_2015SS\Hausarbeit\Lösung\GAMS_HA_WS200809.gms
-6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
-7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.gms
-8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\model.lst
-9=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\ProjectStructureData.gdx
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\somedeadline.gdx
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\model.lst
+3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\model.gms
+4=\\130.75.144.90\Prod.Lehre\GAMS\GAMS_2013WS\!Weitere Materialen früherer Semester\Hausarbeit\Lösungen\GAMS_HA_WS200809.gms
+5=C:\Users\a.schnabel\Dropbox\Arbeit\GAMS-Hausarbeit\GAMS_HA_SS15.gms
+6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7.gdx
+7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7_results.gdx
+8=L:\GAMS\GAMS_2015SS\Hausarbeit\Lösung\GAMS_HA_WS200809.gms
+9=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
