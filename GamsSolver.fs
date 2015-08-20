@@ -97,8 +97,8 @@ module GamsSolver =
     let extractMakespanFromResult = extractVarFromResult "ms"
     let extractSolveStatFromResult = extractParamFromResult "slvstat"
 
-    let optTopSort jobs (optSchedule:IntMap) =
-        jobs |> Seq.sortBy (fun j -> optSchedule.[j]) |> Seq.toList
+    let optTopSort jobs optSchedule =
+        jobs |> Seq.sortBy (fun j -> Map.find j optSchedule) |> Seq.toList
 
     let writeGdxFile ps outFilename =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
@@ -135,10 +135,6 @@ module GamsSolver =
         let timelimitHours = 2.0
         let job = snd (solveCommon ps "rcpspoc" (Some (3600.0*timelimitHours)) None)
         startingTimesForFinishedJob ps job
-
-    let fst3 (a, _, _) = a
-    let snd3 (_, b, _) = b
-    let trd3 (_, _, c) = c
 
     let solveTminTmax ps =
         let (ws, job) = solveCommon ps "tmintmax" (Some (3600.0*2.0)) None

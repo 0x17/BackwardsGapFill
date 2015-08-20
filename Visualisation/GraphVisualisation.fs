@@ -2,7 +2,7 @@
 
 open System.Text
 
-open Utils
+open System
 open Serialization
 
 module GraphVisualisation =

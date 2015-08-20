@@ -17,3 +17,7 @@ module GeneticOperators =
             else i
         List.permute ixMap order
 
+    let recombineNaive index lstA lstB =
+        let partA = Seq.take index lstA |> Seq.toList
+        let partB = Seq.skip index lstB |> Seq.toList
+        partA @ partB

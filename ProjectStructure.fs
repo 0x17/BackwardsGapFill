@@ -5,8 +5,6 @@ open Microsoft.FSharp.Collections
 open Utils
 open TopologicalSorting
 
-type IntMap = Map<int,int>
-
 type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resources, capacities, kappa, zmax) =
     let firstJob = Set.minElement jobs
     let lastJob = Set.maxElement jobs
@@ -25,8 +23,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let topOrdering = topSort jobs preds
     let revTopOrdering = topSort jobs succs
 
-    let ft (sts:IntMap) j = sts.[j] + durations j
-    let st (fts:IntMap) j = fts.[j] - durations j
+    let ft sts j = (Map.find j sts) + durations j
+    let st fts j = (Map.find j fts) - durations j
 
     let lastPredFinishingTime sts = Seq.max << Seq.map (ft sts) << preds
     let firstSuccStartingTime fts = Seq.min << Seq.map (st fts) << succs
@@ -35,20 +33,20 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         let elsftForJob seedKey seedVal func sts j =
             Map.add j (if j = seedKey then seedVal else func sts j) sts
         ((fun () -> Seq.fold (elsftForJob firstJob 0 lastPredFinishingTime) Map.empty topOrdering),
-         (fun () -> Seq.fold (elsftForJob lastJob T firstSuccStartingTime) Map.empty revTopOrdering))
+         (fun deadline -> Seq.fold (elsftForJob lastJob deadline firstSuccStartingTime) Map.empty revTopOrdering))
 
     let ests = computeEsts ()
     let efts = ft ests
 
-    let lfts = computeLfts ()
+    let lfts = computeLfts T
     let lsts = st lfts
 
-    let deadline = lfts.[lastJob]
+    let deadline = Map.find lastJob lfts
 
-    let isFinishedAtEndOfPeriod (sts:IntMap) t j = sts.ContainsKey j && ft sts j <= t
+    let isFinishedAtEndOfPeriod sts t j = Map.containsKey j sts && ft sts j <= t
     let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
 
-    let isActiveInPeriod (sts:IntMap) t j = sts.[j] < t && t <= ft sts j        
+    let isActiveInPeriod sts t j = (Map.find j sts) < t && t <= ft sts j        
     let activeInPeriodSet sts t = keys sts |> Seq.filter (isActiveInPeriod sts t)
 
     let demandInPeriod sts r t = activeInPeriodSet sts t |> Seq.sumBy (fun j -> demands j r)
@@ -74,16 +72,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
             Map.add job (chooser acc job tlower tupper) acc
 
         Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-
-    let ssgsTau λ τ =
-        let chooseWithTau sts j tlower tupper =
-            let lb = tlower + int(floor((float(tupper) - float(tlower)) / 100.0 * float(Seq.nth j τ)))
-            numsGeq lb |> Seq.find (enoughCapacityForJob maxOc sts j)
-        ssgsWindow chooseWithTau λ
-
-    let ssgsBeta λ β =
-        let betaToTau b = if b = 1 then 0 else 100
-        ssgsTau λ (Seq.map betaToTau β)
 
     let makespan sts = ft sts lastJob
 
@@ -124,8 +112,42 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
         ssgsWindow chooseBestPeriod λ
 
+    let ssgsTau λ τ =
+        let chooseWithTau sts j tlower tupper =
+            let lb = tlower + int(floor((float(tupper) - float(tlower)) / 100.0 * float(Seq.nth j τ)))
+            numsGeq lb |> Seq.find (enoughCapacityForJob maxOc sts j)
+        ssgsWindow chooseWithTau λ
+
+    let ssgsBeta λ β =
+        let betaToTau b = if b = 1 then 0 else 100
+        ssgsTau λ (Seq.map betaToTau β)
+
+    let extensionCosts sts j stj = totalOvercapacityCosts (Map.add j stj sts) - totalOvercapacityCosts sts
+
+    let deadlineCostMinHeur (d̅: int) (λ: int seq) =
+        let dlfts = computeLfts d̅
+
+        let timeWindowsForPartial sts d̅ =            
+            let compTightenedTimes ts op op2 bound = Map.map (fun j tj -> op (op2 j tj) (if Map.containsKey j sts then Map.find j sts else bound)) ts
+            let pests = compTightenedTimes ests max (fun j t -> t) 0 
+            let plsts = compTightenedTimes dlfts min (fun j t -> t - durations j) d̅
+            jobs
+            |> Set.map (fun j -> (j, (Map.find j pests, Map.find j plsts)))
+            |> Set.toList
+            |> Map.ofList        
+
+        let choosePeriodForJob sts j =
+            let timeWindows = timeWindowsForPartial sts d̅
+            let (estj,lstj) = (Map.find j timeWindows)
+            let timeCostPairs = [estj..lstj] |> Seq.map (fun stj -> (stj, extensionCosts sts j stj))
+            let minCosts = timeCostPairs |> Seq.map snd |> Seq.min
+            timeCostPairs |> Seq.filter (fun (t,c) -> c = minCosts) |> Seq.last |> fst
+
+        let scheduleJob acc job = Map.add job (choosePeriodForJob acc job) acc
+        Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+
     member ps.Revenue = revenue
-    member ps.Profit = profit    
+    member ps.Profit = profit
 
     member ps.FinishingTimesToStartingTimes fts =
         Map.map (fun j ftj -> ftj - durations j) fts
@@ -154,6 +176,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.NeededOCForSchedule = neededOvercapacityInPeriod
     member ps.ActiveInPeriodSet = activeInPeriodSet
     member ps.SerialSGS = ssgs
+    member ps.DeadlineCostMinHeur = deadlineCostMinHeur
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq

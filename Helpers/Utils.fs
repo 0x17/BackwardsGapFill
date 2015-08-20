@@ -1,8 +1,6 @@
 ﻿namespace RCPSP
 
 open System.Collections.Generic
-open System
-open System.Diagnostics
 
 module Utils =
     let memoize f =
@@ -15,6 +13,10 @@ module Utils =
     let inc = (+) 1
     let dec = (+) -1
     let neg = (*) -1
+
+    let fst3 (a, _, _) = a
+    let snd3 (_, b, _) = b
+    let trd3 (_, _, c) = c
 
     let numsGeq x = Seq.initInfinite ((+) x)
     let repeat x = Seq.initInfinite (fun _ -> x)
@@ -62,44 +64,7 @@ module Utils =
                 helper (c :: acc) (n-1)
         helper List.empty n
 
-    let rec foldItselfUntil f seed pred =
-        let v = f seed
-        if pred v then v
-        else foldItselfUntil f v pred
-
-    let rec foldItselfUntilMaxSteps f seed pred n =
-        if n = 0 then seed
-        else
-            let v = f seed
-            if pred v then v
-            else foldItselfUntilMaxSteps f v pred (n-1)
-
-    let rec foldItselfTimes f seed n =
-        if n = 1 then f seed
-        else f (foldItselfTimes f seed (dec n))
-
-    let rec foldItselfConvergeHash f h seed =
-        let v = f seed
-        if h v <> h seed then foldItselfConvergeHash f h v
-        else seed
-
-    let foldItselfConverge f seed = foldItselfConvergeHash f identity seed
-
-    type RunBehavior =
-        | Blocking
-        | NonBlocking
-
-    let runCmd behavior cmd args =
-        let psi = ProcessStartInfo(cmd)
-        psi.Arguments <- args
-        let p = Process.Start psi
-        match behavior with
-        | Blocking -> p.WaitForExit ()
-        | NonBlocking -> ()
-
     let replace oldChar newChar = String.map (fun c -> if c = oldChar then newChar else c)
-
-    let onWindows = Environment.OSVersion.Platform = PlatformID.Win32NT
 
     let rec shuffle lst =
         if List.isEmpty lst then lst
@@ -110,34 +75,7 @@ module Utils =
     let gap (opt:float) (approx:float) = abs ((opt - approx) / (opt + boolToFloat (opt = 0.0)))
 
     let transitiveHull nodeToSet =
-        memoize (fun startNode -> foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))
-
-    let splitAt index lst =
-        (Seq.take index lst |> Seq.toList,
-         Seq.skip index lst |> Seq.toList)
-
-    let multiplex transform pair =
-        (transform (fst pair), transform (snd pair))
-
-    let recombine index lstA lstB =
-        let partA = Seq.take index lstA |> Seq.toList
-        let partB = Seq.skip index lstB |> Seq.toList
-        partA @ partB
-
-    let (stopwatchStart, stopwatchStop) =
-        let sw = Stopwatch ()
-        ((fun () -> sw.Reset (); sw.Start ()),
-         (fun () -> sw.Stop(); sw.Elapsed))
-
-    let bypassAndPrint x =
-        printf "%O\n" x
-        x
-
-    let arrayMapInPlace transform array =
-        let mutable i = 0
-        while i < Array.length array do
-            array.[i] <- transform array.[i]
-            i <- i + 1
+        memoize (fun startNode -> Folds.foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))
 
     let swap (a,b) = (b,a)
 

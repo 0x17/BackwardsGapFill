@@ -26,7 +26,7 @@ module TopologicalSorting =
             orderings
             |> Set.map extendOrdering
             |> Set.unionMany
-        foldItselfTimes extendOrderings (set [[1]]) (dec jobs.Count)
+        Folds.foldItselfTimes extendOrderings (set [[1]]) (dec jobs.Count)
 
     let rec countTopSorts jobs preds =
         if Set.isEmpty jobs then bigint 1

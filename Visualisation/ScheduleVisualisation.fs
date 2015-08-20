@@ -4,7 +4,6 @@ open System
 open System.Collections.Generic
 open System.Drawing
 open System.Windows.Forms
-open System.Data
 
 open Utils
 
@@ -17,7 +16,7 @@ module ScheduleVisualisation =
     let saveViews prefix views =
         Seq.iteri (fun i view -> saveViewToPng view (prefix+string(i+1))) views
         
-    let show caption (ps:ProjectStructure) (sts:IntMap) =
+    let show caption (ps:ProjectStructure) (sts:Map<int,int>) =
         let lblOffsetY = 500       
 
         let mainForm = new Form (Width = 1280, Height = 720, Text = "Ablaufplan - " + caption)
