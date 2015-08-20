@@ -62,6 +62,9 @@
     <Compile Include="Helpers\TopologicalSorting.fs" />
     <Compile Include="ProjectStructure.fs" />
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
+    <Compile Include="GeneticAlgorithm\GeneticAlgorithm.fs" />
+    <Compile Include="GeneticAlgorithm\GeneticOperators.fs" />
+    <Compile Include="GeneticAlgorithm\DeadlineLambda.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
     <Compile Include="Visualisation\ScheduleVisualisation.fs" />

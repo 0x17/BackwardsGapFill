@@ -403,16 +403,6 @@ PlaneRownr=-1
 [RP:MODELCLI_TMIN_TMAX]
 1=
 
-[RP:MODELCLI]
-1=
-
-[OPENWINDOW_1]
-MAXIM=0
-TOP=5
-LEFT=-8
-HEIGHT=920
-WIDTH=1454
-
 [RP:GAMS_HA_SS15]
 1=
 
@@ -422,13 +412,36 @@ WIDTH=1454
 [RP:MODEL]
 1=
 
+[RP:MODELCLI]
+1=
+
+[RP:01_NOTATION]
+1=
+
+[RP:02_MODELLFORMULIERUNG]
+1=
+
+[RP:9]
+1=
+
 [MRUFILES]
-1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\somedeadline.gdx
-2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\model.lst
-3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\model.gms
-4=\\130.75.144.90\Prod.Lehre\GAMS\GAMS_2013WS\!Weitere Materialen früherer Semester\Hausarbeit\Lösungen\GAMS_HA_WS200809.gms
-5=C:\Users\a.schnabel\Dropbox\Arbeit\GAMS-Hausarbeit\GAMS_HA_SS15.gms
-6=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7.gdx
-7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7_results.gdx
-8=L:\GAMS\GAMS_2015SS\Hausarbeit\Lösung\GAMS_HA_WS200809.gms
-9=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\RCPSP-OC\modelcli.gms
+1=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\modelcli.gms
+2=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\somedeadline.gdx
+3=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\model.lst
+4=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\model.gms
+5=\\130.75.144.90\Prod.Lehre\GAMS\GAMS_2013WS\!Weitere Materialen früherer Semester\Hausarbeit\Lösungen\GAMS_HA_WS200809.gms
+6=C:\Users\a.schnabel\Dropbox\Arbeit\GAMS-Hausarbeit\GAMS_HA_SS15.gms
+7=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7.gdx
+8=C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\ClusterResults\j3011_7_results.gdx
+9=L:\GAMS\GAMS_2015SS\Hausarbeit\Lösung\GAMS_HA_WS200809.gms
+
+[OPENWINDOW_1]
+FILE0=L:\GAMS\GAMS_2015SS\Hausarbeit\02_Implementierung\01_Notation.gms
+FILE1=L:\GAMS\GAMS_2015SS\Hausarbeit\02_Implementierung\02_Modellformulierung.gms
+FILE2=L:\GAMS\GAMS_2015SS\Übungsaufgaben\Lösungen\Übungsaufgabe_09\9.gms
+FILE3=L:\GAMS\GAMS_2015SS\Hausarbeit\02_Implementierung\02_Modellformulierung.gms
+MAXIM=0
+TOP=5
+LEFT=-8
+HEIGHT=920
+WIDTH=1454

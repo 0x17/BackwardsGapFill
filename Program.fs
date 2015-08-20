@@ -6,10 +6,10 @@ open Evaluation
 module Program =
     [<EntryPoint>]
     let main argv =
-        let ps = Runners.testProjectStructure ()
+        (*let ps = Runners.testProjectStructure ()
         let sts = ps.SerialSGS (fun r t -> 0) (Set.toSeq ps.Jobs)
-        printf "%O" sts
-        System.Console.ReadKey () |> ignore
+        printf "%O" sts*)
+        
         
         //convertBatchSmToGdx false @"Projekte/j30"
         //convertResultsGdxToCsv @"../ClusterResultsFiltered" @"optimalResultsClusterFiltered.csv"
@@ -26,4 +26,6 @@ module Program =
                                    @"../HeursRawj60.csv";
                                    @"../HeursRawj90.csv";
                                    @"../HeursRawj120.csv"]*)
+
+        System.Console.ReadKey () |> ignore        
         0

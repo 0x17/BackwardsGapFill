@@ -24,8 +24,10 @@ module Utils =
     let same (a,b) = a = b
 
     let contains o = Seq.exists ((=) o)
+    let notin coll o = not (contains o coll)
     let indexOf seq elem = Seq.findIndex ((=) elem) seq
     let remove pred = List.filter (not << pred)
+    let diff colla collb = colla |> List.filter (notin collb)
     let without o = remove ((=) o)
     let withoutOnce o lst =
         let ix = List.findIndex ((=) o) lst
@@ -136,3 +138,11 @@ module Utils =
         while i < Array.length array do
             array.[i] <- transform array.[i]
             i <- i + 1
+
+    let swap (a,b) = (b,a)
+
+    let removeRandomElement (lst: List<'T>) =
+        let rix = rand 0 (lst.Count-1)
+        let elem = lst.[rix]
+        lst.RemoveAt(rix)
+        elem
