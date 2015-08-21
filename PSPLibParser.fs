@@ -5,8 +5,6 @@ open System.Text.RegularExpressions
 open System.IO
 
 open Utils
-open Serialization
-open TopologicalSorting
 
 module PSPLibParser =
     let offsetStartingWith str lines =
@@ -19,17 +17,6 @@ module PSPLibParser =
         let lines = File.ReadAllLines(filename)
         let resOffset = offsetStartingWith "RESOURCEAVAILABILITIES" lines
         lines.[resOffset+2].Split() |> Array.filter (fun s -> s <> "") |> Array.map (fun cstr -> Int32.Parse cstr)
-
-    let serializeCommon title mapping filename =
-        title+":\n"+
-        mapToStr mapping + "\n"
-        |> replace ',' '.'
-        |> spitAppend filename
-
-    let serializeKappa : Map<int,float> -> string -> unit =
-        serializeCommon "OVERCAPACITY COSTS"
-    let serializeZMax : Map<int,int> -> string -> unit =
-        serializeCommon "MAX OVERCAPACITY"
 
     let parseSuccs lines =
         let parseSuccLine line = 
@@ -70,19 +57,9 @@ module PSPLibParser =
         let jobs = set [1..numJobs]
         let resources = set [1..numRes]       
 
-        let linesToFuncCommon beginTitle endTitle t =
-            if offsets beginTitle = -1 then (fun x -> t "0")
-            else
-                let last = (if endTitle = "EOF" then lines.Length else offsets endTitle) - 1
-                let relevantLines = lines.[(offsets beginTitle)+1..last]
-                let relevantLinesStr = System.String.Join("\n", relevantLines)
-                let mapping = mapFromStr relevantLinesStr t
-                mapToFunc mapping
-
         let kappaFunc = (fun r -> 0.5)
         let zmaxFunc = (fun r -> int(0.5 * (float capacities.[r-1])))
 
-        let ordering = topSort jobs predsFunc
         ProjectStructure.Create(jobs, durations, demands,
                                 capacities, predsFunc,
                                 resources, kappaFunc, zmaxFunc)
