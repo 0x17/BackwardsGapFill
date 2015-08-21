@@ -27,5 +27,8 @@ module Program =
                                    @"../HeursRawj90.csv";
                                    @"../HeursRawj120.csv"]*)
 
+        let ps = Runners.testProjectStructure ()
+        let bestIndiv = DeadlineLambda.solveWithGA ps 100 100 5
+        System.Console.WriteLine("Best individual fitness = " + bestIndiv.ToString())
         System.Console.ReadKey () |> ignore        
         0

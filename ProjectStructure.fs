@@ -10,9 +10,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let lastJob = Set.maxElement jobs
     let actualJobs = Set.difference jobs (set [firstJob; lastJob])
 
-    let zeroOc r t = 0
-    let maxOc r t = zmax r
-
     let T = Seq.sumBy durations jobs
     let horizon = [1..T]
 
@@ -23,25 +20,18 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let topOrdering = topSort jobs preds
     let revTopOrdering = topSort jobs succs
 
-    let ft sts j = (Map.find j sts) + durations j
-    let st fts j = (Map.find j fts) - durations j
+    let sttoft j stj = stj + durations j
+    let fttost j ftj = ftj - durations j
 
+    let ft sts j = sttoft j (Map.find j sts)
+    let st fts j = fttost j (Map.find j fts)
+
+    let zeroOc r t = 0
+    let maxOc r t = zmax r
+
+    //#region schedule properties
     let lastPredFinishingTime sts = Seq.max << Seq.map (ft sts) << preds
     let firstSuccStartingTime fts = Seq.min << Seq.map (st fts) << succs
-    
-    let (computeEsts, computeLfts) =        
-        let elsftForJob seedKey seedVal func sts j =
-            Map.add j (if j = seedKey then seedVal else func sts j) sts
-        ((fun () -> Seq.fold (elsftForJob firstJob 0 lastPredFinishingTime) Map.empty topOrdering),
-         (fun deadline -> Seq.fold (elsftForJob lastJob deadline firstSuccStartingTime) Map.empty revTopOrdering))
-
-    let ests = computeEsts ()
-    let efts = ft ests
-
-    let lfts = computeLfts T
-    let lsts = st lfts
-
-    let deadline = Map.find lastJob lfts
 
     let isFinishedAtEndOfPeriod sts t j = Map.containsKey j sts && ft sts j <= t
     let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
@@ -59,27 +49,35 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let predsAndCapacityFeasible z sts job t = arePredsFinished sts job t && enoughCapacityForJob z sts job t
 
-    let scheduleJob z acc j = Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc
-
-    let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
-
-    let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-
-    let ssgsWindow chooser λ =
-        let scheduleJob acc job =
-            let tlower = lastPredFinishingTime acc job
-            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob zeroOc acc job)
-            Map.add job (chooser acc job tlower tupper) acc
-
-        Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-
     let makespan sts = ft sts lastJob
 
     let neededOvercapacityInPeriod sts r t = max 0 (-residualCapacity sts r t)
     let totalOvercapacityCosts sts =
         resources >< [0..makespan sts]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriod sts r t))
+    //#endregion
 
+    //#region basic schedule generation schemes
+    let (computeEsts, computeLfts) =        
+        let elsftForJob seedKey seedVal func sts j =
+            Map.add j (if j = seedKey then seedVal else func sts j) sts
+        ((fun () -> Seq.fold (elsftForJob firstJob 0 lastPredFinishingTime) Map.empty topOrdering),
+         (fun deadline -> Seq.fold (elsftForJob lastJob deadline firstSuccStartingTime) Map.empty revTopOrdering))
+
+    let ests = computeEsts ()
+    let efts = ft ests
+
+    let lfts = computeLfts T
+    let lsts = st lfts   
+
+    let scheduleJob z acc j = Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc
+    let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
+    let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+    //#endregion
+
+    let deadline = Map.find lastJob lfts
+
+    //#region profit/revenue computation
     let minMaxMakespanBounds =
         let tkappar r = System.Math.Ceiling(float (Seq.sumBy (fun j -> durations j * demands j r) jobs) / float (capacities r + zmax r)) |> int
         let tkappa = resources |> Seq.map tkappar |> Seq.max
@@ -97,6 +95,16 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let revenue = u << makespan
 
     let profit sts = (revenue sts) - totalOvercapacityCosts sts
+    //#endregion
+
+    //#region advanced schedule generation schemes
+    let ssgsWindow chooser λ =
+        let scheduleJob acc job =
+            let tlower = lastPredFinishingTime acc job
+            let tupper = numsGeq tlower |> Seq.find (enoughCapacityForJob zeroOc acc job)
+            Map.add job (chooser acc job tlower tupper) acc
+
+        Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
 
     let ssgsoc λ =
         let completeWithoutOC sts j t =
@@ -122,15 +130,15 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         let betaToTau b = if b = 1 then 0 else 100
         ssgsTau λ (Seq.map betaToTau β)
 
-    let extensionCosts sts j stj = totalOvercapacityCosts (Map.add j stj sts) - totalOvercapacityCosts sts
-
     let deadlineCostMinHeur (d̅: int) (λ: int seq) =
+        let extensionCosts sts j stj = totalOvercapacityCosts (Map.add j stj sts) - totalOvercapacityCosts sts
+
         let dlfts = computeLfts d̅
 
         let timeWindowsForPartial sts d̅ =            
             let compTightenedTimes ts op op2 bound = Map.map (fun j tj -> op (op2 j tj) (if Map.containsKey j sts then Map.find j sts else bound)) ts
             let pests = compTightenedTimes ests max (fun j t -> t) 0 
-            let plsts = compTightenedTimes dlfts min (fun j t -> t - durations j) d̅
+            let plsts = compTightenedTimes dlfts min fttost d̅
             jobs
             |> Set.map (fun j -> (j, (Map.find j pests, Map.find j plsts)))
             |> Set.toList
@@ -145,10 +153,9 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
         let scheduleJob acc job = Map.add job (choosePeriodForJob acc job) acc
         Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+    //#endregion
 
-    member ps.Revenue = revenue
-    member ps.Profit = profit
-
+    //#region accessors
     member ps.FinishingTimesToStartingTimes fts =
         Map.map (fun j ftj -> ftj - durations j) fts
             
@@ -159,24 +166,31 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.Preds = preds
     member ps.Succs = succs
     member ps.TransSuccs = transSuccs
-    member ps.Resources = resources    
+    member ps.Resources = resources
     member ps.Kappa = kappa
-    member ps.U = u
     member ps.ZMax = zmax
+    member ps.U = u
     member ps.TimeHorizon = horizon   
+
     member ps.EarliestStartingTimes = mapToFunc ests
     member ps.LatestStartingTimes = lsts
     member ps.EarliestFinishingTimes = efts
     member ps.LatestFinishingTimes = mapToFunc lfts
+
     member ps.Deadline = deadline
+    member ps.Makespan = makespan
+
+    member ps.ActiveInPeriodSet = activeInPeriodSet
     member ps.EnoughCapacityForJob = enoughCapacityForJob
     member ps.LastPredFinishingTime = lastPredFinishingTime
-    member ps.Makespan = makespan
+
     member ps.TotalOvercapacityCosts = totalOvercapacityCosts
     member ps.NeededOCForSchedule = neededOvercapacityInPeriod
-    member ps.ActiveInPeriodSet = activeInPeriodSet
+
     member ps.SerialSGS = ssgs
     member ps.DeadlineCostMinHeur = deadlineCostMinHeur
+    member ps.Profit = profit
+    //#endregion
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
         let arrayToBaseOneMap arr = Array.mapi (fun ix e -> (inc ix,e)) arr |> Map.ofSeq
