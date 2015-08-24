@@ -19,6 +19,7 @@ module Utils =
     let trd3 (_, _, c) = c
 
     let numsGeq x = Seq.initInfinite ((+) x)
+    let numsLeq x = Seq.initInfinite ((-) x)
     let repeat x = Seq.initInfinite (fun _ -> x)
     let allBut lb ub j = [lb..j-1]@[j+1..ub]
 

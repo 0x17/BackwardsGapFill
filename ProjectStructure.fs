@@ -36,18 +36,20 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let isFinishedAtEndOfPeriod sts t j = Map.containsKey j sts && ft sts j <= t
     let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
 
+    let executionPeriods j stj = [stj+1..stj+durations j]
+
     let isActiveInPeriod sts t j = (Map.find j sts) < t && t <= ft sts j        
     let activeInPeriodSet sts t = keys sts |> Seq.filter (isActiveInPeriod sts t)
 
     let demandInPeriod sts r t = activeInPeriodSet sts t |> Seq.sumBy (fun j -> demands j r)
 
     let residualCapacity sts r t = capacities r - demandInPeriod sts r t
-        
+
     let enoughCapacityForJob z sts j stj =
-        resources >< [stj+1..stj+durations j]
+        resources >< executionPeriods j stj
         |> Seq.forall (fun (r,t) -> residualCapacity sts r t + z r t >= demands j r)
 
-    let predsAndCapacityFeasible z sts job t = arePredsFinished sts job t && enoughCapacityForJob z sts job t
+    let predsAndCapacityFeasible z sts j t = arePredsFinished sts j t && enoughCapacityForJob z sts j t
 
     let makespan sts = ft sts lastJob
 
@@ -55,6 +57,11 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let totalOvercapacityCosts sts =
         resources >< [0..makespan sts]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriod sts r t))
+
+    let neededOvercapacityInPeriodForJob sts r t j = max 0 (demands j r - residualCapacity sts r t)
+    let extensionCosts sts j stj =
+        resources >< [stj+1..stj+durations j]
+        |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriodForJob sts r t j))
     //#endregion
 
     //#region basic schedule generation schemes
@@ -68,11 +75,34 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let efts = ft ests
 
     let lfts = computeLfts T
-    let lsts = st lfts   
+    let lsts = st lfts
 
-    let scheduleJob z acc j = Map.add j (numsGeq (lastPredFinishingTime acc j) |> Seq.find (enoughCapacityForJob z acc j)) acc
+    let earliestTimeAndResourceFeasiblePeriod z sts j =
+        (numsGeq (lastPredFinishingTime sts j) |> Seq.find (enoughCapacityForJob z sts j))
+
+    let scheduleJob z acc j = Map.add j (earliestTimeAndResourceFeasiblePeriod z acc j) acc
     let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
     let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+
+    // FIXME: Use deadline
+    let latestTimeAndResourceFeasiblePeriod z d̅ sts j =
+        (numsLeq (firstSuccStartingTime sts j) |> Seq.find (enoughCapacityForJob z sts j))
+
+    let timeAndResourceFeasiblePeriods z d̅ sts j =
+        let lb = earliestTimeAndResourceFeasiblePeriod z sts j
+        let ub = latestTimeAndResourceFeasiblePeriod z d̅ sts j
+        let between = [lb + 1 .. ub - 1] |> List.filter (enoughCapacityForJob z sts j) |> Set.ofList
+        Set.union (set [lb; ub]) between
+
+    let completionTimes sts = sts |> Map.toList |> List.map (fun (j,stj) -> stj + durations j) |> Set.ofList
+    let startingTimes sts = sts |> vals |> Set.ofSeq
+
+    let decisionTimesForRD d̅ sts j =
+        let wtilde = timeAndResourceFeasiblePeriods maxOc d̅ sts j        
+        Set.unionMany [
+            set [wtilde.MinimumElement; wtilde.MaximumElement];
+            Set.intersect wtilde (completionTimes sts);
+            wtilde |> Set.filter (fun t -> Set.contains (t + durations j) (startingTimes sts))]
     //#endregion
 
     let deadline = Map.find lastJob lfts
@@ -86,8 +116,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         (minMakespanApprox, maxMakespanApprox)
 
     let u =
-        let (minMakespanApprox, maxMakespanApprox) = minMaxMakespanBounds
         let maxOcCosts = totalOvercapacityCosts ests
+        let (minMakespanApprox, maxMakespanApprox) = minMaxMakespanBounds
         let ufunc t = maxOcCosts - maxOcCosts / System.Math.Pow(float(maxMakespanApprox-minMakespanApprox), 2.0) * System.Math.Pow(float(t - minMakespanApprox), 2.0) 
         if same minMaxMakespanBounds then fun t -> -float(t)
         else ufunc
@@ -130,24 +160,11 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         let betaToTau b = if b = 1 then 0 else 100
         ssgsTau λ (Seq.map betaToTau β)
 
+    // Implementation of priority rule method for the resource deviation problem (RD objective function)
+    // Source: Zimmermann, Stark, Rieck - Projektplanung (2010)
     let deadlineCostMinHeur (d̅: int) (λ: int seq) =
-        let extensionCosts sts j stj = totalOvercapacityCosts (Map.add j stj sts) - totalOvercapacityCosts sts
-
-        let dlfts = computeLfts d̅
-
-        let timeWindowsForPartial sts d̅ =            
-            let compTightenedTimes ts op op2 bound = Map.map (fun j tj -> op (op2 j tj) (if Map.containsKey j sts then Map.find j sts else bound)) ts
-            let pests = compTightenedTimes ests max (fun j t -> t) 0 
-            let plsts = compTightenedTimes dlfts min fttost d̅
-            jobs
-            |> Set.map (fun j -> (j, (Map.find j pests, Map.find j plsts)))
-            |> Set.toList
-            |> Map.ofList        
-
         let choosePeriodForJob sts j =
-            let timeWindows = timeWindowsForPartial sts d̅
-            let (estj,lstj) = (Map.find j timeWindows)
-            let timeCostPairs = [estj..lstj] |> Seq.map (fun stj -> (stj, extensionCosts sts j stj))
+            let timeCostPairs = decisionTimesForRD d̅ sts j |> Seq.map (fun stj -> (stj, extensionCosts sts j stj))
             let minCosts = timeCostPairs |> Seq.map snd |> Seq.min
             timeCostPairs |> Seq.filter (fun (t,c) -> c = minCosts) |> Seq.last |> fst
 
