@@ -208,12 +208,17 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
             let cests = computeELstsForSchedule sts baseEsts firstJob 0 preds lastPredFinishingTime max topOrdering
             let clsts = computeELstsForSchedule sts baseLsts lastJob d̅ succs firstSuccStartingTime min revTopOrdering
             let stj =
-                decisionTimesForRD d̅ sts j
-                |> Set.filter (fun dt -> enoughCapacityForJobWithBaseInterval maxOc sts cests clsts j dt)
-                |> selectBestStartingTime sts j
+                let dtimes = decisionTimesForRD d̅ sts j
+                if Set.isEmpty dtimes then -1
+                else
+                    dtimes
+                    |> Set.filter (fun dt -> enoughCapacityForJobWithBaseInterval maxOc sts cests clsts j dt)
+                    |> selectBestStartingTime sts j
             Map.add j stj sts
             
-        Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+        let sts = Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+        if Map.exists (fun k v -> v = -1) sts then None
+        else Some(sts)
     //#endregion
 
     //#region accessors

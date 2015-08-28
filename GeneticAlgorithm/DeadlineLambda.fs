@@ -27,7 +27,8 @@ module DeadlineLambda =
             else individual
                 
         let fitness (individual:Individual) =
-            ps.DeadlineCostMinHeur individual.deadline (Seq.ofList individual.order)
-            |> ps.Profit
+            let stsOpt = ps.DeadlineCostMinHeur individual.deadline (Seq.ofList individual.order)
+            if stsOpt.IsSome then ps.Profit stsOpt.Value
+            else 0.0
 
         GeneticAlgorithm.solve (init popSize) crossover mutate fitness numGens ps
