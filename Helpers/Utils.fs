@@ -44,6 +44,7 @@ module Utils =
     let map2DToFunc m k1 k2 = Map.find k2 <| Map.find k1 m
 
     let keys m = Map.toSeq m |> Seq.map fst
+    let keyset m = keys m |> Set.ofSeq
     let vals m = Map.toSeq m |> Seq.map snd
 
     let (><) xs ys = Seq.collect (fun x -> Seq.map (fun y -> (x,y)) ys) xs      
