@@ -57,7 +57,6 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
-    <Compile Include="Helpers\Folds.fs" />
     <Compile Include="Helpers\System.fs" />
     <Compile Include="Helpers\Utils.fs" />
     <Compile Include="Helpers\Serialization.fs" />

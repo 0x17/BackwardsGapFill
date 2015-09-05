@@ -76,8 +76,19 @@ module Utils =
 
     let gap (opt:float) (approx:float) = abs ((opt - approx) / (opt + boolToFloat (opt = 0.0)))
 
+    let rec foldItselfConvergeHash f h seed =
+        let v = f seed
+        if h v <> h seed then foldItselfConvergeHash f h v
+        else seed
+
+    let foldItselfConverge f seed = foldItselfConvergeHash f (fun x -> x) seed
+
+    let rec foldItselfTimes f seed n =
+        if n = 1 then f seed
+        else f (foldItselfTimes f seed (n-1))
+
     let transitiveHull nodeToSet =
-        memoize (fun startNode -> Folds.foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))
+        memoize (fun startNode -> foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))
 
     let swap (a,b) = (b,a)
 
