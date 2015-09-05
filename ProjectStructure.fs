@@ -39,9 +39,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let lastPredFinishingTime = lastPredCore preds
     let firstSuccStartingTime = firstSuccCore succs
 
-    let lastPredFinishingTimePartial sts = lastPredCore (fun j -> (Set.intersect (preds j) (keyset sts))) sts
-    let firstSuccStartingTimePartial fts = firstSuccCore (fun i -> (Set.intersect (succs i) (keyset fts))) fts
-
     let isFinishedAtEndOfPeriod sts t j = Map.containsKey j sts && ft sts j <= t
     let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
 
@@ -100,14 +97,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     //#endregion
 
     //#region scheduling with deadline
-    let timeWindow j cests clsts = Map.find j clsts - Map.find j cests
-    let isFixed j cests clsts = timeWindow j cests clsts = 0
-    let isPartiallyFixed j cests clsts =
-        let tw = timeWindow j cests clsts
-        tw > 0 && tw < durations j
     let baseIntervalUb j cests = Map.find j cests + durations j
     let baseIntervalLb j clsts = Map.find j clsts + 1
-    let baseInterval j cests clsts = [baseIntervalLb j clsts .. baseIntervalUb j cests]
 
     let periodInBaseInterval cests clsts t j =
         t >= baseIntervalLb j clsts && t <= baseIntervalUb j cests
@@ -133,15 +124,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     //#endregion
 
     //#region SGS with consideration of deadline
-    let latestTimeAndResourceFeasiblePeriod z d̅ sts j =
-        (numsLeq (firstSuccStartingTime sts j) |> Seq.find (enoughCapacityForJob z sts j))
-
-    let timeAndResourceFeasiblePeriods z sts cests clsts j =
-        let lb = Map.find j cests
-        let ub = Map.find j clsts
-        let between = [lb + 1 .. ub - 1] |> List.filter (enoughCapacityForJob z sts j) |> Set.ofList
-        Set.union (set [lb; ub]) between
-
     let completionTimes sts = sts |> Map.toList |> List.map (fun (j,stj) -> stj + durations j) |> Set.ofList
     let startingTimes sts = sts |> vals |> Set.ofSeq
 
