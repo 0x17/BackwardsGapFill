@@ -26,12 +26,21 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let ft sts j = sttoft j (Map.find j sts)
     let st fts j = fttost j (Map.find j fts)
 
+    let ftstosts fts = Map.map fttost fts
+    let ststofts sts = Map.map sttoft sts
+
     let zeroOc r t = 0
     let maxOc r t = zmax r
 
     //#region schedule properties
-    let lastPredFinishingTime sts = Seq.max << Seq.map (ft sts) << preds
-    let firstSuccStartingTime fts = Seq.min << Seq.map (st fts) << succs
+    let lastPredCore predfunc sts = Seq.max << Seq.map (ft sts) << predfunc
+    let firstSuccCore succfunc fts = Seq.min << Seq.map (st fts) << succfunc
+
+    let lastPredFinishingTime = lastPredCore preds
+    let firstSuccStartingTime = firstSuccCore succs
+
+    let lastPredFinishingTimePartial sts = lastPredCore (fun j -> (Set.intersect (preds j) (keyset sts))) sts
+    let firstSuccStartingTimePartial fts = firstSuccCore (fun i -> (Set.intersect (succs i) (keyset fts))) fts
 
     let isFinishedAtEndOfPeriod sts t j = Map.containsKey j sts && ft sts j <= t
     let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
@@ -61,8 +70,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     //#region basic schedule generation schemes
     let (computeEsts, computeLfts) =        
-        let elsftForJob seedKey seedVal func sts j =
-            Map.add j (if j = seedKey then seedVal else func sts j) sts
+        let elsftForJob seedKey seedVal func sfts j =
+            Map.add j (if j = seedKey then seedVal else func sfts j) sfts
         ((fun () -> Seq.fold (elsftForJob firstJob 0 lastPredFinishingTime) Map.empty topOrdering),
          (fun deadline -> Seq.fold (elsftForJob lastJob deadline firstSuccStartingTime) Map.empty revTopOrdering))
 
@@ -71,6 +80,16 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let lfts = computeLfts T
     let lsts = st lfts
+
+    let (computeEstsForPartial, computeLftsForPartial) =
+        let determineElsft func selfunc partialsfts sts j =
+            let elsft = func sts j
+            if Map.containsKey j partialsfts then selfunc elsft (Map.find j partialsfts)
+            else elsft
+        let elsftForJob selfunc partialsfts seedKey seedVal func sts j =
+            Map.add j (if j = seedKey then lookupOrVal seedKey partialsfts seedVal else determineElsft func selfunc partialsfts sts j) sts
+        ((fun partialsts -> Seq.fold (elsftForJob max partialsts firstJob 0 lastPredFinishingTime) Map.empty topOrdering),
+         (fun partialfts deadline -> Seq.fold (elsftForJob min partialfts lastJob deadline firstSuccStartingTime) Map.empty revTopOrdering))
 
     let earliestTimeAndResourceFeasiblePeriod z sts j =
         (numsGeq (lastPredFinishingTime sts j) |> Seq.find (enoughCapacityForJob z sts j))
@@ -86,48 +105,52 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let isPartiallyFixed j cests clsts =
         let tw = timeWindow j cests clsts
         tw > 0 && tw < durations j
-    let baseInterval j cests clsts = [Map.find j clsts .. Map.find j cests + durations j]
+    let baseIntervalUb j cests = Map.find j cests + durations j
+    let baseIntervalLb j clsts = Map.find j clsts + 1
+    let baseInterval j cests clsts = [baseIntervalLb j clsts .. baseIntervalUb j cests]
+
+    let periodInBaseInterval cests clsts t j =
+        t >= baseIntervalLb j clsts && t <= baseIntervalUb j cests
 
     let baseIntervalInPeriodSet unscheduled cests clsts t =
-        unscheduled |> Set.filter (fun j -> baseInterval j cests clsts |> List.exists ((=) t))        
-    let activeInPeriodSetWithBaseInterval sts cests clsts t =
-        let unscheduled = Set.difference jobs (keyset sts)
+        unscheduled |> Set.filter (periodInBaseInterval cests clsts t)        
+    let activeInPeriodSetWithBaseInterval unscheduled sts cests clsts t =
         Set.union (Set.ofSeq (activeInPeriodSet sts t)) (baseIntervalInPeriodSet unscheduled cests clsts t)
 
-    let demandInPeriodWithBaseInterval sts cests clsts r t =
-        activeInPeriodSetWithBaseInterval sts cests clsts t |> Seq.sumBy (fun j -> demands j r)
+    let demandInPeriodWithBaseInterval unscheduled sts cests clsts r t =
+        activeInPeriodSetWithBaseInterval unscheduled sts cests clsts t |> Seq.sumBy (fun j -> demands j r)
 
     let neededOvercapacityInPeriodForJob sts r t j = max 0 (demands j r - residualCapacity sts r t)
     let extensionCosts sts j stj =
         resources >< [stj+1..stj+durations j]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriodForJob sts r t j))
 
-    let residualCapacityWithBaseInterval sts cests clsts r t = capacities r - demandInPeriodWithBaseInterval sts cests clsts r t
+    let residualCapacityWithBaseInterval unscheduled sts cests clsts r t = capacities r - demandInPeriodWithBaseInterval unscheduled sts cests clsts r t
 
-    let enoughCapacityForJobWithBaseInterval z sts cests clsts j stj =
+    let enoughCapacityForJobWithBaseInterval unscheduled z sts cests clsts j stj =
         resources >< executionPeriods j stj
-        |> Seq.forall (fun (r,t) -> residualCapacityWithBaseInterval sts cests clsts r t + z r t >= demands j r)
+        |> Seq.forall (fun (r,t) -> residualCapacityWithBaseInterval unscheduled sts cests clsts r t + z r t >= demands j r)
     //#endregion
 
     //#region SGS with consideration of deadline
     let latestTimeAndResourceFeasiblePeriod z d̅ sts j =
         (numsLeq (firstSuccStartingTime sts j) |> Seq.find (enoughCapacityForJob z sts j))
 
-    let timeAndResourceFeasiblePeriods z d̅ sts j =
-        let lb = earliestTimeAndResourceFeasiblePeriod z sts j
-        let ub = latestTimeAndResourceFeasiblePeriod z d̅ sts j
+    let timeAndResourceFeasiblePeriods z sts cests clsts j =
+        let lb = Map.find j cests
+        let ub = Map.find j clsts
         let between = [lb + 1 .. ub - 1] |> List.filter (enoughCapacityForJob z sts j) |> Set.ofList
         Set.union (set [lb; ub]) between
 
     let completionTimes sts = sts |> Map.toList |> List.map (fun (j,stj) -> stj + durations j) |> Set.ofList
     let startingTimes sts = sts |> vals |> Set.ofSeq
 
-    let decisionTimesForRD d̅ sts j =
-        let wtilde = timeAndResourceFeasiblePeriods maxOc d̅ sts j        
+    let decisionTimesForRD sts cests clsts j =
+        let timeWindowPredFeas = Set.ofList [ Map.find j cests .. Map.find j clsts ]
         Set.unionMany [
-            set [wtilde.MinimumElement; wtilde.MaximumElement];
-            Set.intersect wtilde (completionTimes sts);
-            wtilde |> Set.filter (fun t -> Set.contains (t + durations j) (startingTimes sts))]
+            set [timeWindowPredFeas.MinimumElement; timeWindowPredFeas.MaximumElement];
+            Set.intersect timeWindowPredFeas (completionTimes sts);
+            timeWindowPredFeas |> Set.filter (fun t -> Set.contains (t + durations j) (startingTimes sts))]
     //#endregion
 
     let deadline = Map.find lastJob lfts
@@ -188,36 +211,37 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     // Implementation of modified priority rule method for the resource deviation problem (RD objective function)
     // Source: Zimmermann, Stark, Rieck - Projektplanung (2010)
     let deadlineCostMinHeur (d̅: int) (λ: int seq) =
-        let baseEsts = computeEsts () |> mapToFunc
-        let baseLsts = computeLfts d̅ |> st
-
-        let computeELstsForSchedule sts baseVals seedKey seedVal rel relfunc selector ordering =
-            let stForSchedule sts j =
-                if j = seedKey then seedVal
-                else selector (baseVals j) (if rel j |> Set.isEmpty then seedVal else relfunc sts j)
-            Seq.fold (fun acc j -> Map.add j (stForSchedule sts j) acc) Map.empty ordering
-
         let selectBestStartingTime sts j decisionTimes =
-            decisionTimes
-            |> Set.map (fun dt -> (dt, extensionCosts sts j dt))
-            |> Set.toList
-            |> List.minBy snd
-            |> fst
-
-        let scheduleJob sts j =
-            let cests = computeELstsForSchedule sts baseEsts firstJob 0 preds lastPredFinishingTime max topOrdering
-            let clsts = computeELstsForSchedule sts baseLsts lastJob d̅ succs firstSuccStartingTime min revTopOrdering
-            let stj =
-                let dtimes = decisionTimesForRD d̅ sts j
-                if Set.isEmpty dtimes then -1
-                else
-                    dtimes
-                    |> Set.filter (fun dt -> enoughCapacityForJobWithBaseInterval maxOc sts cests clsts j dt)
-                    |> selectBestStartingTime sts j
-            Map.add j stj sts
+            if Set.isEmpty decisionTimes then -1
+            else
+                decisionTimes
+                |> Set.map (fun dt -> (dt, extensionCosts sts j dt))
+                |> Set.toList
+                |> List.minBy snd
+                |> fst
             
-        let sts = Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
-        if Map.exists (fun k v -> v = -1) sts then None
+        let scheduleJobTime sts j =
+            let cests = computeEstsForPartial sts
+            let clsts = computeLftsForPartial (ststofts sts) d̅ |> ftstosts
+            let dtimes = decisionTimesForRD sts cests clsts j
+            let unscheduled = Set.difference jobs (keyset sts)
+            if Set.isEmpty dtimes then -1
+            else
+                dtimes
+                |> Set.filter (fun dt -> enoughCapacityForJobWithBaseInterval unscheduled maxOc sts cests clsts j dt)
+                |> selectBestStartingTime sts j
+
+        let rec iterate sts rest =
+            if Seq.isEmpty rest then sts
+            else
+                let j = Seq.head rest
+                let stj = scheduleJobTime sts j
+                if stj = -1 then sts
+                else
+                    iterate (Map.add j stj sts) (Seq.skip 1 rest)
+
+        let sts = iterate (Map.ofList [(firstJob, 0)]) (Seq.filter (fun j -> j <> firstJob) λ)
+        if Seq.length (keys sts) < jobs.Count then None
         else Some(sts)
     //#endregion
 

@@ -86,3 +86,5 @@ module Utils =
         let elem = lst.[rix]
         lst.RemoveAt(rix)
         elem
+
+    let lookupOrVal key mapping v = if Map.containsKey key mapping then Map.find key mapping else v
