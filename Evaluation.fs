@@ -69,25 +69,25 @@ module Evaluation =
                 let columns = line.Split(csvSplitter)
                 let profits =
                     columns
-                    |> Seq.skip 1
-                    |> Seq.map (fun col -> col.Split(colonSplitter) |> Seq.nth limitIx |> Double.Parse)
+                    |> Array.skip 1
+                    |> Array.map (fun col -> col.Split(colonSplitter) |> Seq.item limitIx |> Double.Parse)
                 let descProfits =
                     profits
-                    |> Seq.distinct
-                    |> Seq.sortBy (fun p -> -p)
+                    |> Array.distinct
+                    |> Array.sortBy (fun p -> -p)
                 let ranks =
                     profits
-                    |> Seq.map (fun p -> (indexOf p descProfits) + 1 |> string)
+                    |> Array.map (fun p -> (indexOf p descProfits) + 1 |> string)
                 Seq.append [columns.[0]] ranks
-            Seq.map profitsLineToRanks (Seq.skip 1 lines)
+            Array.map profitsLineToRanks (Array.skip 1 lines)
 
-        let csvRankings limitIx = rankings limitIx |> Seq.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines |> texSymToUtf8)
+        let csvRankings limitIx = rankings limitIx |> Array.fold (fun acc ranking -> acc + "\n" + (toCsv ranking)) (Seq.head lines |> texSymToUtf8)
 
         let numLimits = countLimits lines.[1]
         let captions =
             limits
-            |> Seq.take numLimits
-            |> Seq.map (fun l -> l + "s")
+            |> List.take numLimits
+            |> List.map (fun l -> l + "s")
         let csvDatas = Seq.init numLimits csvRankings
         csvToExcelSheets captions csvDatas (resultsFn.Replace(".csv", ".xlsx").Replace("Raw", "Rankings"))
 
@@ -197,7 +197,7 @@ module Evaluation =
         let tablesForEachLimit acc (fn, caption, optsfn) =
             let nlimits = countLimits (File.ReadLines(fn) |> Seq.skip 1 |> Seq.head)
             let tableFrame (s,ctr) limitIx =
-                (s + caption + " (limit=" + (Seq.nth limitIx limits) + "s)\\\\" + (evaluateResultsToTexTable fn limitIx optsfn) + "\\\\[8pt]" + pbreak ctr, ctr+1)
+                (s + caption + " (limit=" + (Seq.item limitIx limits) + "s)\\\\" + (evaluateResultsToTexTable fn limitIx optsfn) + "\\\\[8pt]" + pbreak ctr, ctr+1)
             [|0..nlimits-1|] |> Array.fold tableFrame acc
         let tablesTex = resultsCaptionsOpts |> Seq.fold tablesForEachLimit ("", 0) |> fst
         insertIntoSkeletonBuildAndCleanup tablesTex @"AggrErgebnisse.tex"

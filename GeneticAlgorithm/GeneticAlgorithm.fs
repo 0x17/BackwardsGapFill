@@ -6,8 +6,8 @@ open System.Collections.Generic
 module GeneticAlgorithm =
     let randomPairs (elems: 'I[]) =
         let pivot = elems.Length / 2
-        let elite = elems |> Seq.take pivot |> Seq.toArray
-        let mutRest = new List<'I>(elems |> Seq.skip pivot)
+        let elite = elems |> Array.take pivot
+        let mutRest = new List<'I>(elems |> Array.skip pivot)
         Array.map (fun e -> (e, removeRandomElement mutRest)) elite
     
     let randomPairApply (elems:'I[]) (pairwiseFunc: ('I*'I) -> 'I) =

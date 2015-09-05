@@ -37,7 +37,7 @@ module PriorityRules =
             ps.Deadline - ps.EarliestFinishingTimes j - ps.Durations j
         orderJobsBy ps slackTime
 
-    let grr ps = orderJobsByRev ps (fun j -> ps.Resources |> Seq.sumBy (fun r -> ps.Demands j r))
+    let grr ps = orderJobsByRev ps (fun j -> Seq.sumBy (fun r -> ps.Demands j r) ps.Resources)
 
     let allRules = [spt; lis; mts; lpt; mis; lts; grpw; est; ect; lst; lct; mslk; grr]
 

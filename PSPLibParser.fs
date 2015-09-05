@@ -21,18 +21,18 @@ module PSPLibParser =
     let parseSuccs lines =
         let parseSuccLine line = 
             let p = Array.map int <| parts line
-            (p.[0], Seq.ofArray p.[3..3+p.[2]-1])            
-        Map.ofSeq <| Seq.map parseSuccLine lines
+            (p.[0], p.[3..3+p.[2]-1])            
+        Map.ofArray <| Array.map parseSuccLine lines
 
-    let succsToPreds (succs:Map<int,int seq>) =
-        let findPreds j = Seq.filter (fun i -> succs |> Map.find i |> Seq.exists (fun x -> x = j)) (keys succs)
+    let succsToPreds (succs:Map<int,int[]>) =
+        let findPreds j = Seq.filter (fun i -> succs |> Map.find i |> Array.exists (fun x -> x = j)) (keys succs)
         let arr = Array.zeroCreate (Seq.length (keys succs))
         for i in 0..arr.Length-1 do arr.[i] <- set (findPreds (i+1))
         arr
 
     let parseDurations lines = [| for line in lines -> int (parts line).[2] |]
     let parseDemands numRes lines = [| for line in lines -> Array.map int ((parts line).[3..3+numRes-1]) |]
-    let parseCapacities numRes line = Seq.take numRes (parts line) |> Seq.map int |> Array.ofSeq
+    let parseCapacities numRes line = Array.take numRes (parts line) |> Array.map int
     let countRes capLine = Regex.Matches(capLine, "R \d").Count
     
     let parse filename =
@@ -53,7 +53,7 @@ module PSPLibParser =
         
         let capacities = parseCapacities numRes lines.[offsets("cap")+2]
 
-        let numJobs = Seq.length durations
+        let numJobs = Array.length durations
         let jobs = set [1..numJobs]
         let resources = set [1..numRes]       
 
@@ -65,7 +65,5 @@ module PSPLibParser =
                                 resources, kappaFunc, zmaxFunc)
 
     let foreachProjInPath path func =
-        let projFiles = System.IO.Directory.GetFiles(path, "*.DAT", System.IO.SearchOption.AllDirectories)
-        for f in projFiles do
-            let ps = parse f
-            func f ps
+        System.IO.Directory.GetFiles(path, "*.DAT", System.IO.SearchOption.AllDirectories)
+        |> Array.iter (fun f -> func f (parse f))

@@ -5,7 +5,7 @@ open Utils
 module GeneticOperators =
     let onePointCrossoverPermuts mother father =
         let q = rand 1 (List.length mother)
-        let fromMother = mother |> Seq.take q |> Seq.toList        
+        let fromMother = List.take q mother
         let fromFather = diff father fromMother
         fromMother @ fromFather
 
@@ -18,6 +18,6 @@ module GeneticOperators =
         List.permute ixMap order
 
     let recombineNaive index lstA lstB =
-        let partA = Seq.take index lstA |> Seq.toList
-        let partB = Seq.skip index lstB |> Seq.toList
+        let partA = List.take index lstA
+        let partB = List.skip index lstB
         partA @ partB

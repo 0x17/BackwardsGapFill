@@ -30,11 +30,11 @@ module Utils =
     let notin coll o = not (contains o coll)
     let indexOf seq elem = Seq.findIndex ((=) elem) seq
     let remove pred = List.filter (not << pred)
-    let diff colla collb = colla |> List.filter (notin collb)
+    let diff colla collb = List.filter (notin collb) colla
     let without o = remove ((=) o)
     let withoutOnce o lst =
         let ix = List.findIndex ((=) o) lst
-        (Seq.toList (Seq.take ix lst)) @ (Seq.toList (Seq.skip (ix+1) lst))
+        (List.take ix lst) @ (List.skip (ix+1) lst)
 
     let boolToInt v = if v then 1 else 0
     let boolToFloat = float << boolToInt
@@ -54,7 +54,7 @@ module Utils =
     let (rand, randomlyChoose: seq<obj> -> obj) =
         let rgen = System.Random 23
         ((fun lb ub -> rgen.Next (lb, inc ub)),
-         (fun nums -> Seq.nth (rgen.Next (0, Seq.length nums)) nums))
+         (fun nums -> Seq.item (rgen.Next (0, Seq.length nums)) nums))
 
     let pickRandomNums n lb ub =
         let rec helper acc n =

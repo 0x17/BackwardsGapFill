@@ -182,7 +182,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let ssgsTau λ τ =
         let chooseWithTau sts j tlower tupper =
-            let lb = tlower + int(floor((float(tupper) - float(tlower)) / 100.0 * float(Seq.nth j τ)))
+            let lb = tlower + int(floor((float(tupper) - float(tlower)) / 100.0 * float(Seq.item j τ)))
             numsGeq lb |> Seq.find (enoughCapacityForJob maxOc sts j)
         ssgsWindow chooseWithTau λ
 

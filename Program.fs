@@ -1,8 +1,5 @@
 ﻿namespace RCPSP
 
-open Runners
-open Evaluation
-
 module Program =
     [<EntryPoint>]
     let main argv =
