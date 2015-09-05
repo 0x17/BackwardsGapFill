@@ -39,9 +39,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let lastPredFinishingTime = lastPredCore preds
     let firstSuccStartingTime = firstSuccCore succs
 
-    let isFinishedAtEndOfPeriod sts t j = Map.containsKey j sts && ft sts j <= t
-    let arePredsFinished sts j t = preds j |> Set.forall (isFinishedAtEndOfPeriod sts t)
-
     let executionPeriods j stj = [stj+1..stj+durations j]
 
     let isActiveInPeriod sts t j = (Map.find j sts) < t && t <= ft sts j        
@@ -54,8 +51,6 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let enoughCapacityForJob z sts j stj =
         resources >< executionPeriods j stj
         |> Seq.forall (fun (r,t) -> residualCapacity sts r t + z r t >= demands j r)
-
-    let predsAndCapacityFeasible z sts j t = arePredsFinished sts j t && enoughCapacityForJob z sts j t
 
     let makespan sts = ft sts lastJob
 
@@ -92,6 +87,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         (numsGeq (lastPredFinishingTime sts j) |> Seq.find (enoughCapacityForJob z sts j))
 
     let scheduleJob z acc j = Map.add j (earliestTimeAndResourceFeasiblePeriod z acc j) acc
+
     let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
     let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
     //#endregion
@@ -104,19 +100,23 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         t >= baseIntervalLb j clsts && t <= baseIntervalUb j cests
 
     let baseIntervalInPeriodSet unscheduled cests clsts t =
-        unscheduled |> Set.filter (periodInBaseInterval cests clsts t)        
+        Set.filter (periodInBaseInterval cests clsts t) unscheduled
+
     let activeInPeriodSetWithBaseInterval unscheduled sts cests clsts t =
         Set.union (Set.ofSeq (activeInPeriodSet sts t)) (baseIntervalInPeriodSet unscheduled cests clsts t)
 
     let demandInPeriodWithBaseInterval unscheduled sts cests clsts r t =
         activeInPeriodSetWithBaseInterval unscheduled sts cests clsts t |> Seq.sumBy (fun j -> demands j r)
 
-    let neededOvercapacityInPeriodForJob sts r t j = max 0 (demands j r - residualCapacity sts r t)
+    let neededOvercapacityInPeriodForJob sts r t j =
+        max 0 (demands j r - residualCapacity sts r t)
+
     let extensionCosts sts j stj =
         resources >< [stj+1..stj+durations j]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriodForJob sts r t j))
 
-    let residualCapacityWithBaseInterval unscheduled sts cests clsts r t = capacities r - demandInPeriodWithBaseInterval unscheduled sts cests clsts r t
+    let residualCapacityWithBaseInterval unscheduled sts cests clsts r t =
+        capacities r - demandInPeriodWithBaseInterval unscheduled sts cests clsts r t
 
     let enoughCapacityForJobWithBaseInterval unscheduled z sts cests clsts j stj =
         resources >< executionPeriods j stj
@@ -124,8 +124,14 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     //#endregion
 
     //#region SGS with consideration of deadline
-    let completionTimes sts = sts |> Map.toList |> List.map (fun (j,stj) -> stj + durations j) |> Set.ofList
-    let startingTimes sts = sts |> vals |> Set.ofSeq
+    let completionTimes sts =
+        Map.toList sts
+        |> List.map (fun (j,stj) -> stj + durations j)
+        |> Set.ofList
+
+    let startingTimes sts =
+        vals sts
+        |> Set.ofSeq
 
     let decisionTimesForRD sts cests clsts j =
         let timeWindowPredFeas = Set.ofList [ Map.find j cests .. Map.find j clsts ]
