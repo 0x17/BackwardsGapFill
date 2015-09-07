@@ -66,6 +66,7 @@
     <Compile Include="GeneticAlgorithm\GeneticAlgorithm.fs" />
     <Compile Include="GeneticAlgorithm\GeneticOperators.fs" />
     <Compile Include="GeneticAlgorithm\Lambda.fs" />
+    <Compile Include="GeneticAlgorithm\LambdaZr.fs" />
     <Compile Include="GeneticAlgorithm\DeadlineLambda.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />

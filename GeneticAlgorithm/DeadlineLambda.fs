@@ -11,8 +11,7 @@ module DeadlineLambda =
                 
         let init ix = {deadline = rand minDeadline maxDeadline; order = shuffle [1..ps.Jobs.Count]}
 
-        let crossover pair =
-            let (mother,father) = pair
+        let crossover (mother,father) =
             let ddeadline = (mother.deadline - father.deadline) / 2 + father.deadline
             let dorder = onePointCrossover mother.order father.order
             {deadline=ddeadline; order=dorder}

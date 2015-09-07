@@ -161,7 +161,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let revenue = u << makespan
 
-    let profit sts = (revenue sts) - totalOvercapacityCosts sts
+    let profit = memoize (fun sts -> (revenue sts) - totalOvercapacityCosts sts)
     //#endregion
 
     //#region advanced schedule generation schemes
