@@ -17,6 +17,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let succs = memoize (fun i -> jobs |> Seq.filter (fun j -> (preds j).Contains i) |> Set.ofSeq)
     let transSuccs = transitiveHull succs
 
+    let canonicalOrdering = seq { 1 .. Set.count jobs}
     let topOrdering = topSort jobs preds
     let revTopOrdering = topSort jobs succs
 
@@ -269,6 +270,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.SerialSGSOC = ssgsOc
     member ps.DeadlineCostMinHeur = deadlineCostMinHeur
     member ps.Profit = profit
+
+    member ps.UpperBoundForMakespanWithOC oc = makespan (ssgs oc canonicalOrdering)
     //#endregion
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =

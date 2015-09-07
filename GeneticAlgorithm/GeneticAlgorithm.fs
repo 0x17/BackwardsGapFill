@@ -1,6 +1,6 @@
 ﻿namespace RCPSP
-
 open Utils
+
 open System.Collections.Generic
 
 module GeneticAlgorithm =
@@ -20,8 +20,9 @@ module GeneticAlgorithm =
         let sortedDescFitness = Array.concat [parents;children] |> Array.sortBy (((*) -1.0) << fitness)
         Array.sub sortedDescFitness 0 parents.Length
 
-    let solve (init: ProjectStructure -> 'I[]) (crossover: ('I*'I) -> 'I) (mutate: 'I -> 'I) (fitness: 'I -> float) numGens (ps: ProjectStructure) =
+    let solve (init: int -> 'I) (crossover: ('I*'I) -> 'I) (mutate: 'I -> 'I) (fitness: 'I -> float) numGens popSize pmutate =
         let rec iterate pop gen =
+            printf "Remaining gens: %d\n" gen
             if gen = 0 then pop
-            else iterate (randomPairApply pop crossover |> Array.map mutate |> selectBest fitness pop) (gen-1)
-        iterate (init ps) numGens |> Seq.head
+            else iterate (randomPairApply pop crossover |> Array.map (withProbabilityOrElse pmutate mutate identity) |> selectBest fitness pop) (gen-1)
+        iterate (Array.init popSize init) numGens |> Seq.head
