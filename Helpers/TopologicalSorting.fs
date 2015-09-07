@@ -16,6 +16,13 @@ module TopologicalSorting =
             let x = Seq.find (Set.isEmpty << Set.intersect (Set.ofList jobs) << preds) jobs
             x :: topSortPreserveOrder (without x jobs) preds
 
+    let rec randomTopSort jobs preds =
+        if Set.isEmpty jobs then []
+        else
+            let eligibles = Seq.filter (Set.isEmpty << Set.intersect jobs << preds) jobs
+            let x = Seq.item (rand 0 ((Seq.length eligibles)-1)) eligibles
+            x :: topSort (Set.remove x jobs) preds
+
     let allTopSorts jobs preds =
         let candidatesForNext ordering =
             let unused = (Set.difference jobs (Set.ofSeq ordering))

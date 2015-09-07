@@ -99,3 +99,7 @@ module Utils =
         elem
 
     let lookupOrVal key mapping v = if Map.containsKey key mapping then Map.find key mapping else v
+
+    let withProbabilityOrElse p thenfunc elsefunc =
+        if rand 1 100 <= p then thenfunc
+        else elsefunc

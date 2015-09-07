@@ -16,7 +16,7 @@ module DeadlineLambda =
         let crossover pair =
             let (mother,father) = pair
             let ddeadline = (mother.deadline - father.deadline) / 2 + father.deadline
-            let dorder = onePointCrossoverPermuts mother.order father.order
+            let dorder = onePointCrossover mother.order father.order
             {deadline=ddeadline; order=dorder}
 
         let mutate individual =

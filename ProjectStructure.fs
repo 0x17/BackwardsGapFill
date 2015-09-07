@@ -172,7 +172,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
         Seq.fold scheduleJob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
 
-    let ssgsoc λ =
+    let ssgsOc λ =
         let completeWithoutOC sts j t =
             let candidate = Map.add j t sts
             let jix = indexOf λ j
@@ -266,6 +266,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.NeededOCForSchedule = neededOvercapacityInPeriod
 
     member ps.SerialSGS = ssgs
+    member ps.SerialSGSOC = ssgsOc
     member ps.DeadlineCostMinHeur = deadlineCostMinHeur
     member ps.Profit = profit
     //#endregion
