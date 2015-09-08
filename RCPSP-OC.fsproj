@@ -64,6 +64,7 @@
     <Compile Include="Helpers\TopologicalSorting.fs" />
     <Compile Include="ProjectStructure.fs" />
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
+    <Compile Include="GeneticAlgorithm\Sampling.fs" />
     <Compile Include="GeneticAlgorithm\GeneticAlgorithm.fs" />
     <Compile Include="GeneticAlgorithm\GeneticOperators.fs" />
     <Compile Include="GeneticAlgorithm\Representations\Lambda.fs" />

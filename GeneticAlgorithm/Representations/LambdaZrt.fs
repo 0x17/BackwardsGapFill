@@ -5,7 +5,8 @@ open Utils
 
 module LambdaZrt =    
     let solveWithGAShared valgen crossoverZfunc mutateZfunc convZtoFunc (ps:ProjectStructure) popSize numGens pmutate =
-        let init ix = (TopologicalSorting.randomTopSort ps.Jobs ps.Preds, valgen ix)
+        let pickfunc = Sampling.generateDefaultNaiveSamplingPickFunc ps
+        let init ix = (pickfunc ix, valgen ix)
         let crossover ((morder,mz),(forder,fz)) = (onePointCrossover morder forder, crossoverZfunc mz fz)
         let mutate (order,z) = (neighborhoodSwap ps.Preds order, mutateZfunc ps z)
         let fitness (order,z) =

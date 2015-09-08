@@ -20,4 +20,11 @@ module TopologicalSorting =
         else
             let eligibles = Seq.filter (Set.isEmpty << Set.intersect jobs << preds) jobs
             let x = Seq.item (rand 0 ((Seq.length eligibles)-1)) eligibles
-            x :: topSort (Set.remove x jobs) preds
+            x :: randomTopSort (Set.remove x jobs) preds
+
+    let rec topOrderSelector jobs preds selector =
+        if Set.isEmpty jobs then []
+        else
+            let eligibles = Seq.filter (Set.isEmpty << Set.intersect jobs << preds) jobs
+            let x = selector eligibles
+            x :: topOrderSelector (Set.remove x jobs) preds selector

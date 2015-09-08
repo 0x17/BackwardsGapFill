@@ -104,3 +104,9 @@ module Utils =
     let withProbabilityOrElse p thenfunc elsefunc =
         if rand 1 100 <= p then thenfunc
         else elsefunc
+
+    let pickWithDiscreteDistribution (distribution:Map<int, float>) =
+        let plessthan j = distribution |> Map.filter (fun k pk -> k <= j) |> vals |> Seq.sum
+        let cumulativeProbs = Map.map (fun j pj -> plessthan j) distribution
+        let rval = randFloat ()
+        Map.findKey (fun j cpj -> rval >= Map.find (dec j) cumulativeProbs && rval < cpj) cumulativeProbs

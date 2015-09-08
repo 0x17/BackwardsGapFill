@@ -5,9 +5,9 @@ open Utils
 
 module LambdaTau =
     let solveWithGAShared valgen invertfunc sgsfunc (ps:ProjectStructure) popSize numGens pmutate =
-        let init ix =
-            (TopologicalSorting.randomTopSort ps.Jobs ps.Preds,
-             List.init ps.Jobs.Count valgen)
+        let pickfunc = Sampling.generateDefaultNaiveSamplingPickFunc ps
+
+        let init ix = (pickfunc ix, List.init ps.Jobs.Count valgen)
 
         let crossover ((morder,mtau),(forder,ftau)) =
             (onePointCrossover morder forder,

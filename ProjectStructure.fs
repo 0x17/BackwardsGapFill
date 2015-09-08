@@ -272,6 +272,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.Profit = profit
 
     member ps.UpperBoundForMakespanWithOC oc = makespan (ssgs oc canonicalOrdering)
+
+    member ps.CanonicalOrder = canonicalOrdering
     //#endregion
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
