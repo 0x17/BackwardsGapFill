@@ -27,8 +27,3 @@ module GeneticOperators =
                 else if i = swapIx then swapIx-1
                 else i
             List.permute ixMap order
-
-    let recombineNaive index lstA lstB =
-        let partA = List.take index lstA
-        let partB = List.skip index lstB
-        partA @ partB
