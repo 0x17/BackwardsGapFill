@@ -109,4 +109,4 @@ module Utils =
         let plessthan j = distribution |> Map.filter (fun k pk -> k <= j) |> vals |> Seq.sum
         let cumulativeProbs = Map.map (fun j pj -> plessthan j) distribution
         let rval = randFloat ()
-        Map.findKey (fun j cpj -> rval >= Map.find (dec j) cumulativeProbs && rval < cpj) cumulativeProbs
+        Map.findKey (fun j cpj -> rval >= (if j = 0 then 0.0 else Map.find (dec j) cumulativeProbs) && rval < cpj) cumulativeProbs

@@ -24,13 +24,13 @@ module Program =
                                    @"../HeursRawj90.csv";
                                    @"../HeursRawj120.csv"]*)
 
-        let ps = Runners.testProjectStructure ()
+        //let ps = Runners.testProjectStructure ()
         
         //let bestIndiv = DeadlineLambda.solveWithGA ps 80 100 5
         //let bestIndiv = Lambda.solveWithGA ps 2 2 5
-        let bestIndiv = LambdaZr.solveWithGA ps 12 4 5
+        //let bestIndiv = LambdaZr.solveWithGA ps 12 4 5
 
-        System.Console.WriteLine("Best individual fitness = " + bestIndiv.ToString())
+        //System.Console.WriteLine("Best individual fitness = " + bestIndiv.ToString())
 
-        //System.Console.ReadKey () |> ignore        
+        System.Console.ReadKey () |> ignore        
         0
