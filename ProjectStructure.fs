@@ -189,13 +189,11 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let ssgsTau λ τ =
         let chooseWithTau sts j tlower tupper =
-            let lb = tlower + int(floor((float(tupper) - float(tlower)) / 100.0 * float(Seq.item j τ)))
+            let lb = tupper - int(floor(float(tupper) - float(tlower)) * (Seq.item j τ))
             numsGeq lb |> Seq.find (enoughCapacityForJob maxOc sts j)
         ssgsWindow chooseWithTau λ
 
-    let ssgsBeta λ β =
-        let betaToTau b = if b = 1 then 0 else 100
-        ssgsTau λ (Seq.map betaToTau β)     
+    let ssgsBeta λ β = ssgsTau λ (Seq.map float β)
 
     // Implementation of modified priority rule method for the resource deviation problem (RD objective function)
     // Source: Zimmermann, Stark, Rieck - Projektplanung (2010)
@@ -268,6 +266,8 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     member ps.SerialSGS = ssgs
     member ps.SerialSGSOC = ssgsOc
+    member ps.SerialSGSBeta = ssgsBeta
+    member ps.SerialSGSTau = ssgsTau
     member ps.DeadlineCostMinHeur = deadlineCostMinHeur
     member ps.Profit = profit
 

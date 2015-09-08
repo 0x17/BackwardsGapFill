@@ -65,10 +65,12 @@
     <Compile Include="GeneticAlgorithm\PriorityRules.fs" />
     <Compile Include="GeneticAlgorithm\GeneticAlgorithm.fs" />
     <Compile Include="GeneticAlgorithm\GeneticOperators.fs" />
-	<Compile Include="GeneticAlgorithm\Representations\LambdaZrt.fs" />
-    <Compile Include="GeneticAlgorithm\Representations\DeadlineLambda.fs" />
     <Compile Include="GeneticAlgorithm\Representations\Lambda.fs" />
+    <Compile Include="GeneticAlgorithm\Representations\LambdaZrt.fs" />
     <Compile Include="GeneticAlgorithm\Representations\LambdaZr.fs" />
+    <Compile Include="GeneticAlgorithm\Representations\LambdaTau.fs" />
+    <Compile Include="GeneticAlgorithm\Representations\LambdaBeta.fs" />
+    <Compile Include="GeneticAlgorithm\Representations\DeadlineLambda.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
     <Compile Include="Visualisation\ScheduleVisualisation.fs" />

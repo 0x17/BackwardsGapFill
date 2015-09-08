@@ -51,9 +51,10 @@ module Utils =
 
     let parts (str:string) = Array.filter (fun (s:string) -> s.Length > 0) (str.Split [|' '|])
         
-    let (rand, randomlyChoose: seq<obj> -> obj) =
+    let (rand, randFloat: unit -> float, randomlyChoose: seq<obj> -> obj) =
         let rgen = System.Random 23
         ((fun lb ub -> rgen.Next (lb, inc ub)),
+         (fun _ -> rgen.NextDouble ()),
          (fun nums -> Seq.item (rgen.Next (0, Seq.length nums)) nums))
 
     let pickRandomNums n lb ub =
