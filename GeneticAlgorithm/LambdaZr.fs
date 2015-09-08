@@ -6,6 +6,9 @@ open Utils
 module LambdaZr =
     type Individual = { order: int list; zr: Map<int,int> }
 
+    let private randomCrossoverZr (mother:Map<'A,'B>) (father:Map<'A,'B>) =
+        Map.map (fun r zrvalM -> if rand 0 1 = 1 then zrvalM else Map.find r father) mother
+
     let solveWithGA (ps:ProjectStructure) popSize numGens pmutate =
         let init ix =
             {order = TopologicalSorting.randomTopSort ps.Jobs ps.Preds;
@@ -13,7 +16,7 @@ module LambdaZr =
 
         let crossover (mother,father) =
             {order = onePointCrossover mother.order father.order;
-             zr = randomCrossover mother.zr father.zr}
+             zr = randomCrossoverZr mother.zr father.zr}
 
         let mutateOc zr =
             Map.map (fun r zrval -> if rand 0 1 = 1 then min (ps.ZMax r) (inc zrval) else max 0 (dec zrval)) zr

@@ -32,6 +32,3 @@ module GeneticOperators =
         let partA = List.take index lstA
         let partB = List.skip index lstB
         partA @ partB
-
-    let randomCrossover mother father =
-        Map.map (fun r zrvalM -> if rand 0 1 = 1 then zrvalM else Map.find r father) mother
