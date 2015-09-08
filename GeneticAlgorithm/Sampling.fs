@@ -17,13 +17,11 @@ module Sampling =
             
         TopologicalSorting.topOrderSelector ps.Jobs ps.Preds selector
 
-    // TODO: Implement me!
-    let betaBiasedRandomSampling: ProjectStructure -> Map<int,float> -> int list =
-        (fun (ps:ProjectStructure) pvals -> List.ofSeq ps.CanonicalOrder)
-
     let generateNaiveSamplingPickFunc (ps:ProjectStructure) (prioRules: (ProjectStructure -> int list) list) =
-        (fun ix -> if ix <= List.length prioRules then (List.item ix prioRules) ps else TopologicalSorting.randomTopSort ps.Jobs ps.Preds)
+        let pickFunc ix =
+            if ix <= List.length prioRules then (List.item ix prioRules) ps
+            else TopologicalSorting.randomTopSort ps.Jobs ps.Preds
+        pickFunc
 
-    let generateDefaultNaiveSamplingPickFunc (ps:ProjectStructure) = generateNaiveSamplingPickFunc ps PriorityRules.allRules
-        
-
+    let generateDefaultNaiveSamplingPickFunc (ps:ProjectStructure) =
+        generateNaiveSamplingPickFunc ps PriorityRules.allRules
