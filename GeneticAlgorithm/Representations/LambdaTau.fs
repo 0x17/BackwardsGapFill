@@ -10,13 +10,18 @@ module LambdaTau =
         let init ix = (pickfunc ix, List.init ps.Jobs.Count valgen)
 
         let crossover ((morder,mtau),(forder,ftau)) =
-            (onePointCrossover morder forder,
-             onePointCrossover mtau ftau)
+            let q = rand 1 (List.length morder)
+            (onePointCrossoverSliceAt q morder forder,
+             onePointCrossoverSliceAt q mtau ftau)
+
+        let flipAtIndex rix tau =
+            List.mapi (fun ix b -> if ix = rix then invertfunc(b) else b) tau
 
         let mutate (order, tau) =
             let rix = rand 0 (dec ps.Jobs.Count)
-            (neighborhoodSwap ps.Preds order,
-             List.mapi (fun ix b -> if ix = rix then invertfunc(b) else b) tau)
+            let swapIx = rand 1 (List.length order - 1)
+            if swapFeasible swapIx ps.Preds order then (swapGenes swapIx order, swapGenes swapIx tau |> flipAtIndex rix)
+            else (order, flipAtIndex rix tau)
 
         let fitness (order, tau) =
             sgsfunc (Seq.ofList order) (Seq.ofList tau)
