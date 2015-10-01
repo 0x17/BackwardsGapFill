@@ -16,7 +16,7 @@ module PSPLibParser =
     let parseCapsOnly filename =
         let lines = File.ReadAllLines(filename)
         let resOffset = offsetStartingWith "RESOURCEAVAILABILITIES" lines
-        lines.[resOffset+2].Split() |> Array.filter (fun s -> s <> "") |> Array.map (fun cstr -> Int32.Parse cstr)
+        lines.[resOffset+2].Split() |> Array.filter (fun s -> s <> "") |> Array.map Int32.Parse
 
     let parseSuccs lines =
         let parseSuccLine line = 

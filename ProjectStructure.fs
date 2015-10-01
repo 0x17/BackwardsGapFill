@@ -93,16 +93,32 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
 
     let quickssgs z λ =     
-        let resRem = Array2D.init (Seq.length resources) T (fun rix tix -> capacities (rix+1) + z (rix+1) (tix+1))
+        let numres = Seq.length resources
+        let resRem = Array2D.init numres T (fun rix tix -> capacities (rix+1) + z (rix+1) (tix+1))        
 
+        (*resources >< executionPeriods j stj |> Seq.forall (fun (r,t) -> resRem.[r-1,t-1] >= demands j r)*)
         let enoughCap j stj =
-            resources >< executionPeriods j stj
-            |> Seq.forall (fun (r,t) -> resRem.[r-1,t-1] >= demands j r)
+            let mutable rix = 0
+            let mutable t = stj+1    
+            let mutable enough = true
+            while enough && rix < numres do
+                while enough && t <= stj + durations j do
+                    if resRem.[rix,t-1] < demands j (rix+1) then
+                        enough <- false
+                    t <- t + 1
+                rix <- rix + 1
+            enough
 
+        (*resources >< executionPeriods j stj |> Seq.iter (fun (r,t) -> resRem.[r-1,t-1] <- resRem.[r-1,t-1] - demands j r)*)
         let removeCap j stj =
-            resources >< executionPeriods j stj
-            |> Seq.iter (fun (r,t) -> resRem.[r-1,t-1] <- resRem.[r-1,t-1] - demands j r)
-            
+            let mutable rix = 0
+            let mutable t = stj+1            
+            while rix < numres do
+                while t <= stj + durations j do
+                    resRem.[rix,t-1] <- resRem.[rix,t-1] - demands j (rix+1)
+                    t <- t + 1
+                rix <- rix + 1
+
         let schedjob sts j =
             let stj = Seq.find (enoughCap j) (numsGeq (lastPredFinishingTime sts j))
             removeCap j stj

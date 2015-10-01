@@ -22,6 +22,8 @@ module GeneticAlgorithm =
 
     let solve (init: int -> 'I) (crossover: ('I*'I) -> 'I) (mutate: 'I -> 'I) (fitness: 'I -> float) numGens popSize pmutate =
         let rec iterate pop gen =
-            if gen = 0 then pop
-            else iterate (randomPairApply pop crossover |> Array.map (withProbabilityOrElse pmutate mutate identity) |> selectBest fitness pop) (gen-1)
-        iterate (Array.init popSize init) numGens |> Seq.head
+            printf "Generation %d\r" gen
+            if gen >= numGens then pop
+            else iterate (randomPairApply pop crossover |> Array.map (withProbabilityOrElse pmutate mutate identity) |> selectBest fitness pop) (inc gen)
+        System.measureAndReturn (fun _ -> Seq.head (iterate (Array.init popSize init) 0))
+        

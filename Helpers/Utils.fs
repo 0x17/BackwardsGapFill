@@ -65,7 +65,7 @@ module Utils =
                 while contains c acc do
                     c <- rand lb ub
                 helper (c :: acc) (n-1)
-        helper List.empty n
+        helper [] n
 
     let replace oldChar newChar = String.map (fun c -> if c = oldChar then newChar else c)
 
@@ -82,14 +82,14 @@ module Utils =
         if h v <> h seed then foldItselfConvergeHash f h v
         else seed
 
-    let foldItselfConverge f seed = foldItselfConvergeHash f (fun x -> x) seed
+    let foldItselfConverge f seed = foldItselfConvergeHash f id seed
 
     let rec foldItselfTimes f seed n =
         if n = 1 then f seed
         else f (foldItselfTimes f seed (n-1))
 
     let transitiveHull nodeToSet =
-        memoize (fun startNode -> foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany) (nodeToSet startNode))
+        memoize ((foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany)) << nodeToSet)
 
     let swap (a,b) = (b,a)
 

@@ -26,3 +26,10 @@ module System =
     let bypassAndPrint x =
         printf "%O\n" x
         x
+
+    let measureAndReturn f =
+        stopwatchStart ()
+        let v = f ()
+        let elapsed = stopwatchStop ()
+        printf "Time elapsed = %.2f\n" elapsed.TotalMilliseconds
+        v
