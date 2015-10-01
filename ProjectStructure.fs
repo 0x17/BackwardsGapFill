@@ -91,6 +91,24 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
     let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
+
+    let quickssgs z λ =     
+        let resRem = Array2D.init (Seq.length resources) T (fun rix tix -> capacities (rix+1) + z (rix+1) (tix+1))
+
+        let enoughCap j stj =
+            resources >< executionPeriods j stj
+            |> Seq.forall (fun (r,t) -> resRem.[r-1,t-1] >= demands j r)
+
+        let removeCap j stj =
+            resources >< executionPeriods j stj
+            |> Seq.iter (fun (r,t) -> resRem.[r-1,t-1] <- resRem.[r-1,t-1] - demands j r)
+            
+        let schedjob sts j =
+            let stj = Seq.find (enoughCap j) (numsGeq (lastPredFinishingTime sts j))
+            removeCap j stj
+            Map.add j stj sts
+
+        Seq.fold schedjob (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
     //#endregion
 
     //#region scheduling with deadline
@@ -265,6 +283,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.NeededOCForSchedule = neededOvercapacityInPeriod
 
     member ps.SerialSGS = ssgs
+    member ps.QuickSerialSGS = quickssgs
     member ps.SerialSGSOC = ssgsOc
     member ps.SerialSGSBeta = ssgsBeta
     member ps.SerialSGSTau = ssgsTau

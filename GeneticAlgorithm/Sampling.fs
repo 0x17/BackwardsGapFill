@@ -19,7 +19,7 @@ module Sampling =
 
     let generateNaiveSamplingPickFunc (ps:ProjectStructure) (prioRules: (ProjectStructure -> int list) list) =
         let pickFunc ix =
-            if ix <= List.length prioRules then (List.item ix prioRules) ps
+            if ix < List.length prioRules then (List.item ix prioRules) ps
             else TopologicalSorting.randomTopSort ps.Jobs ps.Preds
         pickFunc
 

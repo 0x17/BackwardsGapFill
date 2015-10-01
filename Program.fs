@@ -28,7 +28,7 @@ module Program =
         
         //let bestIndiv = DeadlineLambda.solveWithGA ps 80 100 5
         //let bestIndiv = Lambda.solveWithGA ps 2 2 5
-        let bestIndiv = LambdaZr.solveWithGA ps 12 4 5
+        let bestIndiv = LambdaZr.solveWithGA ps 80 100 5
 
         System.Console.WriteLine("Best individual fitness = " + bestIndiv.ToString())
 

@@ -12,7 +12,7 @@ module LambdaZrt =
         let fitness (order,z) =
             order
             |> List.toSeq
-            |> ps.SerialSGS (convZtoFunc z)
+            |> ps.QuickSerialSGS (convZtoFunc z)
             |> ps.Profit
         GeneticAlgorithm.solve init crossover mutate fitness numGens popSize pmutate
 
