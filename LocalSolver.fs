@@ -1,15 +1,16 @@
 ﻿namespace RCPSP
 
 open localsolver
-open Utils
 
 module LocalSolver =    
     let solve (ps:ProjectStructure) =
+        let inline (<<=>) (a:LSExpression) (b:LSExpression) = LSExpression.op_LessThanOrEqual(a,b)
+        let inline (<=>) (a:LSExpression) (b:float) = LSExpression.op_Equality(a,b)
+        let inline (<*>) (a:int) (b:LSExpression) = LSExpression.op_Multiply(int64(a),b)
+        let inline (<**>) (a:float) (b:LSExpression) = LSExpression.op_Multiply(a,b)
+
         use ls = new LocalSolver ()
-
         let model = ls.GetModel ()
-
-        let lastJob = Set.maxElement ps.Jobs
 
         let timeWindow j = [|(ps.EarliestFinishingTimes j) .. (ps.LatestFinishingTimes j)|]
 
@@ -19,30 +20,31 @@ module LocalSolver =
 
         // objective function
         let objfunc =
-            let revenueTerm = model.Sum([| for t in timeWindow lastJob -> LSExpression.op_Multiply(ps.U t, xjt.[lastJob, t])|])
-            let costParts = model.Sum([| for r in ps.Resources do for t in ps.TimeHorizon -> LSExpression.op_Multiply(ps.Kappa r, zrt.[r,t]) |])
-            model.Sum(revenueTerm, LSExpression.op_Multiply(-1.0, costParts))
+            let lastJob = Set.maxElement ps.Jobs
+            let revenueTerm = model.Sum([| for t in timeWindow lastJob -> ps.U t <**> xjt.[lastJob, t]|])
+            let costParts = model.Sum([| for r in ps.Resources do for t in ps.TimeHorizon -> ps.Kappa r <**> zrt.[r,t] |])
+            model.Sum(revenueTerm, -1 <*> costParts)
 
         // constraints
 
         // each activity once
         for j in ps.Jobs do
-            model.AddConstraint (LSExpression.op_Equality(model.Sum([| for t in timeWindow j -> xjt.[j, t]|]), 1.0))
+            model.AddConstraint (model.Sum([| for t in timeWindow j -> xjt.[j, t]|]) <=> 1.0)
 
         // precedence restrictions
         for j in ps.Jobs do
             for i in ps.Preds j do
-                let predFinishSum = model.Sum([| for t in timeWindow i -> LSExpression.op_Multiply(int64(t), xjt.[i,t]) |])
-                let jobStartSum = model.Sum([| for t in timeWindow j -> LSExpression.op_Multiply(int64(t), xjt.[j,t]) |])
-                jobStartSum.AddOperand(-float(ps.Durations j))
-                model.AddConstraint(LSExpression.op_LessThanOrEqual(predFinishSum, jobStartSum))
+                let predFinishSum = model.Sum([| for t in timeWindow i -> t <*> xjt.[i,t] |])
+                let jobStartSum = model.Sum([| for t in timeWindow j -> t <*> xjt.[j,t] |])
+                jobStartSum.AddOperand(int64(-ps.Durations j))
+                model.AddConstraint(predFinishSum <<=> jobStartSum)
 
         // capacity restrictions
         for r in ps.Resources do
             for t in ps.TimeHorizon do
-                let cumulatedDemand = model.Sum([| for j in ps.Jobs do for tau in t..t+(ps.Durations j)-1 -> LSExpression.op_Multiply(int64(ps.Demands j r), xjt.[j,tau]) |])
+                let cumulatedDemand = model.Sum([| for j in ps.Jobs do for tau in t..t+(ps.Durations j)-1 -> ps.Demands j r <*> xjt.[j,tau] |])
                 let totalCapacity = model.Sum(int64(ps.Capacities r), zrt.[r,t])
-                model.AddConstraint(LSExpression.op_LessThanOrEqual(cumulatedDemand, totalCapacity))
+                model.AddConstraint(cumulatedDemand <<=> totalCapacity)
 
         // NOTE: upper bound for overtime not needed, since domain already enforces this!        
         model.Maximize (objfunc)
