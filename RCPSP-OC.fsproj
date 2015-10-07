@@ -24,7 +24,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x64</PlatformTarget>
     <DocumentationFile>
     </DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
@@ -78,6 +78,7 @@
     <Compile Include="GeneticAlgorithm\Representations\DeadlineLambda.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
+    <Compile Include="LocalSolver.fs" />
     <Compile Include="Visualisation\ScheduleVisualisation.fs" />
     <Compile Include="Visualisation\GraphVisualisation.fs" />
     <Compile Include="Visualisation\PlotVisualisation.fs" />
@@ -102,6 +103,9 @@
     </Reference>
     <Reference Include="GAMS.net4">
       <HintPath>..\..\..\..\..\..\GAMS\win64\24.4\GAMS.net4.dll</HintPath>
+    </Reference>
+    <Reference Include="localsolvernet">
+      <HintPath>..\..\..\..\..\..\..\localsolver_6_0\bin\localsolvernet.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
