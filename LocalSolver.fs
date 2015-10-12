@@ -54,6 +54,10 @@ module LocalSolver =
 
         let phase = ls.CreatePhase ()
         phase.SetTimeLimit(3600)
+
+        let param = ls.GetParam()
+        param.SetNbThreads(8)
+
         ls.Solve ()
 
         ls.GetSolution ()
