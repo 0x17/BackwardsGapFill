@@ -5,13 +5,6 @@ $offtext
 
 $eolcom §
 
-*$set instname ProjectStructureData
-
-options OPTCR = 0
-        MIP = GUROBI
-        RESLIM = 604800
-        THREADS = 0;
-
 sets j Arbeitsgänge
      t Perioden
      r Ressourcen;
@@ -26,24 +19,25 @@ parameters
          kappa(r)        Kosten pro Einheit ZK
          capacities(r)   Kapazitäten
          durations(j)    Dauern
-         u3(t)           Erlös (Parabel) bei Makespan t
+         u(t)            Erlös bei Makespan t
          efts(j)         Früheste Startzeitpunkte
          lfts(j)         Späteste Endzeitpunkte
-         demands(j,r)    Bedarf;
+         demands(j,r)    Bedarf
+         deadline        Maximal zulässige Projektdauer;
 
 set pred(i,j) yes gdw. i Vorgänger von j ist;
 
 *$include "data.inc"
 
 *$ontext
-$GDXIN %instname%.gdx
-$load j t r zmax kappa capacities durations u3 efts lfts demands pred
+$GDXIN ProjectStructureData.gdx
+$load j t r zmax kappa capacities durations u efts lfts demands pred deadline
 $GDXIN
 *$offtext
 
 $ontext
  $gdxout ExampleData
- $unload j t r zmax kappa capacities durations u u2 u3 efts lfts demands pred
+ $unload j t r zmax kappa capacities durations u efts lfts demands pred deadline
  $gdxout
 $offtext
 
@@ -63,28 +57,36 @@ binary variable  x(j,t) 1 gdw. AG j in Periode t endet d.h. FTj=t;
 
 integer variable z(r,t) Einheiten ZK von r in Periode t gebucht;
 
-variable         profit3 Gewinn (Parabel);
+variable         profit  Gewinn (Andre)
+                 ms      Makespan;
 
 equations
-                objective3  Weitere ZF
+                objective   Zielfunktion
+                mseq        Makespan in ms setzen
+                deq         Deadline erzwingen
                 precedence  Vorrangbeziehung durchsetzen
                 resusage    Ressourcenverbrauchsrestriktion
                 once        Jeden AG genau 1x einplanen
                 oclimits    Beschränke buchbare ZK
                 zerozmax    Erzwinge zmax auf Null;
 
-objective3                .. profit3 =e= sum(j$lastJob(j), sum(t$tw(j,t), x(j,t)*u3(t)))-sum(r, sum(t, z(r,t)*kappa(r)));
+objective                 .. profit =e= sum(j$lastJob(j), sum(t$tw(j,t), x(j,t)*u(t)))-sum(r, sum(t, z(r,t)*kappa(r)));
 precedence(i,j)$pred(i,j) .. sum(t$tw(i,t), ord(t)*x(i,t)) =l= sum(t$tw(j,t), ord(t)*x(j,t)) - durations(j);
 resusage(r,t)             .. sum(j$actual(j), demands(j,r)*sum(tau$fw(j,t,tau), x(j,tau))) =l= capacities(r) + z(r,t);
 once(j)                   .. sum(t$tw(j,t), x(j,t)) =e= 1;
 oclimits(r,t)             .. z(r,t) =l= zmax(r);
+
+mseq                      .. ms =e= sum(j$lastJob(j), sum(t$tw(j,t), ord(t)*x(j,t)));
+deq                       .. deadline+1 =e= sum(j$lastJob(j), sum(t$tw(j,t), ord(t)*x(j,t)));
+
 zerozmax(r,t)             .. z(r,t) =e= 0;
 
-model rcpspoc  /objective3, precedence, resusage, once, oclimits/;
+model rcpspoc  /objective, precedence, resusage, once, oclimits/;
+model rcpspmc  /mseq, precedence, resusage, once, zerozmax/;
+model rcpspmms /mseq, precedence, resusage, once, oclimits/;
+model rcpspdl  /objective, precedence, resusage, once, oclimits, deq/;
 
-solve rcpspoc using mip maximizing profit3;
-solvetime = rcpspoc.resusd;
-slvstat = rcpspoc.solvestat;
-execute_unload "%instname%_results.gdx" x.l x.m z.l z.m profit3.l profit3.m solvetime slvstat;
+$include %IncFile%
+*$include rcpspoc.inc
 
 display z.l;

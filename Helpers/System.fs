@@ -33,3 +33,5 @@ module System =
         let elapsed = stopwatchStop ()
         printf "Time elapsed = %.2f\n" elapsed.TotalMilliseconds
         v
+
+    let pause = ignore <| System.Console.ReadKey ()

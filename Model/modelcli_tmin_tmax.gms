@@ -21,7 +21,7 @@ parameters
          kappa(r)        Kosten pro Einheit ZK
          capacities(r)   Kapazitäten
          durations(j)    Dauern
-         u3(t)           Erlös (Parabel) bei Makespan t
+         u(t)            Erlös (Parabel) bei Makespan t
          efts(j)         Früheste Startzeitpunkte
          lfts(j)         Späteste Endzeitpunkte
          demands(j,r)    Bedarf;

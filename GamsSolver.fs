@@ -1,10 +1,13 @@
 ﻿namespace RCPSP
 
 open GAMS
-
 open Utils
 
 module GamsSolver =
+    let modelPathPrefix = "Model/"
+    let resultsPathPrefix = "Results/"
+    let decorateResultPath = (+) resultsPathPrefix
+
     let addSetEntries (set:GAMSSet) name entries =
         Seq.iter (fun e -> set.AddRecord(name+string(e)) |> ignore) entries
 
@@ -104,7 +107,7 @@ module GamsSolver =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let db = createDatabase ws ps outFilename
         let job = ws.AddJobFromString("variables x; equations xeq; xeq.. x =e= 23;")
-        job.Run(db)        
+        job.Run(db)
 
     let solveCommon ps incfile (timeout:Option<float>) (additionalData:Option<GAMSDatabase->unit>) =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
@@ -115,8 +118,8 @@ module GamsSolver =
         opt.ResLim <- if timeout.IsNone then System.Double.MaxValue else timeout.Value
         //opt.IterLim <- 99999999
         opt.Threads <- 8
-        opt.Defines.Add("IncFile", incfile+".inc")
-        let job = ws.AddJobFromFile "model.gms"
+        opt.Defines.Add("IncFile", modelPathPrefix+incfile+".inc")
+        let job = ws.AddJobFromFile (modelPathPrefix+"model.gms")
         let db = createDatabase ws ps "ProjectStructureData"
         if additionalData.IsSome then additionalData.Value db
         let writer = System.Console.Out
@@ -132,21 +135,21 @@ module GamsSolver =
         startingTimesForOutDB ps job.OutDB
 
     let solve ps =
-        let timelimitHours = 2.0
-        let job = snd (solveCommon ps "rcpspoc" (Some (3600.0*timelimitHours)) None)
+        let job = snd (solveCommon ps "rcpspoc" (Some (hours 2)) None)
         startingTimesForFinishedJob ps job
 
+    let private makespanForResultGDX (ps:ProjectStructure) (ws:GAMSWorkspace) =
+        decorateResultPath >> ws.AddDatabaseFromGDX >> (startingTimesForOutDB ps) >> fst3 >> ps.Makespan
+
     let solveTminTmax ps =
-        let (ws, job) = solveCommon ps "tmintmax" (Some (3600.0*2.0)) None
-        ["resultsminms.gdx"; "resultsmincost.gdx"]
-        |> List.map (fun fn -> ws.AddDatabaseFromGDX(fn))
-        |> List.map (fun db -> startingTimesForOutDB ps db |> fst3 |> ps.Makespan)
+        let (ws, _) = solveCommon ps "tmintmax" (Some (hours 2)) None
+        ("resultsminms.gdx", "resultsmincost.gdx")
+        |> pairmap (makespanForResultGDX ps ws)
 
     let solveVariants ps =
-        let (ws, job) = solveCommon ps "rcpspvariants" (Some 3600.0) None
-        ["results.gdx"; "results2.gdx"; "results3.gdx"; "resultsmincost.gdx"; "resultsminms.gdx"]
-        |> List.map (fun fn -> ws.AddDatabaseFromGDX(fn))
-        |> List.map (fun db -> startingTimesForOutDB ps db |> fst3 |> ps.Makespan)
+        let (ws, _) = solveCommon ps "rcpspvariants" (Some (hours 1)) None
+        ["results.gdx"; "resultsmincost.gdx"; "resultsminms.gdx"]
+        |> List.map (makespanForResultGDX ps ws)
 
     let solveMinimalCostsWithDeadline ps deadline =
         let setDeadlineParam (db:GAMSDatabase) =
@@ -158,12 +161,12 @@ module GamsSolver =
             let uparam = db.GetParameter("u")
             for t in 1..uparam.NumberRecords do
                 uparam.FindRecord("t"+string(t)).Value <- 0.0
-            db       
+            db
 
         let job = snd (solveCommon ps "rcpspdl" None (Some (ignore << zeroOutRevenue << setDeadlineParam)))
         ps.TotalOvercapacityCosts (startingTimesForFinishedJob ps job |> fst3)
 
     let solveRCPSP (ps:ProjectStructure) =
         let ps2 = new ProjectStructure(ps.Jobs, ps.Durations, ps.Demands, ps.Preds, ps.Resources, ps.Capacities, ps.Kappa, (fun r -> 0))
-        let job = snd (solveCommon ps2 "rcpspoc" None None)        
+        let job = snd (solveCommon ps2 "rcpspoc" None None)
         startingTimesForFinishedJob ps job

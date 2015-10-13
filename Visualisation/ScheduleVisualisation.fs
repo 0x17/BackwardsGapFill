@@ -8,7 +8,7 @@ open System.Windows.Forms
 open Utils
 
 module ScheduleVisualisation =
-    let saveViewToPng (view:Control) filename =
+    let private saveViewToPng (view:Control) filename =
         let bmp = new Bitmap (view.Width, view.Height)
         view.DrawToBitmap(bmp, Rectangle(Point.Empty, bmp.Size))
         bmp.Save (filename+".png")
@@ -16,8 +16,8 @@ module ScheduleVisualisation =
     let saveViews prefix views =
         Seq.iteri (fun i view -> saveViewToPng view (prefix+string(i+1))) views
         
-    let show caption (ps:ProjectStructure) (sts:Map<int,int>) =
-        let lblOffsetY = 500       
+    let private show caption (ps:ProjectStructure) (sts:Map<int,int>) =
+        let lblOffsetY = 500
 
         let mainForm = new Form (Width = 1280, Height = 720, Text = "Ablaufplan - " + caption)
         mainForm.StartPosition <- FormStartPosition.CenterScreen
@@ -148,6 +148,8 @@ module ScheduleVisualisation =
         //Seq.map (fun (caption,ps,sts) -> show caption ps sts) data |> saveViews "schedule"
         Seq.iter (fun (caption,ps,sts) -> show caption ps sts |> ignore) data
         System.Windows.Forms.Application.Run ()
+
+    let showSchedule caption ps sts = showSchedules [(caption, ps, sts)]
 
     let showPipe ps sts =
         showSchedules [("Schedule", ps, sts)]

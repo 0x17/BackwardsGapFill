@@ -2,7 +2,7 @@
 
 open localsolver
 
-module LocalSolver =    
+module LocalSolver =
     let solve (ps:ProjectStructure) =
         let inline (<<=>) (a:LSExpression) (b:LSExpression) = LSExpression.op_LessThanOrEqual(a,b)
         let inline (<=>) (a:LSExpression) (b:float) = LSExpression.op_Equality(a,b)
@@ -48,7 +48,7 @@ module LocalSolver =
                 let totalCapacity = model.Sum(int64(ps.Capacities r), zrt.[r-1,t])
                 model.AddConstraint(cumulatedDemand <<=> totalCapacity)
 
-        // NOTE: upper bound for overtime not needed, since domain already enforces this!        
+        // NOTE: upper bound for overtime not needed, since domain already enforces this!
         model.Maximize (objfunc)
         model.Close ()
 
@@ -60,5 +60,14 @@ module LocalSolver =
 
         ls.Solve ()
 
-        ls.GetSolution ()
+        let sol = ls.GetSolution ()
+
+        let stof j = Seq.find (fun t -> sol.GetValue (xjt.[j-1,t]) = 1L) horizon
+        let sts = Map.ofList <| List.map (fun j -> (j, stof j)) (Set.toList ps.Jobs)
+
+        let status = sol.GetStatus ()
+        let solvetime = ls.GetStatistics().GetRunningTime () // secs
+
+        (sts, solvetime, status)
+
     

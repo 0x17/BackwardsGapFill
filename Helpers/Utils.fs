@@ -110,3 +110,8 @@ module Utils =
         let cumulativeProbs = Map.map (fun j pj -> plessthan j) distribution
         let rval = randFloat ()
         Map.findKey (fun j cpj -> rval >= (if j = 0 then 0.0 else Map.find (dec j) cumulativeProbs) && rval < cpj) cumulativeProbs
+
+    let pairmap f (a,b) = (f a, f b)
+
+    let hours n = 3600.0 * float(n)
+
