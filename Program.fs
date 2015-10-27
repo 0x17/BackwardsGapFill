@@ -42,8 +42,13 @@ module Program =
         // Erlösfunktion kennwerte berechnen und gesamt
         // ... syncen alle Bilder
 
-        ScheduleVisualisation.showSchedules [("GAMS optimal schedule", ps, fst3 <| GamsSolver.solve ps);
-                                             ("LocalSolver optimal schedule", ps, fst3 <| LocalSolver.solve ps)]
+        let gmsSol = fst3 <| GamsSolver.solve ps
+        System.pause
+
+        let lsSol = fst3 <| LocalSolver.solve ps
+
+        ScheduleVisualisation.showSchedules [("GAMS optimal schedule", ps, gmsSol);
+                                             ("LocalSolver optimal schedule", ps, lsSol)]
 
         //let tminmax = GamsSolver.solveTminTmax ps
         //let uheur = ps.U

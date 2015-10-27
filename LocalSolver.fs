@@ -14,6 +14,7 @@ module LocalSolver =
 
         let timeWindow j = [|(ps.EarliestFinishingTimes j) .. (ps.LatestFinishingTimes j) - 1|]
 
+        // sets
         let horizon = 0 :: ps.TimeHorizon
 
         // decision variables
@@ -28,25 +29,29 @@ module LocalSolver =
             model.Sum(revenueTerm, -1 <*> costParts)
 
         // constraints
+        let eachActivityOnce () =
+            for j in ps.Jobs do
+                model.AddConstraint (model.Sum([| for t in timeWindow j -> xjt.[j-1, t]|]) <=> 1.0)
 
-        // each activity once
-        for j in ps.Jobs do
-            model.AddConstraint (model.Sum([| for t in timeWindow j -> xjt.[j-1, t]|]) <=> 1.0)
+        let precedenceRestrictions () =
+            for j in ps.Jobs do
+                for i in ps.Preds j do
+                    let predFinishSum = model.Sum([| for t in timeWindow i -> t <*> xjt.[i-1,t] |])
+                    let jobStartSum = model.Sum([| for t in timeWindow j -> t <*> xjt.[j-1,t] |])
+                    jobStartSum.AddOperand(int64(-ps.Durations j))
+                    model.AddConstraint(predFinishSum <<=> jobStartSum)
 
-        // precedence restrictions
-        for j in ps.Jobs do
-            for i in ps.Preds j do
-                let predFinishSum = model.Sum([| for t in timeWindow i -> t <*> xjt.[i-1,t] |])
-                let jobStartSum = model.Sum([| for t in timeWindow j -> t <*> xjt.[j-1,t] |])
-                jobStartSum.AddOperand(int64(-ps.Durations j))
-                model.AddConstraint(predFinishSum <<=> jobStartSum)
+        let capacityRestrictions () =
+            for r in ps.Resources do
+                for t in horizon do
+                    let cumulatedDemand = model.Sum([| for j in ps.Jobs do for tau in t..min (horizon.Length-1) (t+(ps.Durations j)-1) -> ps.Demands j r <*> xjt.[j-1,tau] |])
+                    let totalCapacity = model.Sum(int64(ps.Capacities r), zrt.[r-1,t])
+                    model.AddConstraint(cumulatedDemand <<=> totalCapacity)
 
-        // capacity restrictions
-        for r in ps.Resources do
-            for t in horizon do
-                let cumulatedDemand = model.Sum([| for j in ps.Jobs do for tau in t..min (horizon.Length-1) (t+(ps.Durations j)-1) -> ps.Demands j r <*> xjt.[j-1,tau] |])
-                let totalCapacity = model.Sum(int64(ps.Capacities r), zrt.[r-1,t])
-                model.AddConstraint(cumulatedDemand <<=> totalCapacity)
+        // add constraints
+        eachActivityOnce ()
+        precedenceRestrictions ()
+        capacityRestrictions ()
 
         // NOTE: upper bound for overtime not needed, since domain already enforces this!
         model.Maximize (objfunc)
