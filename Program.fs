@@ -42,9 +42,9 @@ module Program =
         // Erlösfunktion kennwerte berechnen und gesamt
         // ... syncen alle Bilder
 
-        let gmsSol = fst3 <| GamsSolver.solve ps
-        System.pause
+        GraphVisualisation.visualizePrecedenceGraph ps "QBWLExample.pdf"
 
+        let gmsSol = fst3 <| GamsSolver.solve ps
         let lsSol = fst3 <| LocalSolver.solve ps
 
         ScheduleVisualisation.showSchedules [("GAMS optimal schedule", ps, gmsSol);

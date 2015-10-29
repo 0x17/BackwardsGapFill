@@ -82,6 +82,10 @@ module GamsSolver =
         let solveTime = outdb.GetParameter "solveTime" |> parval
         let solveStat = outdb.GetParameter "slvStat" |> parval
 
+        let modelStat = outdb.GetParameter "modelStat" |> parval
+        //printf "Model stat = %.2f\n" modelStat
+        if modelStat <> 1.0 then raise (GAMSException("Model not solved to optimality!"))
+
         (fts, solveTime, solveStat)
 
     let dbForGdxFile gdxFilename =

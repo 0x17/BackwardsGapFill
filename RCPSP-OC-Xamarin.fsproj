@@ -60,6 +60,9 @@
     <Reference Include="FSharp.Core">
       <HintPath>packages\FSharp.Core.4.0.0.1\lib\net40\FSharp.Core.dll</HintPath>
     </Reference>
+    <Reference Include="localsolvernet">
+      <HintPath>libs\localsolvernet.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
@@ -80,6 +83,7 @@
     <Compile Include="GeneticAlgorithm\Representations\DeadlineLambda.fs" />
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
+    <Compile Include="LocalSolver.fs" />
     <Compile Include="Visualisation\ScheduleVisualisation.fs" />
     <Compile Include="Visualisation\GraphVisualisation.fs" />
     <Compile Include="Visualisation\PlotVisualisation.fs" />

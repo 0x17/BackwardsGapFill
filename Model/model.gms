@@ -15,6 +15,7 @@ alias(t,tau);
 parameters
          solvetime       CPU-Zeit
          slvstat         Termination status
+         modelstat       Optimality status
          zmax(r)         Maximale ZK
          kappa(r)        Kosten pro Einheit ZK
          capacities(r)   Kapazitäten

@@ -101,7 +101,7 @@
       <HintPath>Libs\GAMS.net4.dll</HintPath>
     </Reference>
     <Reference Include="localsolvernet">
-      <HintPath>..\..\..\..\..\..\..\localsolver_5_5\bin\localsolvernet.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\localsolver_6_0\bin\localsolvernet.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
