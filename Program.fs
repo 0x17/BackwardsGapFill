@@ -34,24 +34,14 @@ module Program =
         ()
 
     [<EntryPoint>]
+    [<System.STAThreadAttribute>]
     let main argv =
-        let ps = PSPLibParser.parse "../../Projekte/QBWLBeispiel.DAT"
-
-        // Visualisieren
-        // Optimal Lösen Tmin Tmax Cmax Cmin=0 RCPSP-OC
-        // Erlösfunktion kennwerte berechnen und gesamt
-        // ... syncen alle Bilder
-
+        ScheduleVisualisation.fileSelectionPrompt ()
+        (*let ps = PSPLibParser.parse "../../Projekte/QBWLBeispiel.DAT"
         GraphVisualisation.visualizePrecedenceGraph ps "QBWLExample.pdf"
-
         let gmsSol = fst3 <| GamsSolver.solve ps
         let lsSol = fst3 <| LocalSolver.solve ps
-
         ScheduleVisualisation.showSchedules [("GAMS optimal schedule", ps, gmsSol);
-                                             ("LocalSolver optimal schedule", ps, lsSol)]
-
-        //let tminmax = GamsSolver.solveTminTmax ps
-        //let uheur = ps.U
-
+                                             ("LocalSolver optimal schedule", ps, lsSol)]*)
         //System.pause
         0

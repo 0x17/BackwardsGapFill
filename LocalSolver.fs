@@ -61,7 +61,7 @@ module LocalSolver =
         capacityRestrictions ()
 
         // NOTE: upper bound for overtime not needed, since domain already enforces this!
-        overtimeLimit ()
+        //overtimeLimit ()
                 
         model.Maximize (objfunc)
         model.Close ()
