@@ -154,8 +154,8 @@ module ScheduleVisualisation =
     let fileSelectionPrompt () =
         let f = new Form(AutoSize=true, Text="File selection", StartPosition=FormStartPosition.CenterScreen)
 
-        let mutable projFn = ""
-        let mutable stsFn = ""
+        let projFn = ref ""
+        let stsFn = ref ""
 
         let fileDialog () =
             let ofd = new OpenFileDialog()
@@ -168,17 +168,17 @@ module ScheduleVisualisation =
 
         let projFileLbl = new Label(Text = "Project .SM file:", Size = Size(300,30), Location = Point(xOffset, yOffset))
         let projFileSelBtn = new Button(Text = "Select", Location = Point(xOffset+300, yOffset))
-        projFileSelBtn.Click.Add(fun ev -> projFn <- fileDialog ()
-                                           projFileLbl.Text <- projFn)
+        projFileSelBtn.Click.Add(fun ev -> projFn := fileDialog ()
+                                           projFileLbl.Text <- !projFn)
         let stsFileLbl = new Label(Text = "Schedule file:", Size = Size(300,30), Location = Point(xOffset, yOffset+40))
         let stsFileSelBtn = new Button(Text = "Select", Location = Point(xOffset+300, yOffset+40))
-        stsFileSelBtn.Click.Add(fun ev -> stsFn <- fileDialog ()
-                                          stsFileLbl.Text <- stsFn)
+        stsFileSelBtn.Click.Add(fun ev -> stsFn := fileDialog ()
+                                          stsFileLbl.Text <- !stsFn)
 
         let doVisBtn = new Button(Text = "Visualize", Location = Point(xOffset, 100))
         doVisBtn.Click.Add(fun ev ->
-            if projFn.Length > 0 && stsFn.Length > 0 then
-                show ("Schedule " + stsFn) (PSPLibParser.parse projFn) (Serialization.slurpMap stsFn) |> ignore)
+            if (!projFn).Length > 0 && (!stsFn).Length > 0 then
+                show ("Schedule " + !stsFn) (PSPLibParser.parse !projFn) (Serialization.slurpMap !stsFn) |> ignore)
 
         batchAdd [projFileLbl :> Control;
                   projFileSelBtn :> Control;

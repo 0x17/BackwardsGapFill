@@ -36,12 +36,12 @@ module Program =
     [<EntryPoint>]
     [<System.STAThreadAttribute>]
     let main argv =
-        ScheduleVisualisation.fileSelectionPrompt ()
-        (*let ps = PSPLibParser.parse "../../Projekte/QBWLBeispiel.DAT"
+        //ScheduleVisualisation.fileSelectionPrompt ()
+        let ps = PSPLibParser.parse "../../Projekte/QBWLBeispiel.DAT"
         GraphVisualisation.visualizePrecedenceGraph ps "QBWLExample.pdf"
         let gmsSol = fst3 <| GamsSolver.solve ps
-        let lsSol = fst3 <| LocalSolver.solve ps
-        ScheduleVisualisation.showSchedules [("GAMS optimal schedule", ps, gmsSol);
-                                             ("LocalSolver optimal schedule", ps, lsSol)]*)
+        //let lsSol = fst3 <| LocalSolver.solve ps
+        ScheduleVisualisation.showSchedules [("GAMS optimal schedule", ps, gmsSol)]
+                                             //("LocalSolver optimal schedule", ps, lsSol)]
         //System.pause
         0

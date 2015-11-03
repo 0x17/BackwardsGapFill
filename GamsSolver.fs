@@ -42,7 +42,7 @@ module GamsSolver =
             let durationsParam = db.AddParameter ("durations", 1, "Dauern")
             addParamEntriesToF durationsParam "j" ps.Jobs ps.Durations
             let uParam = db.AddParameter ("u", 1, "Erlös bei Makespan t (Parabel)")
-            addParamEntries uParam "t" ps.TimeHorizon ps.U
+            addParamEntries uParam "t" (0 :: ps.TimeHorizon) ps.U
 
             let demandsParam = db.AddParameter ("demands", 2, "Bedarf")
             ps.Jobs >< ps.Resources
