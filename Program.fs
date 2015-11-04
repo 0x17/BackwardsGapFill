@@ -36,12 +36,21 @@ module Program =
     [<EntryPoint>]
     [<System.STAThreadAttribute>]
     let main argv =
+        (*if argv.Length = 2 then
+            let ps = PSPLibParser.parse argv.[0]
+            let sts = Serialization.slurpMap argv.[1]
+            ScheduleVisualisation.showSchedule "Schedule" ps sts*)
+
         //ScheduleVisualisation.fileSelectionPrompt ()
-        let ps = PSPLibParser.parse "../../Projekte/QBWLBeispiel.DAT"
-        GraphVisualisation.visualizePrecedenceGraph ps "QBWLExample.pdf"
+        ScheduleVisualisation.exactSolvePrompt ()
+        
+        (*let ps = PSPLibParser.parse "../../Projekte/j30/j301_1.sm"
+        GraphVisualisation.visualizePrecedenceGraph ps "j301_1.pdf"
         let gmsSol = fst3 <| GamsSolver.solve ps
         //let lsSol = fst3 <| LocalSolver.solve ps
+        //ScheduleVisualisation.showSchedule "LocalSolver schedule" ps lsSol
         ScheduleVisualisation.showSchedules [("GAMS optimal schedule", ps, gmsSol)]
-                                             //("LocalSolver optimal schedule", ps, lsSol)]
-        //System.pause
+                                             //("LocalSolver schedule", ps, lsSol)]
+        //System.pause*)
+
         0

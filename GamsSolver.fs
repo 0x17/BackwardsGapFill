@@ -83,8 +83,9 @@ module GamsSolver =
         let solveStat = outdb.GetParameter "slvStat" |> parval
 
         let modelStat = outdb.GetParameter "modelStat" |> parval
-        //printf "Model stat = %.2f\n" modelStat
-        if modelStat <> 1.0 then raise (GAMSException("Model not solved to optimality!"))
+        printf "Model stat = %.2f\n" modelStat
+        //if modelStat <> 1.0 then raise (GAMSException("Model not solved to optimality!"))
+        if modelStat <> 1.0 then printf "Warning: Not solved to optimality!"
 
         (fts, solveTime, solveStat)
 
@@ -139,7 +140,7 @@ module GamsSolver =
         startingTimesForOutDB ps job.OutDB
 
     let solve ps =
-        let job = snd (solveCommon ps "rcpspoc" (Some (hours 2)) None)
+        let job = snd (solveCommon ps "rcpspoc" (Some (minutes 2))  None)
         startingTimesForFinishedJob ps job
 
     let private makespanForResultGDX (ps:ProjectStructure) (ws:GAMSWorkspace) =

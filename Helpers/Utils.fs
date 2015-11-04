@@ -114,4 +114,5 @@ module Utils =
     let pairmap f (a,b) = (f a, f b)
 
     let hours n = 3600.0 * float(n)
+    let minutes n = 60.0 * float(n)
 

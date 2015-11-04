@@ -19,7 +19,7 @@ module ScheduleVisualisation =
     let private show caption (ps:ProjectStructure) (sts:Map<int,int>) =
         let lblOffsetY = 500
 
-        let mainForm = new Form (Width = 1280, Height = 720, Text = "Ablaufplan - " + caption, StartPosition=FormStartPosition.CenterScreen)
+        let mainForm = new Form (Width = 1280, Height = 800, Text = "Ablaufplan - " + caption, StartPosition=FormStartPosition.CenterScreen)
 
         let z = ps.NeededOCForSchedule sts
 
@@ -150,6 +150,40 @@ module ScheduleVisualisation =
     let showPipe ps sts =
         showSchedules [("Schedule", ps, sts)]
         sts
+
+    let exactSolvePrompt () =
+        let f = new Form(AutoSize=true, Text="File selection", StartPosition=FormStartPosition.CenterScreen)
+
+        let projFn = ref ""
+
+        let fileDialog () =
+            let ofd = new OpenFileDialog()
+            if ofd.ShowDialog() = DialogResult.OK then ofd.FileName else ""
+
+        let batchAdd controls =
+            Seq.iter (fun control -> f.Controls.Add(control)) controls
+
+        let (xOffset, yOffset) = (10, 10)
+
+        let projFileLbl = new Label(Text = "Project .SM file:", Size = Size(300,30), Location = Point(xOffset, yOffset))
+        let projFileSelBtn = new Button(Text = "Select", Location = Point(xOffset+300, yOffset))
+        projFileSelBtn.Click.Add(fun ev -> projFn := fileDialog ()
+                                           projFileLbl.Text <- !projFn)
+
+        let doSolveBtn = new Button(Text = "Solve and visualize", Location = Point(xOffset, 100), Size = Size(200, 30))
+        doSolveBtn.Click.Add(fun ev ->
+            if (!projFn).Length > 0 then
+                let ps = PSPLibParser.parse !projFn
+                let sts = (fst3 <| GamsSolver.solve ps)
+                show ("Schedule") ps sts |> ignore)
+
+        batchAdd [projFileLbl :> Control;
+                  projFileSelBtn :> Control;
+                  doSolveBtn :> Control]
+
+        f.Show ()
+        f.Closed.Add(fun _ -> Application.Exit ())
+        System.Windows.Forms.Application.Run ()
 
     let fileSelectionPrompt () =
         let f = new Form(AutoSize=true, Text="File selection", StartPosition=FormStartPosition.CenterScreen)

@@ -46,7 +46,7 @@ module LocalSolver =
         let capacityRestrictions () =
             for r in ps.Resources do
                 for t in horizon do
-                    let cumulatedDemand = model.Sum([| for j in ps.Jobs -> ps.Demands j r <*> model.Sum([| for tau in t .. min horizon.Length (t+(ps.Durations j)-1) -> x j tau |]) |])
+                    let cumulatedDemand = model.Sum([| for j in ps.Jobs -> model.Sum([| for tau in t .. min horizon.Length (t+(ps.Durations j)-1) -> ps.Demands j r <*> x j tau |]) |])
                     let totalCapacity = model.Sum(int64(ps.Capacities r), z r t)
                     model.Constraint(cumulatedDemand <<=> totalCapacity)
 
@@ -71,12 +71,15 @@ module LocalSolver =
 
         let param = ls.GetParam()
         param.SetNbThreads(8)
+        param.SetVerbosity(2);
 
         ls.Solve ()
 
         let sol = ls.GetSolution ()
 
-        let stof j = Seq.find (fun t -> sol.GetValue (x j t) = 1L) horizon
+        let stof j =
+            let ft = Seq.find (fun t -> sol.GetValue (x j t) = 1L) horizon
+            ft - ps.Durations j
         let sts = Map.ofList <| List.map (fun j -> (j, stof j)) (Set.toList ps.Jobs)
 
         let status = sol.GetStatus ()

@@ -1,24 +1,27 @@
-// rpcspoc.lsp
+// rpcspoc2.lsp
 
 use io;
 
 function model() {
-	// Primary decision variables
-	S[j in 1..njobs] <- int(0, nperiods-1);
+	// Decision variables
+	x[j in 1..njobs][t in 0..nperiods] <- bool(); // primary
+	z[r in 1..nres][t in 0..nperiods] <- int(0, zmax[r]); // derived
 	
-	// Derived cumulated demand expressions
-	cumulatedDemand[r in 1..nres][t in 0..nperiods-1] <- sum[j in 1..njobs](demands[j][r] * (t > S[j] && t <= S[j] + durations[j]));
-		
 	// Objective
-	obj <- revenue[S[njobs]] + sum[r in 1..nres][t in 0..nperiods-1](-kappa[r]*max(0,cumulatedDemand[r][t]-capacities[r]));
+	obj <- sum[t in efts[njobs]..lfts[njobs]](x[njobs][t] * revenue[t]) - sum[r in 1..nres][t in 0..nperiods](kappa[r]*z[r][t]);
 	
-	// Precedence restrictions
-	for[j in 1..njobs]
-		constraint S[j] >= max[i in 1..njobs](adjMx[i][j]*(S[i]+durations[i]));
+	// Precedence constraint
+	for[j in 1..njobs] {
+		latestPredFinished <- sum[i in 1..njobs](adjMx[i][j] * sum[t in efts[i]..lfts[i]](t*x[i][t]));
+		startingTime <- sum[t in efts[j]..lfts[j]](t*x[j][t]);
+		constraint latestPredFinished <= startingTime;
+	}
 	
-	// Resource capacity restrictions
-	for[r in 1..nres][t in 0..nperiods-1]
-		constraint cumulatedDemand[r][t] <= capacities[r] + zmax[r];
+	// Resource capacity constraint
+	for[r in 1..nres][t in 0..nperiods-1] {
+		cumulatedDemand <- sum[j in 1..njobs][tau in t..min(nperiods,t+durations[j]-1)](demands[j][r]*x[j][tau]);
+		constraint cumulatedDemand <= capacities[r] + z[r][t];
+	}
 	
 	maximize obj;
 }
