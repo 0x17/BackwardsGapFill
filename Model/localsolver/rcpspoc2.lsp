@@ -10,10 +10,14 @@ function model() {
 	// Objective
 	obj <- sum[t in efts[njobs]..lfts[njobs]](x[njobs][t] * revenue[t]) - sum[r in 1..nres][t in 0..nperiods](kappa[r]*z[r][t]);
 	
+	// Each once
+	for[j in 1..njobs]
+		constraint sum[t in 0..nperiods](x[j][t]) == 1;
+	
 	// Precedence constraint
 	for[j in 1..njobs] {
-		latestPredFinished <- sum[i in 1..njobs](adjMx[i][j] * sum[t in efts[i]..lfts[i]](t*x[i][t]));
-		startingTime <- sum[t in efts[j]..lfts[j]](t*x[j][t]);
+		latestPredFinished <- max[i in 1..njobs](adjMx[i][j] * sum[t in efts[i]..lfts[i]](t*x[i][t]));
+		startingTime <- sum[t in efts[j]..lfts[j]](t*x[j][t])-durations[j];
 		constraint latestPredFinished <= startingTime;
 	}
 	
@@ -61,7 +65,11 @@ function output() {
 	if(outFileName == nil) outFileName = "ResultSchedule.txt";
 	local f = io.openWrite(outFileName);
 	for[j in 1..njobs] {
-		local outStr = j+"->"+S[j].value;		
+		for[t in 0..nperiods]
+			if(x[j][t].value == 1)
+				S[j] = t - durations[j];
+		
+		local outStr = j+"->"+S[j];
 		f.print(outStr);
 		print(outStr);
 		if(j < njobs) {

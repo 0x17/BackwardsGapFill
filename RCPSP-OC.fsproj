@@ -79,8 +79,8 @@
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
     <Compile Include="LocalSolver.fs" />
-    <Compile Include="Visualisation\ScheduleVisualisation.fs" />
     <Compile Include="Visualisation\GraphVisualisation.fs" />
+    <Compile Include="Visualisation\ScheduleVisualisation.fs" />
     <Compile Include="Visualisation\PlotVisualisation.fs" />
     <Compile Include="Batch\Runners.fs" />
     <Compile Include="Batch\VisRunners.fs" />

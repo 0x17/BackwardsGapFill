@@ -177,9 +177,16 @@ module ScheduleVisualisation =
                 let sts = (fst3 <| GamsSolver.solve ps)
                 show ("Schedule") ps sts |> ignore)
 
+        let doDrawGraphBtn = new Button(Text = "Draw graph", Location = Point(xOffset, 240), Size = Size(200, 30))
+        doDrawGraphBtn.Click.Add(fun ev ->
+            if (!projFn).Length > 0 then
+                let ps = PSPLibParser.parse !projFn
+                GraphVisualisation.visualizePrecedenceGraph ps (!projFn+".pdf"))
+
         batchAdd [projFileLbl :> Control;
                   projFileSelBtn :> Control;
-                  doSolveBtn :> Control]
+                  doSolveBtn :> Control;
+                  doDrawGraphBtn :> Control]
 
         f.Show ()
         f.Closed.Add(fun _ -> Application.Exit ())
