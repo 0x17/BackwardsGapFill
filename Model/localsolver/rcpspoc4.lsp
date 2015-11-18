@@ -1,31 +1,30 @@
-// rpcspoc2.lsp
+// rpcspoc3.lsp
 
 use io;
 
 function model() {
 	// Decision variables
 	x[j in 1..njobs][t in efts[j]..lfts[j]] <- bool(); // primary
-	z[r in 1..nres][t in 0..nperiods] <- int(0, zmax[r]); // derived
 	
+	// Derived cumulated demands
+	cumulatedDemand[r in 1..nres][t in 0..nperiods] <- sum[j in 1..njobs][tau in t..t+durations[j]-1 : tau >= efts[j] && tau <= lfts[j]](demands[j][r]*x[j][tau]);
+		
 	// Objective
-	obj <- sum[t in efts[njobs]..lfts[njobs]](x[njobs][t] * revenue[t]) - sum[r in 1..nres][t in 0..nperiods](kappa[r]*z[r][t]);
+	obj <- sum[t in efts[njobs]..lfts[njobs]](x[njobs][t] * revenue[t]) - sum[r in 1..nres][t in 0..nperiods](kappa[r]*max(0, cumulatedDemand[r][t]-capacities[r]));
+	
+	ft[j in 1..njobs] <- sum[t in efts[j]..lfts[j]](t * x[j][t]);
 	
 	// Each once
 	for[j in 1..njobs]
 		constraint sum[t in efts[j]..lfts[j]](x[j][t]) == 1;
 	
 	// Precedence constraint
-	for[j in 1..njobs] {
-		latestPredFinished <- max[i in 1..njobs](adjMx[i][j] * sum[t in efts[i]..lfts[i]](t*x[i][t]));
-		startingTime <- sum[t in efts[j]..lfts[j]](t*x[j][t])-durations[j];
-		constraint latestPredFinished <= startingTime;
-	}
+	for[j in 1..njobs]
+		constraint (ft[j]-durations[j]) >= max[i in 1..njobs](adjMx[i][j] * ft[i]);
 	
 	// Resource capacity constraint
-	for[r in 1..nres][t in 0..nperiods-1] {
-		cumulatedDemand <- sum[j in 1..njobs][tau in t..min(nperiods,t+durations[j]-1) : tau >= efts[j] && tau <= lfts[j]](demands[j][r]*x[j][tau]);
-		constraint cumulatedDemand <= capacities[r] + z[r][t];
-	}
+	for[r in 1..nres][t in 0..nperiods]
+		constraint cumulatedDemand[r][t] <= capacities[r] + zmax[r];
 	
 	maximize obj;
 }
@@ -79,7 +78,7 @@ function output() {
 }
 
 function param() {
-	lsTimeLimit = 10;
+	lsTimeLimit = 180;
 	lsNbThreads = 8;
 	lsVerbosity = 2;
 }

@@ -4,17 +4,17 @@ use io;
 
 function model() {
 	// Decision variables
-	x[j in 1..njobs][t in 0..nperiods] <- bool(); // primary
+	x[j in 1..njobs][t in efts[j]..lfts[j]] <- bool(); // primary
 	
 	// Derived cumulated demands
-	cumulatedDemand[r in 1..nres][t in 0..nperiods] <- sum[j in 1..njobs][tau in t..min(nperiods,t+durations[j]-1)](demands[j][r]*x[j][tau]);
+	cumulatedDemand[r in 1..nres][t in 0..nperiods] <- sum[j in 1..njobs][tau in t..t+durations[j]-1 : tau >= efts[j] && tau <= lfts[j]](demands[j][r]*x[j][tau]);
 	
 	// Objective
 	obj <- sum[t in efts[njobs]..lfts[njobs]](x[njobs][t] * revenue[t]) - sum[r in 1..nres][t in 0..nperiods](kappa[r]*max(0, cumulatedDemand[r][t]-capacities[r]));
 	
 	// Each once
 	for[j in 1..njobs]
-		constraint sum[t in 0..nperiods](x[j][t]) == 1;
+		constraint sum[t in efts[j]..lfts[j]](x[j][t]) == 1;
 	
 	// Precedence constraint
 	for[j in 1..njobs] {
@@ -65,9 +65,8 @@ function output() {
 	if(outFileName == nil) outFileName = "ResultSchedule.txt";
 	local f = io.openWrite(outFileName);
 	for[j in 1..njobs] {
-		for[t in 0..nperiods]
-			if(x[j][t].value == 1)
-				S[j] = t - durations[j];
+		for[t in efts[j]..lfts[j] : x[j][t].value == 1]
+			S[j] = t - durations[j];
 		
 		local outStr = j+"->"+S[j];
 		f.print(outStr);
@@ -80,7 +79,7 @@ function output() {
 }
 
 function param() {
-	lsTimeLimit = 4;
+	lsTimeLimit = 180;
 	lsNbThreads = 8;
 	lsVerbosity = 2;
 }
