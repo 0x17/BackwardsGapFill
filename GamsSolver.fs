@@ -122,7 +122,7 @@ module GamsSolver =
         opt.OptCR <- 0.0
         opt.ResLim <- if timeout.IsNone then System.Double.MaxValue else timeout.Value
         //opt.IterLim <- 99999999
-        opt.Threads <- 8
+        opt.Threads <- 1 //8
         opt.Defines.Add("IncFile", modelPathPrefix+incfile+".inc")
         let job = ws.AddJobFromFile (modelPathPrefix+"model.gms")
         let db = createDatabase ws ps "ProjectStructureData"
@@ -139,9 +139,12 @@ module GamsSolver =
     let startingTimesForFinishedJob ps (job:GAMSJob) =
         startingTimesForOutDB ps job.OutDB
 
-    let solve ps =
-        let job = snd (solveCommon ps "rcpspoc" (Some (minutes 2))  None)
+    let solveAndEval ps incfile timeout =
+        let job = snd (solveCommon ps incfile timeout  None)
         startingTimesForFinishedJob ps job
+
+    let solveWithTimeout ps timeout = solveAndEval ps "rcpspoc" (Some timeout)
+    let solve ps = solveAndEval ps "rcpspoc" None
 
     let private makespanForResultGDX (ps:ProjectStructure) (ws:GAMSWorkspace) =
         decorateResultPath >> ws.AddDatabaseFromGDX >> (startingTimesForOutDB ps) >> fst3 >> ps.Makespan

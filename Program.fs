@@ -42,7 +42,9 @@ module Program =
             ScheduleVisualisation.showSchedule "Schedule" ps sts*)
 
         //ScheduleVisualisation.fileSelectionPrompt ()
-        ScheduleVisualisation.exactSolvePrompt ()
+        //ScheduleVisualisation.exactSolvePrompt ()
+
+        Runners.batchSolveInPathToCsv "../../Projekte/testrun/" "resultsfortestrunMIP.csv"
         
         (*let ps = PSPLibParser.parse "../../Projekte/j30/j301_1.sm"
         GraphVisualisation.visualizePrecedenceGraph ps "j301_1.pdf"

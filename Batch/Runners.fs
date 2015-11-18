@@ -9,6 +9,15 @@ module Runners =
 
     let private pspLibExt = ".sm"
 
+    let batchSolveInPathToCsv path outFilename =
+        let files = Directory.GetFiles(path, "*"+pspLibExt, SearchOption.AllDirectories)
+        spit outFilename "filename;profit\n"
+        for f in files do
+            let ps = PSPLibParser.parse f
+            let res = GamsSolver.solveWithTimeout ps (Utils.minutes 1)
+            let sts = Utils.fst3 res
+            spitAppend outFilename (f+";"+string(ps.Profit sts)+"\n")            
+
     let batchComputePriorityRules path =
         let files = Directory.GetFiles(path, "*"+pspLibExt, SearchOption.AllDirectories)
         for f in files do
