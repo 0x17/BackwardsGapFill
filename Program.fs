@@ -44,9 +44,10 @@ module Program =
         //ScheduleVisualisation.fileSelectionPrompt ()
         //ScheduleVisualisation.exactSolvePrompt ()
 
-        Runners.batchSolveInPathToCsv "../../Projekte/testrun/" "resultsfortestrunMIP.csv"
+        //Runners.batchSolveInPathToCsv @"../../Projekte/testrun/" "resultsfortestrunMIP.csv"
+        Runners.batchStsToProfitCsv @"C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\Model\localsolver\testrun\results" "resutlsfortestrunLocalSolver.csv"
         
-        (*let ps = PSPLibParser.parse "../../Projekte/j30/j301_1.sm"
+        (*let ps = PSPLibParser.parse @"../../Projekte/j30/j301_1.sm"
         GraphVisualisation.visualizePrecedenceGraph ps "j301_1.pdf"
         let gmsSol = fst3 <| GamsSolver.solve ps
         //let lsSol = fst3 <| LocalSolver.solve ps

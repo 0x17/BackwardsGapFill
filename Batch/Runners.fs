@@ -18,6 +18,15 @@ module Runners =
             let sts = Utils.fst3 res
             spitAppend outFilename (f+";"+string(ps.Profit sts)+"\n")            
 
+    let batchStsToProfitCsv path outFilename =
+        let files = Directory.GetFiles(path, "*.txt", SearchOption.AllDirectories)
+        spit outFilename "filename;profit\n"
+        for f in files do
+            let smfname = f.Replace(".txt.result.txt", "")
+            let ps = PSPLibParser.parse smfname
+            let sts = Serialization.slurpMap f
+            spitAppend outFilename (f+";"+string(ps.Profit sts)+"\n")
+
     let batchComputePriorityRules path =
         let files = Directory.GetFiles(path, "*"+pspLibExt, SearchOption.AllDirectories)
         for f in files do
