@@ -19,7 +19,11 @@ sets j Arbeitsgänge
 alias(j,i);
 alias(t,tau);
 
-set pred(i,j) yes gdw. i Vorgänger von j ist;
+sets pred(i,j) yes gdw. i Vorgänger von j ist
+     tw(j, t) yes gdw. t im Zeitfenster von j liegt
+     actual(j) yes gdw. Job kein Dummy
+     lastJob(j) yes gdw. Job letzter AG
+     fw(j, t, tau) yes gdw. AG j in tau beendet werden kann wenn er in t lief;
 
 parameters
          solvetime       CPU-Zeit
@@ -33,21 +37,7 @@ parameters
          lfts(j)         Späteste Endzeitpunkte
          demands(j,r)    Bedarf;
 
-$GDXIN %instname%.gdx
-$load j t r zmax kappa capacities durations u efts lfts demands pred
-$GDXIN
 
-set tw(j, t) yes gdw. t im Zeitfenster von j liegt;
-tw(j, t)$(efts(j) <= ord(t) and ord(t) <= lfts(j)) = yes;
-
-set actual(j) yes gdw. Job kein Dummy;
-actual(j)$(1 < ord(j) and ord(j) < card(j)) = yes;
-
-set lastJob(j) yes gdw. Job letzter AG;
-lastJob(j)$(ord(j) = card(j)) = yes;
-
-set fw(j, t, tau) yes gdw. AG j in tau beendet werden kann wenn er in t lief;
-fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1) = yes;
 
 binary variable  x(j,t) 1 gdw. AG j in Periode t endet d.h. FTj=t;
 
@@ -69,6 +59,15 @@ once(j)                   .. sum(t$tw(j,t), x(j,t)) =e= 1;
 oclimits(r,t)             .. z(r,t) =l= zmax(r);
 
 model rcpspoc  /objective, precedence, resusage, once, oclimits/;
+
+$GDXIN %instname%.gdx
+$load j t r zmax kappa capacities durations u efts lfts demands pred
+$GDXIN
+
+tw(j, t)$(efts(j) <= ord(t) and ord(t) <= lfts(j)) = yes;
+actual(j)$(1 < ord(j) and ord(j) < card(j)) = yes;
+lastJob(j)$(ord(j) = card(j)) = yes;
+fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1) = yes;
 
 solve rcpspoc using mip maximizing profit;
 solvetime = rcpspoc.resusd;

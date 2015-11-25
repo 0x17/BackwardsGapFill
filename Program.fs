@@ -39,10 +39,22 @@ module Program =
             let sts = Serialization.slurpMap argv.[1]
             ScheduleVisualisation.showSchedule "Schedule" ps sts
 
+    let rec smToGdxCommand (argv:string[]) =
+        if argv.Length = 1 then
+            let path = Array.head argv
+            if System.IO.Directory.Exists(path) then
+                for child in System.IO.Directory.GetFileSystemEntries(path) do
+                    smToGdxCommand [|child|]
+            else if System.IO.File.Exists(path) then
+                let ps = PSPLibParser.parse path
+                GamsSolver.writeGdxFile ps path
+
     [<EntryPoint>]
     [<System.STAThreadAttribute>]
     let main argv =
-        scheduleVizCommand argv
+        //scheduleVizCommand argv
+
+        smToGdxCommand argv
 
         //ScheduleVisualisation.fileSelectionPrompt ()
         //ScheduleVisualisation.exactSolvePrompt ()
