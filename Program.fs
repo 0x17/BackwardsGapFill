@@ -33,19 +33,22 @@ module Program =
 
         ()
 
+    let scheduleVizCommand (argv:string[]) =
+        if argv.Length = 2 then
+            let ps = PSPLibParser.parse argv.[0]
+            let sts = Serialization.slurpMap argv.[1]
+            ScheduleVisualisation.showSchedule "Schedule" ps sts
+
     [<EntryPoint>]
     [<System.STAThreadAttribute>]
     let main argv =
-        (*if argv.Length = 2 then
-            let ps = PSPLibParser.parse argv.[0]
-            let sts = Serialization.slurpMap argv.[1]
-            ScheduleVisualisation.showSchedule "Schedule" ps sts*)
+        scheduleVizCommand argv
 
         //ScheduleVisualisation.fileSelectionPrompt ()
         //ScheduleVisualisation.exactSolvePrompt ()
 
         //Runners.batchSolveInPathToCsv @"../../Projekte/testrun/" "resultsfortestrunMIP.csv"
-        Runners.batchStsToProfitCsv @"C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\Model\localsolver\testrun\results" "resutlsfortestrunLocalSolver.csv"
+        //Runners.batchStsToProfitCsv @"C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\RCPSP-OC\Model\localsolver\testrun\results" "resutlsfortestrunLocalSolver.csv"
         
         (*let ps = PSPLibParser.parse @"../../Projekte/j30/j301_1.sm"
         GraphVisualisation.visualizePrecedenceGraph ps "j301_1.pdf"

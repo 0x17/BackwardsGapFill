@@ -9,8 +9,8 @@ $eolcom §
 
 options OPTCR = 0
         MIP = GUROBI
-        RESLIM = 604800
-        THREADS = 0;
+        RESLIM = 60
+        THREADS = 1;
 
 sets j Arbeitsgänge
      t Perioden
@@ -18,6 +18,8 @@ sets j Arbeitsgänge
 
 alias(j,i);
 alias(t,tau);
+
+set pred(i,j) yes gdw. i Vorgänger von j ist;
 
 parameters
          solvetime       CPU-Zeit
@@ -31,21 +33,9 @@ parameters
          lfts(j)         Späteste Endzeitpunkte
          demands(j,r)    Bedarf;
 
-set pred(i,j) yes gdw. i Vorgänger von j ist;
-
-*$include "data.inc"
-
-*$ontext
 $GDXIN %instname%.gdx
 $load j t r zmax kappa capacities durations u efts lfts demands pred
 $GDXIN
-*$offtext
-
-$ontext
- $gdxout ExampleData
- $unload j t r zmax kappa capacities durations u efts lfts demands pred
- $gdxout
-$offtext
 
 set tw(j, t) yes gdw. t im Zeitfenster von j liegt;
 tw(j, t)$(efts(j) <= ord(t) and ord(t) <= lfts(j)) = yes;
@@ -70,15 +60,13 @@ equations
                 precedence  Vorrangbeziehung durchsetzen
                 resusage    Ressourcenverbrauchsrestriktion
                 once        Jeden AG genau 1x einplanen
-                oclimits    Beschränke buchbare ZK
-                zerozmax    Erzwinge zmax auf Null;
+                oclimits    Beschränke buchbare ZK;
 
 objective                 .. profit =e= sum(j$lastJob(j), sum(t$tw(j,t), x(j,t)*u(t)))-sum(r, sum(t, z(r,t)*kappa(r)));
 precedence(i,j)$pred(i,j) .. sum(t$tw(i,t), ord(t)*x(i,t)) =l= sum(t$tw(j,t), ord(t)*x(j,t)) - durations(j);
 resusage(r,t)             .. sum(j$actual(j), demands(j,r)*sum(tau$fw(j,t,tau), x(j,tau))) =l= capacities(r) + z(r,t);
 once(j)                   .. sum(t$tw(j,t), x(j,t)) =e= 1;
 oclimits(r,t)             .. z(r,t) =l= zmax(r);
-zerozmax(r,t)             .. z(r,t) =e= 0;
 
 model rcpspoc  /objective, precedence, resusage, once, oclimits/;
 
@@ -88,3 +76,12 @@ slvstat = rcpspoc.solvestat;
 execute_unload "%instname%_results.gdx" x.l x.m z.l z.m profit.l profit.m solvetime slvstat;
 
 display z.l;
+
+file fp /%instname%_results.txt/;
+put fp;
+scalar stj;
+loop(j,
+  loop(t$tw(j,t),
+    if(x.l(j,t)=1,
+      stj = ord(t) - durations(j) - 1;
+      put ord(j):>4:0 '->':2 stj:<4:0 / )));

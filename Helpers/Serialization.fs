@@ -10,7 +10,7 @@ module Serialization =
         String.Join("\n", Seq.map (fun k -> k.ToString () + "->" + (Map.find k m).ToString ()) (keys m))
     let mapFromStr (s:string) t =
         let parseLine (line:string) =
-            let lhsAndRhs = line.Split ([|"->"|], StringSplitOptions.None)
+            let lhsAndRhs = line.Trim().Split ([|"->"|], StringSplitOptions.None)
             (int lhsAndRhs.[0], t lhsAndRhs.[1])
         s.Split [|'\n'|] |> Array.map parseLine |> Map.ofArray
     let array2DToStr (a:int [,]) =
