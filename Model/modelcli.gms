@@ -10,7 +10,7 @@ $eolcom §
 options OPTCR = 0
         MIP = GUROBI
         RESLIM = 60
-        THREADS = 1;
+        THREADS = 8;
 
 sets j Arbeitsgänge
      t Perioden
@@ -37,12 +37,8 @@ parameters
          lfts(j)         Späteste Endzeitpunkte
          demands(j,r)    Bedarf;
 
-
-
 binary variable  x(j,t) 1 gdw. AG j in Periode t endet d.h. FTj=t;
-
 integer variable z(r,t) Einheiten ZK von r in Periode t gebucht;
-
 variable         profit Gewinn (Parabel);
 
 equations
@@ -72,7 +68,7 @@ fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1) = yes;
 solve rcpspoc using mip maximizing profit;
 solvetime = rcpspoc.resusd;
 slvstat = rcpspoc.solvestat;
-execute_unload "%instname%_results.gdx" x.l x.m z.l z.m profit.l profit.m solvetime slvstat;
+execute_unload '%instname%_results.gdx' x.l x.m z.l z.m profit.l profit.m solvetime slvstat;
 
 display z.l;
 
@@ -84,3 +80,10 @@ loop(j,
     if(x.l(j,t)=1,
       stj = ord(t) - durations(j) - 1;
       put ord(j):>4:0 '->':2 stj:<4:0 / )));
+putclose fp
+
+file fpres /MIP_profits.txt/;
+fpres.ap = 1;
+put fpres;
+put '%instname%' ';':1 round(profit.l,4):<99:4 /;
+putclose fpres
