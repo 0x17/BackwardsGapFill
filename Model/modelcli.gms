@@ -28,6 +28,7 @@ sets pred(i,j) yes gdw. i Vorgänger von j ist
 parameters
          solvetime       CPU-Zeit
          slvstat         Termination status
+         modelstat       Model solution status
          zmax(r)         Maximale ZK
          kappa(r)        Kosten pro Einheit ZK
          capacities(r)   Kapazitäten
@@ -66,8 +67,12 @@ lastJob(j)$(ord(j) = card(j)) = yes;
 fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1) = yes;
 
 solve rcpspoc using mip maximizing profit;
+
 solvetime = rcpspoc.resusd;
 slvstat = rcpspoc.solvestat;
+modelstat = rcpspoc.modelstat;
+
+$ontext
 execute_unload '%instname%_results.gdx' x.l x.m z.l z.m profit.l profit.m solvetime slvstat;
 
 display z.l;
@@ -81,9 +86,13 @@ loop(j,
       stj = ord(t) - durations(j) - 1;
       put ord(j):>4:0 '->':2 stj:<4:0 / )));
 putclose fp
+$offtext
 
-file fpres /MIP_profits.txt/;
+file fpres /GUROBI_Results.txt/;
 fpres.ap = 1;
 put fpres;
-put '%instname%' ';':1 round(profit.l,4):<99:4 /;
+if(modelstat = 1 or modelstat = 7,
+  put '%instname%' ';':1 round(profit.l,4):<99:4 /;
+else
+  put '%instname%' ';infes':6);
 putclose fpres
