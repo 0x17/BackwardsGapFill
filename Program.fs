@@ -43,9 +43,10 @@ module Program =
         if argv.Length = 1 then
             let path = Array.head argv
             if System.IO.Directory.Exists(path) then
-                for child in System.IO.Directory.GetFileSystemEntries(path) do
-                    smToGdxCommand [|child|]
-            else if System.IO.File.Exists(path) then
+                System.IO.Directory.GetFileSystemEntries(path)
+                |> Array.iter (fun child -> smToGdxCommand [|child|])
+            else if System.IO.File.Exists(path) && path.EndsWith(".sm") && not(System.IO.File.Exists(path + ".gdx")) then
+                printf "Converting %s to %s.gdx...\n" path path
                 let ps = PSPLibParser.parse path
                 GamsSolver.writeGdxFile ps path
 
@@ -54,6 +55,8 @@ module Program =
     let main argv =
         //scheduleVizCommand argv
 
+        //smToGdxCommand argv
+        //smToGdxCommand [|"../../Projekte/j90"|]
         smToGdxCommand argv
 
         //ScheduleVisualisation.fileSelectionPrompt ()

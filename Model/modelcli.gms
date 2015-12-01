@@ -9,7 +9,7 @@ $eolcom §
 
 options OPTCR = 0
         MIP = GUROBI
-        RESLIM = 60
+        RESLIM = %timelimit%
         THREADS = 8;
 
 sets j Arbeitsgänge
@@ -26,6 +26,7 @@ sets pred(i,j) yes gdw. i Vorgänger von j ist
      fw(j, t, tau) yes gdw. AG j in tau beendet werden kann wenn er in t lief;
 
 parameters
+         seedsol(j)      Startloesung
          solvetime       CPU-Zeit
          slvstat         Termination status
          modelstat       Model solution status
@@ -39,8 +40,8 @@ parameters
          demands(j,r)    Bedarf;
 
 binary variable  x(j,t) 1 gdw. AG j in Periode t endet d.h. FTj=t;
-integer variable z(r,t) Einheiten ZK von r in Periode t gebucht;
-variable         profit Gewinn (Parabel);
+variables        z(r,t) Einheiten ZK von r in Periode t gebucht
+                 profit Gewinn (Parabel);
 
 equations
                 objective   Weitere ZF
@@ -55,16 +56,31 @@ resusage(r,t)             .. sum(j$actual(j), demands(j,r)*sum(tau$fw(j,t,tau), 
 once(j)                   .. sum(t$tw(j,t), x(j,t)) =e= 1;
 oclimits(r,t)             .. z(r,t) =l= zmax(r);
 
-model rcpspoc  /objective, precedence, resusage, once, oclimits/;
+model rcpspoc  /objective, precedence, resusage, once/;
 
 $GDXIN %instname%.gdx
-$load j t r zmax kappa capacities durations u efts lfts demands pred
+$load j t r zmax kappa capacities durations u efts lfts demands pred seedsol
 $GDXIN
 
 tw(j, t)$(efts(j) <= ord(t) and ord(t) <= lfts(j)) = yes;
 actual(j)$(1 < ord(j) and ord(j) < card(j)) = yes;
 lastJob(j)$(ord(j) = card(j)) = yes;
 fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1) = yes;
+z.lo(r,t) = 0;
+z.up(r,t) = zmax(r);
+profit.lo = 0;
+
+loop(j,
+  loop(t,
+    if(seedsol(j) = ord(t)-1 - durations(j),
+      x.l(j,t) = 1;
+    else
+      x.l(j,t) = 0)));
+profit.l = 0;
+z.l(r,t) = 0;
+
+*execute_unload 'DebugOutput.gdx';
+*$exit
 
 solve rcpspoc using mip maximizing profit;
 

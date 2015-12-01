@@ -44,6 +44,14 @@ module GamsSolver =
             let uParam = db.AddParameter ("u", 1, "Erlös bei Makespan t (Parabel)")
             addParamEntries uParam "t" (0 :: ps.TimeHorizon) ps.U
 
+            let stSeedForJob =
+                ps.TopologicalOrder
+                |> List.toSeq
+                |> ps.SerialSGS (fun r t -> 0)
+                |> mapToFunc
+            let seedSolParam = db.AddParameter ("seedsol", 1, "Startloesung")
+            addParamEntriesToF seedSolParam "j" ps.Jobs stSeedForJob
+
             let demandsParam = db.AddParameter ("demands", 2, "Bedarf")
             ps.Jobs >< ps.Resources
             |> Seq.iter (fun (j,r) -> demandsParam.AddRecord("j"+string(j), "r"+string(r)).Value <- float (ps.Demands j r))
