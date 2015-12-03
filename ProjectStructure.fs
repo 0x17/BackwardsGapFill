@@ -190,7 +190,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         let maxOcCosts = totalOvercapacityCosts ests
         let (minMakespanApprox, maxMakespanApprox) = minMaxMakespanBounds
         let ufunc t = maxOcCosts - maxOcCosts / System.Math.Pow(float(maxMakespanApprox-minMakespanApprox), 2.0) * System.Math.Pow(float(t - minMakespanApprox), 2.0) 
-        if same minMaxMakespanBounds then fun t -> -float(t)
+        if same minMaxMakespanBounds then fun t -> float(maxMakespanApprox-t)
         else ufunc
 
     let revenue = u << makespan
