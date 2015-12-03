@@ -217,7 +217,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
         let chooseBestPeriod sts j tlower tupper =
             [tlower..tupper]
             |> Seq.filter (fun t -> enoughCapacityForJob maxOc sts j t)
-            |> Seq.maxBy (fun t -> completeWithoutOC sts j t |> profit)
+            |> Seq.maxBy ((completeWithoutOC sts j) >> profit)
 
         ssgsWindow chooseBestPeriod λ
 

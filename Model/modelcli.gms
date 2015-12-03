@@ -8,9 +8,9 @@ $eolcom §
 *$set instname ProjectStructureData
 
 options OPTCR = 0
-        MIP = GUROBI
+        MIP = %solver%
         RESLIM = %timelimit%
-        THREADS = 8;
+        THREADS = 1;
 
 sets j Arbeitsgänge
      t Perioden
@@ -65,7 +65,7 @@ $GDXIN
 tw(j, t)$(efts(j) <= ord(t) and ord(t) <= lfts(j)) = yes;
 actual(j)$(1 < ord(j) and ord(j) < card(j)) = yes;
 lastJob(j)$(ord(j) = card(j)) = yes;
-fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1) = yes;
+fw(j, t, tau)$(ord(tau)>=ord(t) and ord(tau)<=ord(t)+durations(j)-1 and efts(j) <= ord(t) and ord(t) <= lfts(j)) = yes;
 z.lo(r,t) = 0;
 z.up(r,t) = zmax(r);
 profit.lo = 0;
@@ -104,10 +104,10 @@ loop(j,
 putclose fp
 $offtext
 
-file fpres /GUROBI_Results.txt/;
+file fpres /GMS_%solver%_Results.txt/;
 fpres.ap = 1;
 put fpres;
-if(modelstat = 1 or modelstat = 7,
+if(modelstat = 1 or modelstat = 7 or modelstat = 8,
   put '%instname%' ';':1 round(profit.l,4):<99:4 /;
 else
   put '%instname%' ';infes':6);
