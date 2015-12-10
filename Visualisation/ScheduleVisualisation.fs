@@ -17,6 +17,11 @@ module ScheduleVisualisation =
         Seq.iteri (fun i view -> saveViewToPng view (prefix+string(i+1))) views
         
     let private show caption (ps:ProjectStructure) (sts:Map<int,int>) =
+        if not(ps.IsScheduleResourceFeasible(sts)) then
+            raise (System.Exception("Schedule not resource feasible!"))
+        if not(ps.IsSchedulePrecedenceFeasible(sts)) then
+            raise (System.Exception("Schedule not precedence feasible!"))
+
         let lblOffsetY = 500
 
         let mainForm = new Form (Width = 1280, Height = 800, Text = "Ablaufplan - " + caption, StartPosition=FormStartPosition.CenterScreen)
