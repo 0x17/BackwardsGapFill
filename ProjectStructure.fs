@@ -63,7 +63,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let isScheduleResourceFeasible sts =
         Seq.forall (fun (r,t) -> (activeInPeriodSet sts t |> Seq.sumBy (fun j -> demands j r)) <= capacities r + zmax r) (resources >< horizon)
     let isSchedulePrecedenceFeasible sts =
-        Seq.forall (fun j -> Map.find j sts >= lastPredFinishingTime sts j) jobs
+        Seq.forall (fun j -> Set.isEmpty (preds j) || Map.find j sts >= lastPredFinishingTime sts j) jobs
     //#endregion
 
     //#region basic schedule generation schemes
