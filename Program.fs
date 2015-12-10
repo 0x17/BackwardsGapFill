@@ -57,9 +57,10 @@ module Program =
 
         //smToGdxCommand argv
         //smToGdxCommand [|"../../Projekte/j90"|]
-        smToGdxCommand argv
+        
+        //smToGdxCommand argv
 
-        //ScheduleVisualisation.fileSelectionPrompt ()
+        ScheduleVisualisation.fileSelectionPrompt ()
         //ScheduleVisualisation.exactSolvePrompt ()
 
         //Runners.batchSolveInPathToCsv @"../../Projekte/testrun/" "resultsfortestrunMIP.csv"

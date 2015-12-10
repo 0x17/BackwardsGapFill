@@ -59,6 +59,11 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let totalOvercapacityCosts sts =
         resources >< [0..makespan sts]
         |> Seq.sumBy (fun (r,t) -> kappa r * float (neededOvercapacityInPeriod sts r t))
+
+    let isScheduleResourceFeasible sts =
+        Seq.forall (fun (r,t) -> (activeInPeriodSet sts t |> Seq.sumBy (fun j -> demands j r)) <= capacities r + zmax r) (resources >< horizon)
+    let isSchedulePrecedenceFeasible sts =
+        Seq.forall (fun j -> Map.find j sts >= lastPredFinishingTime sts j) jobs
     //#endregion
 
     //#region basic schedule generation schemes
@@ -310,6 +315,10 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     member ps.CanonicalOrder = canonicalOrdering
     member ps.TopologicalOrder = topOrdering
+
+    member ps.IsScheduleResourceFeasible = isScheduleResourceFeasible
+    member ps.IsSchedulePrecedenceFeasible = isSchedulePrecedenceFeasible
+    member ps.IsScheduleFeasible sts = (isSchedulePrecedenceFeasible sts) && (isScheduleResourceFeasible sts)
     //#endregion
 
     static member Create(jobs, durations, demands, capacities, preds, resources, kappa, zmax) =
