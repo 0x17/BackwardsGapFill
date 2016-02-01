@@ -69,7 +69,7 @@ function output() {
 }
 
 function param() {
-	lsTimeLimit = 120;
+	lsTimeLimit = 99999120;
 	lsNbThreads = 8;
 	lsVerbosity = 2;
 }

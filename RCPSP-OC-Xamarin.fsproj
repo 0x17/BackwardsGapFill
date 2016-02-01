@@ -37,8 +37,7 @@
         <Command type="Execute" command="${TargetFile}" workingdir="${SolutionDir}" externalConsole="True" pauseExternalConsole="True" />
       </CustomCommands>
     </CustomCommands>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants></DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
@@ -84,8 +83,8 @@
     <Compile Include="PSPLibParser.fs" />
     <Compile Include="GamsSolver.fs" />
     <Compile Include="LocalSolver.fs" />
-    <Compile Include="Visualisation\ScheduleVisualisation.fs" />
     <Compile Include="Visualisation\GraphVisualisation.fs" />
+    <Compile Include="Visualisation\ScheduleVisualisation.fs" />
     <Compile Include="Visualisation\PlotVisualisation.fs" />
     <Compile Include="Batch\Runners.fs" />
     <Compile Include="Batch\VisRunners.fs" />

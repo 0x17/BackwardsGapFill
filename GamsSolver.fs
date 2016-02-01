@@ -120,7 +120,7 @@ module GamsSolver =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
         let db = createDatabase ws ps outFilename
         let job = ws.AddJobFromString("variables x; equations xeq; xeq.. x =e= 23;")
-        job.Run(db)
+        job.Run(db) 
 
     let solveCommon ps incfile (timeout:Option<float>) (additionalData:Option<GAMSDatabase->unit>) =
         let ws = GAMSWorkspace (workingDirectory=".", debug=DebugLevel.Off)
