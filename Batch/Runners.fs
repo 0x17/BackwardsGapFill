@@ -8,6 +8,7 @@ module Runners =
     let testProjectStructure () =  PSPLibParser.parse testFilename
 
     let private pspLibExt = ".sm"
+    let private gdxExt = ".gdx"
 
     let batchSolveInPathToCsv path outFilename =
         let files = Directory.GetFiles(path, "*"+pspLibExt, SearchOption.AllDirectories)
@@ -35,11 +36,11 @@ module Runners =
             for order in orders do
                 spitAppend (f+".PRULES") (System.String.Join(" ", order)+"\n")
 
-    let convertBatchSmToGdx force path =        
+    let convertBatchSmToGdx overwrite path =        
         let files = Directory.GetFiles(path, "*"+pspLibExt, SearchOption.AllDirectories)
         for f in files do
             let prefix = f.Replace(pspLibExt, "")
-            if force || not(File.Exists(prefix)) then
+            if overwrite || not(File.Exists(prefix)) then
                 printf "Converting %s\n" f
                 let ps = PSPLibParser.parse f
                 GamsSolver.writeGdxFile ps prefix
@@ -61,7 +62,7 @@ module Runners =
     let convertResultsGdxToCsv = batchExtractFromGdxInPath (GamsSolver.extractProfitFromResult, GamsSolver.extractMakespanFromResult, GamsSolver.extractMakespanFromResult)
     let extractSolveStatsFromGdx = batchExtractFromGdxInPath (GamsSolver.extractSolveStatFromResult, GamsSolver.extractSolveStatFromResult, GamsSolver.extractSolveStatFromResult)
  
-    let copyRelevantInstances smPath (srcPath:string) (destPath:string) =
+    let copyRelevantInstancesExact smPath (srcPath:string) (destPath:string) =
         let derivedFilenames (fn:string) =
             let tminFn = fn.Replace("tmax", "tmin")
             let resultFn = fn.Replace("_tmax", "")
@@ -87,3 +88,33 @@ module Runners =
                 let solved = [ fn; tminFn; resultFn ] |> List.map GamsSolver.extractSolveStatFromResult |> List.forall ((=) 1.0)
                 if solved && not(minMaxMsEqual tminFn fn) then copyRelatedFiles fn
 
+    let scheduleVizCommand (argv:string[]) =
+        if argv.Length = 2 then
+            let ps = PSPLibParser.parse argv.[0]
+            let sts = Serialization.slurpMap argv.[1]
+            ScheduleVisualisation.showSchedule "Schedule" ps sts
+
+    let rec convertSmToGdx filter path =
+        if System.IO.Directory.Exists(path) then
+            System.IO.Directory.GetFileSystemEntries(path)
+            |> Array.filter filter
+            |> Array.iter (fun child -> convertSmToGdx filter child)
+        else if System.IO.File.Exists(path) && path.EndsWith(pspLibExt) && not(System.IO.File.Exists(path + gdxExt)) then
+            printf "Converting %s to %s.gdx...\n" path path
+            let ps = PSPLibParser.parse path
+            GamsSolver.writeGdxFile ps path
+
+    let smToGdxCommand filter (argv:string[]) =
+        if argv.Length = 1 then convertSmToGdx filter (Array.head argv)
+
+    let isRelevant projFilename =
+        let ps = PSPLibParser.parse projFilename
+        let minMs = ps.Makespan (ps.SerialSGS (fun r t -> ps.ZMax r) (List.toSeq ps.TopologicalOrder))
+        let maxMs = ps.Makespan (ps.SerialSGS (fun r t -> 0) (List.toSeq ps.TopologicalOrder))
+        if minMs = maxMs then
+            printf "minMs = %d, maxMs = %d, same, skipping %s\n" minMs maxMs projFilename
+        (maxMs - minMs <> 0)
+
+    let convertRelevantSmToGdx = convertSmToGdx isRelevant
+
+    let smToGdxCommandRelevant = smToGdxCommand isRelevant

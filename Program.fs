@@ -1,6 +1,6 @@
 ﻿namespace RCPSP
 
-open Utils
+open Runners
 
 module Program =
     let obsoleteCode =
@@ -33,22 +33,7 @@ module Program =
 
         ()
 
-    let scheduleVizCommand (argv:string[]) =
-        if argv.Length = 2 then
-            let ps = PSPLibParser.parse argv.[0]
-            let sts = Serialization.slurpMap argv.[1]
-            ScheduleVisualisation.showSchedule "Schedule" ps sts
-
-    let rec smToGdxCommand (argv:string[]) =
-        if argv.Length = 1 then
-            let path = Array.head argv
-            if System.IO.Directory.Exists(path) then
-                System.IO.Directory.GetFileSystemEntries(path)
-                |> Array.iter (fun child -> smToGdxCommand [|child|])
-            else if System.IO.File.Exists(path) && path.EndsWith(".sm") && not(System.IO.File.Exists(path + ".gdx")) then
-                printf "Converting %s to %s.gdx...\n" path path
-                let ps = PSPLibParser.parse path
-                GamsSolver.writeGdxFile ps path
+    
 
     [<EntryPoint>]
     [<System.STAThreadAttribute>]
@@ -58,7 +43,12 @@ module Program =
         //smToGdxCommand argv
         //smToGdxCommand [|"../../Projekte/j90"|]
         
-        smToGdxCommand argv
+        //smToGdxCommand argv
+        smToGdxCommandRelevant argv
+
+        //let ps = PSPLibParser.parse @"../../Projekte/j60/j6011_2.sm"
+        //let ps = PSPLibParser.parse @"C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\CPP-RCPSP-OC\MiniBeispiel.DAT"
+        //GraphVisualisation.visualizePrecedenceGraph ps "MiniBeispielGraph"
 
         //ScheduleVisualisation.fileSelectionPrompt ()
         //ScheduleVisualisation.exactSolvePrompt ()

@@ -98,7 +98,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="GAMS.net4">
-      <HintPath>Libs\GAMS.net4.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\GAMS\win64\24.7\GAMS.net4.dll</HintPath>
     </Reference>
     <Reference Include="localsolvernet">
       <HintPath>..\..\..\..\..\..\..\localsolver_6_0\bin\localsolvernet.dll</HintPath>
