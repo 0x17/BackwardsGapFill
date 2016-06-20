@@ -20,11 +20,13 @@ module GamsSolver =
     let createDatabase (ws:GAMSWorkspace) (ps:ProjectStructure) (outFilename:string) =
         let db = ws.AddDatabase outFilename
 
+        System.runCmd System.Blocking "Solver.exe" ("LocalSolverNative5 30 " + outFilename)
+
         let addSets () =
             let jset = db.AddSet ("j", 1, "Arbeitsgänge")
             addSetEntries jset "j" ps.Jobs
             let tset = db.AddSet ("t", 1, "Perioden")
-            addSetEntries tset "t" (0 :: ps.TimeHorizon)
+            addSetEntries tset "t" (0 :: ps.TightTimeHorizon)
             let rset = db.AddSet ("r", 1, "Ressourcen")
             addSetEntries rset "r" ps.Resources
             let predSet = db.AddSet ("pred", 2, "yes gdw. i Vorgänger von j ist")
@@ -42,13 +44,14 @@ module GamsSolver =
             let durationsParam = db.AddParameter ("durations", 1, "Dauern")
             addParamEntriesToF durationsParam "j" ps.Jobs ps.Durations
             let uParam = db.AddParameter ("u", 1, "Erlös bei Makespan t (Parabel)")
-            addParamEntries uParam "t" (0 :: ps.TimeHorizon) ps.U
+            addParamEntries uParam "t" (0 :: ps.TightTimeHorizon) ps.U
 
             let stSeedForJob =
-                ps.TopologicalOrder
+                Serialization.slurpMap "myschedule.txt" |> mapToFunc
+                (*ps.TopologicalOrder
                 |> List.toSeq
                 |> ps.SerialSGS (fun r t -> 0)
-                |> mapToFunc
+                |> mapToFunc*)
             let seedSolParam = db.AddParameter ("seedsol", 1, "Startloesung")
             addParamEntriesToF seedSolParam "j" ps.Jobs stSeedForJob
 
@@ -59,7 +62,7 @@ module GamsSolver =
             let eftsParam = db.AddParameter ("efts", 1, "Früheste Startzeitpunkte")
             addParamEntriesToF eftsParam "j" ps.Jobs ps.EarliestFinishingTimes
             let lftsParam = db.AddParameter ("lfts", 1, "Späteste Endzeitpunkte")
-            addParamEntriesToF lftsParam "j" ps.Jobs ps.LatestFinishingTimes
+            addParamEntriesToF lftsParam "j" ps.Jobs ps.TightLatestFinishingTimes
 
             let dparam = db.AddParameter("deadline", 0)
             dparam.AddRecord().Value <- -1.0

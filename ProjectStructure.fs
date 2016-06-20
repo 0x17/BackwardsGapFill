@@ -97,6 +97,11 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let ssgsCore z sts λ = Seq.fold (scheduleJob z) sts λ
     let ssgs z λ = ssgsCore z (Map.ofList [(Seq.head λ, 0)]) (Seq.skip 1 λ)
 
+    // tight bounds heuristically determined
+    let tightT = makespan (ssgs zeroOc topOrdering)
+    let tightHorizon = [1..tightT]
+    let tightLfts = computeLfts tightT
+
     let quickssgs z λ =     
         let numres = Seq.length resources
         let resRem = Array2D.init numres T (fun rix tix -> capacities (rix+1) + z (rix+1) (tix+1))        
@@ -288,11 +293,13 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.ZMax = zmax
     member ps.U = u
     member ps.TimeHorizon = horizon   
+    member ps.TightTimeHorizon = tightHorizon
 
     member ps.EarliestStartingTimes = mapToFunc ests
     member ps.LatestStartingTimes = lsts
     member ps.EarliestFinishingTimes = efts
     member ps.LatestFinishingTimes = mapToFunc lfts
+    member ps.TightLatestFinishingTimes = mapToFunc tightLfts
 
     member ps.Deadline = deadline
     member ps.Makespan = makespan
