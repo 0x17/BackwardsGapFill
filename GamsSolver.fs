@@ -20,7 +20,7 @@ module GamsSolver =
     let createDatabase (ws:GAMSWorkspace) (ps:ProjectStructure) (outFilename:string) =
         let db = ws.AddDatabase outFilename
 
-        System.runCmd System.Blocking "Solver.exe" ("LocalSolverNative5 30 " + outFilename)
+        //System.runCmd System.Blocking "Solver.exe" ("LocalSolverNative5 30 -1 " + outFilename)
 
         let addSets () =
             let jset = db.AddSet ("j", 1, "Arbeitsgänge")
@@ -47,11 +47,11 @@ module GamsSolver =
             addParamEntries uParam "t" (0 :: ps.TightTimeHorizon) ps.U
 
             let stSeedForJob =
-                Serialization.slurpMap "myschedule.txt" |> mapToFunc
-                (*ps.TopologicalOrder
+                //Serialization.slurpMap "myschedule.txt" |> mapToFunc
+                ps.TopologicalOrder
                 |> List.toSeq
                 |> ps.SerialSGS (fun r t -> 0)
-                |> mapToFunc*)
+                |> mapToFunc
             let seedSolParam = db.AddParameter ("seedsol", 1, "Startloesung")
             addParamEntriesToF seedSolParam "j" ps.Jobs stSeedForJob
 
