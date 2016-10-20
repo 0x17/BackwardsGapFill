@@ -190,9 +190,10 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
 
     //#region profit/revenue computation
     let minMaxMakespanBounds =
-        let tkappar r = System.Math.Ceiling(float (Seq.sumBy (fun j -> durations j * demands j r) jobs) / float (capacities r + zmax r)) |> int
+        (*let tkappar r = System.Math.Ceiling(float (Seq.sumBy (fun j -> durations j * demands j r) jobs) / float (capacities r + zmax r)) |> int
         let tkappa = resources |> Seq.map tkappar |> Seq.max
-        let minMakespanApprox = max (makespan ests) tkappa
+        let minMakespanApprox = max (makespan ests) tkappa*)
+        let minMakespanApprox = makespan ests
         let maxMakespanApprox = makespan (ssgs zeroOc topOrdering)
         (minMakespanApprox, maxMakespanApprox)
 
