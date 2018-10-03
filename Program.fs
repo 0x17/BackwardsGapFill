@@ -44,7 +44,10 @@ module Program =
         //smToGdxCommand [|"../../Projekte/j90"|]
         
         //smToGdxCommand argv
+
         smToGdxCommandRelevant argv
+        
+        //let ps = JsonParser.parse "test.json"
 
         //let ps = PSPLibParser.parse @"../../Projekte/j60/j6011_2.sm"
         //let ps = PSPLibParser.parse @"C:\Users\a.schnabel\Dropbox\Arbeit\Scheduling\Code\CPP-RCPSP-OC\MiniBeispiel.DAT"
