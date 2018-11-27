@@ -29,6 +29,8 @@ module GamsSolver =
             addSetEntries tset "t" (0 :: ps.TightTimeHorizon)
             let rset = db.AddSet ("r", 1, "Ressourcen")
             addSetEntries rset "r" ps.Resources
+            let lset = db.AddSet ("l", 1, "Ressourceneinheiten")
+            addSetEntries lset "l" (seq { 1 .. (ps.Resources |> Seq.map ps.Capacities |> Seq.max)})
             let predSet = db.AddSet ("pred", 2, "yes gdw. i Vorgänger von j ist")
             for j in ps.Jobs do
                 for i in ps.Preds j do
