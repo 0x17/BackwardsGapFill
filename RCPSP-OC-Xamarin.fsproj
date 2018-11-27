@@ -49,9 +49,6 @@
     </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
-    <Reference Include="FSharp.Core">
-      <HintPath>packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
-    </Reference>
     <Reference Include="GAMS.net4">
       <HintPath>Libs\GAMS.net4.dll</HintPath>
     </Reference>
@@ -67,6 +64,9 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="FSharp.Data">
       <HintPath>packages\FSharp.Data.3.0.0\lib\net45\FSharp.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="FSharp.Core">
+      <HintPath>packages\FSharp.Core.4.5.4\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
