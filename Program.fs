@@ -42,10 +42,10 @@ module Program =
 
         //smToGdxCommand argv
         //smToGdxCommand [|"../../Projekte/j90"|]
-        
-        //smToGdxCommand argv
 
-        smToGdxCommandRelevant argv
+        smToGdxCommand (fun _ -> true) argv
+
+        //smToGdxCommandRelevant argv
         
         //let ps = JsonParser.parse "test.json"
 

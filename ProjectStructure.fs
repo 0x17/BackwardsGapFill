@@ -13,9 +13,9 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let T = Seq.sumBy durations jobs
     let horizon = [1..T]
 
-    let transPreds = transitiveHull preds
+    let transPreds = transitiveClosure preds
     let succs = memoize (fun i -> jobs |> Seq.filter (fun j -> (preds j).Contains i) |> Set.ofSeq)
-    let transSuccs = transitiveHull succs
+    let transSuccs = transitiveClosure succs
 
     let canonicalOrdering = seq { 1 .. Set.count jobs}
     let topOrdering = topSort jobs preds

@@ -88,7 +88,7 @@ module Utils =
         if n = 1 then f seed
         else f (foldItselfTimes f seed (n-1))
 
-    let transitiveHull nodeToSet =
+    let transitiveClosure nodeToSet =
         memoize ((foldItselfConverge (fun acc -> Seq.append [acc] (Seq.map nodeToSet acc) |> Set.unionMany)) << nodeToSet)
 
     let swap (a,b) = (b,a)
