@@ -289,6 +289,7 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.Preds = preds
     member ps.Succs = succs
     member ps.TransSuccs = transSuccs
+    member ps.TransPreds = transPreds
     member ps.Resources = resources
     member ps.Kappa = kappa
     member ps.ZMax = zmax

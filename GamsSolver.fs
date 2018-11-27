@@ -33,6 +33,10 @@ module GamsSolver =
             for j in ps.Jobs do
                 for i in ps.Preds j do
                     predSet.AddRecord ("j"+string(i), "j"+string(j)) |> ignore
+            let predTransClosure = db.AddSet ("predTransClosure", 2, "yes gdw. i direkter/indirekter Vorgänger von j ist")
+            for j in ps.Jobs do
+                for i in ps.TransPreds j do
+                    predTransClosure.AddRecord ("j"+string(i), "j"+string(j)) |> ignore
 
         let addParams () =
             let zMaxParam = db.AddParameter ("zmax", 1, "Maximale ZK von r")
