@@ -47,7 +47,13 @@ module Utils =
     let keyset m = keys m |> Set.ofSeq
     let vals m = Map.toSeq m |> Seq.map snd
 
-    let (><) xs ys = Seq.collect (fun x -> Seq.map (fun y -> (x,y)) ys) xs      
+    let (><) xs ys = Seq.collect (fun x -> Seq.map (fun y -> (x,y)) ys) xs
+
+    let triplets xs ys zs =
+        let pairs = ys >< zs
+        Seq.collect (fun x -> Seq.map (fun (y,z) -> (x,y,z)) pairs) xs
+    
+    let cube xs = triplets xs xs xs
 
     let parts (str:string) = Array.filter (fun (s:string) -> s.Length > 0) (str.Split [|' '|])
         

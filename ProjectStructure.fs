@@ -33,6 +33,16 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     let zeroOc r t = 0
     let maxOc r t = zmax r
 
+    let forbiddenPairs =
+        jobs >< jobs
+        |> Seq.filter (fun (i,j) -> i <> j)
+        |> Seq.filter (fun (i,j) -> Seq.exists (fun r -> demands i r + demands j r > capacities r) resources)
+    
+    let forbiddenTriplets =
+        cube jobs
+        |> Seq.filter (fun (i,j,k) -> i <> j && j <> k && i <> k)
+        |> Seq.filter (fun (i,j,k) -> Seq.exists (fun r -> demands i r + demands j r + demands k r > capacities r) resources)
+
     //#region schedule properties
     let lastPredCore predfunc sts = Seq.max << Seq.map (ft sts) << predfunc
     let firstSuccCore succfunc fts = Seq.min << Seq.map (st fts) << succfunc
@@ -302,6 +312,9 @@ type ProjectStructure(jobs, durations, demands, preds: int -> Set<int>, resource
     member ps.EarliestFinishingTimes = efts
     member ps.LatestFinishingTimes = mapToFunc lfts
     member ps.TightLatestFinishingTimes = mapToFunc tightLfts
+
+    member ps.ForbiddenPairs = forbiddenPairs
+    member ps.ForbiddenTriplets = forbiddenTriplets
 
     member ps.Deadline = deadline
     member ps.Makespan = makespan

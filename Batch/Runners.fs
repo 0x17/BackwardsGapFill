@@ -99,10 +99,15 @@ module Runners =
             System.IO.Directory.GetFileSystemEntries(path)
             |> Array.filter filter
             |> Array.iter (fun child -> convertSmToGdx filter child)
-        else if System.IO.File.Exists(path) && path.EndsWith(pspLibExt) && not(System.IO.File.Exists(path + gdxExt)) then
-            printf "Converting %s to %s.gdx...\n" path path
-            let ps = PSPLibParser.parse path
-            GamsSolver.writeGdxFile ps path
+        else if System.IO.File.Exists(path) then
+            if not(path.EndsWith(pspLibExt)) then
+                printf "Filename %s should have extension %s\n" path pspLibExt
+            elif System.IO.File.Exists(path + gdxExt) then
+                printf "Converted file for %s already exists. Skipping!\n" path
+            else
+                printf "Converting %s to %s.gdx...\n" path path
+                let ps = PSPLibParser.parse path
+                GamsSolver.writeGdxFile ps path
 
     let smToGdxCommand filter (argv:string[]) =
         if argv.Length = 1 then convertSmToGdx filter (Array.head argv)

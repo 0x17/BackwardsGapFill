@@ -39,6 +39,10 @@ module GamsSolver =
             for j in ps.Jobs do
                 for i in ps.TransPreds j do
                     predTransClosure.AddRecord ("j"+string(i), "j"+string(j)) |> ignore
+            let forbiddenPairs = db.AddSet ("forbiddenPairs", 2, "yes gdw. i und j nicht parallel durchgeführt werden dürfen")
+            Seq.iter (fun (i,j) ->  forbiddenPairs.AddRecord("j"+string(i), "j"+string(j)) |> ignore) ps.ForbiddenPairs
+            let forbiddenTriplets = db.AddSet ("forbiddenTriplets", 3, "yes gdw. i, j und k nicht parallel durchgeführt werden dürfen")
+            Seq.iter (fun (i,j,k) ->  forbiddenTriplets.AddRecord("j"+string(i), "j"+string(j), "j"+string(k)) |> ignore) ps.ForbiddenTriplets
 
         let addParams () =
             let zMaxParam = db.AddParameter ("zmax", 1, "Maximale ZK von r")
